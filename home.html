@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thesis & Project Repository System</title>
+    <!-- Google Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- =========================================================
+         MAIN APPLICATION
+         ========================================================= -->
+    <div id="appPage" class="app-page">
+    <!-- =========================================================
+         HEADER / TOP NAVIGATION BAR
+         ========================================================= -->
+    <header>
+        <div class="header-left">
+            <span class="material-icons logo-icon">school</span>
+            <div class="logo-text">Thesis & Project Repository System</div>
+        </div>
+        <div class="header-right">
+            <nav>
+                <a href="home.html">Dashboard</a>
+                <a href="upload.html">Upload Thesis</a>
+                <a href="#admin">Admin</a>
+            </nav>
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar">SA</div>
+                <span class="user-name">Sumayea Akter</span>
+                <span class="material-icons dropdown-arrow">expand_more</span>
+                
+                <!-- Profile Dropdown Menu -->
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="dropdown-header">
+                        <div class="dropdown-avatar">SA</div>
+                        <div class="dropdown-info">
+                            <div class="dropdown-name">Sumayea Akter</div>
+                            <div class="dropdown-email">ce23046@mbstu.ac.bd</div>
+                            <div class="dropdown-details">
+                                <span class="dropdown-detail-item">
+                                    <span class="material-icons">business</span>
+                                    CSE Department
+                                </span>
+                                <span class="dropdown-detail-item">
+                                    <span class="material-icons">badge</span>
+                                    CE23046
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-menu">
+                        <a href="#profile" class="dropdown-item">
+                            <span class="material-icons">person</span>
+                            Profile
+                        </a>
+                        <a href="#bookmarks" class="dropdown-item">
+                            <span class="material-icons">bookmark</span>
+                            Bookmarks
+                        </a>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item logout-btn">
+                        <span class="material-icons">logout</span>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- =========================================================
+         MAIN CONTAINER - THREE COLUMN LAYOUT
+         ========================================================= -->
+    <div class="container">
+        <!-- =====================================================
+             LEFT SIDEBAR - FILTERS
+             ===================================================== -->
+        <aside class="sidebar-left">
+            <h2 class="sidebar-title">
+                <span class="material-icons">filter_list</span>
+                Filters
+            </h2>
+
+            <!-- Session Filter -->
+            <div class="filter-section">
+                <label class="filter-label">Session</label>
+                <div class="checkbox-group" id="sessionFilter">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session2024" value="2024-2025" checked>
+                        <label for="session2024">2024-2025</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session2023" value="2023-2024">
+                        <label for="session2023">2023-2024</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session2022" value="2022-2023">
+                        <label for="session2022">2022-2023</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session2021" value="2021-2022">
+                        <label for="session2021">2021-2022</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="sessionOlder" value="Older">
+                        <label for="sessionOlder">Older</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Degree Type Filter -->
+            <div class="filter-section">
+                <label class="filter-label">Degree Type</label>
+                <div class="checkbox-group" id="degreeFilter">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="bachelor" value="Bachelor">
+                        <label for="bachelor">Bachelor</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="master" value="Master">
+                        <label for="master">Master</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="doctoral" value="Doctoral">
+                        <label for="doctoral">Doctoral</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Author Filter -->
+            <div class="filter-section">
+                <label class="filter-label">Author</label>
+                <input type="text" class="text-input" id="authorFilter" placeholder="Name or email…">
+            </div>
+
+            <!-- Supervisor Filter -->
+            <div class="filter-section">
+                <label class="filter-label">Supervisor</label>
+                <select class="dropdown-select" id="supervisorFilter">
+                    <option value="">All Supervisors</option>
+                    <option value="A S M Delowar Hossain">A S M Delowar Hossain</option>
+                    <option value="Dr. Mostofa Kamal Nasir">Dr. Mostofa Kamal Nasir</option>
+                    <option value="Dr. Mehedi Hasan Talukder">Dr. Mehedi Hasan Talukder</option>
+                    <option value="Dr. Md. Sazzad Hossain">Dr. Md. Sazzad Hossain</option>
+                </select>
+            </div>
+        </aside>
+
+        <!-- =====================================================
+             MAIN CONTENT AREA
+             ===================================================== -->
+        <main class="main-content">
+            <!-- Search Bar Section -->
+            <div class="search-section">
+                <div class="search-bar" id="searchBar">
+                    <span class="material-icons search-icon">search</span>
+                    <input type="text" id="searchInput" placeholder="Search for Thesis or Project">
+                    <!-- Autocomplete Suggestions -->
+                    <div class="search-suggestions" id="searchSuggestions">
+                        <div class="suggestions-list" id="suggestionsList"></div>
+                    </div>
+                </div>
+                <button class="search-btn">
+                    <span class="material-icons">search</span>
+                    Search
+                </button>
+            </div>
+
+            <!-- Thesis List Section -->
+            <section class="thesis-section">
+                <h2 class="section-title">Recent Thesis & Projects</h2>
+                <div id="thesisList"></div>
+            </section>
+        </main>
+
+        <!-- =====================================================
+             RIGHT SIDEBAR - DASHBOARD OVERVIEW
+             ===================================================== -->
+        <aside class="sidebar-right">
+            <!-- Overview Cards -->
+            <div class="overview-card thesis">
+                <span class="material-icons overview-icon">description</span>
+                <div class="overview-label">Total Thesis</div>
+                <div class="overview-number" id="totalThesis">0</div>
+            </div>
+
+            <div class="overview-card project">
+                <span class="material-icons overview-icon">folder_special</span>
+                <div class="overview-label">Total Project</div>
+                <div class="overview-number" id="totalProject">4</div>
+            </div>
+
+            <div class="overview-card authors">
+                <span class="material-icons overview-icon">people</span>
+                <div class="overview-label">Authors</div>
+                <div class="overview-number" id="totalAuthors">4</div>
+            </div>
+
+            <!-- Popular Keywords Section -->
+            <div class="keywords-section">
+                <h3 class="keywords-title">Popular Keywords</h3>
+                <div id="keywordsList"></div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
