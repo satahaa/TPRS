@@ -5,8 +5,8 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #87CEEB 0%, #667eea 50%, #764ba2 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -15,23 +15,57 @@ body {
 
 .login-container {
     width: 100%;
-    max-width: 420px;
+    max-width: 440px;
     padding: 20px;
 }
 
 .login-box {
-    background: #ffffff;
-    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
     padding: 40px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 }
 
-.login-box h1 {
+/* Brand Header Styles */
+.brand-header {
     text-align: center;
-    color: #333;
-    margin-bottom: 30px;
-    font-size: 28px;
-    font-weight: 600;
+    margin-bottom: 35px;
+}
+
+.brand-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #87CEEB 0%, #667eea 50%, #4169E1 100%);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    box-shadow: 0 10px 30px rgba(135, 206, 235, 0.4);
+}
+
+.brand-icon .material-icons {
+    font-size: 36px;
+    color: white;
+}
+
+.brand-title {
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #87CEEB 0%, #667eea 50%, #4169E1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
+}
+
+.brand-subtitle {
+    font-size: 14px;
+    color: #667eea;
+    font-weight: 500;
+    margin-top: 5px;
+    letter-spacing: 0.5px;
 }
 
 .input-group {
@@ -47,21 +81,41 @@ body {
     font-weight: 500;
 }
 
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    color: #aaa;
+    font-size: 20px;
+    transition: color 0.3s ease;
+}
+
 .input-group input {
     width: 100%;
-    padding: 14px 16px;
+    padding: 14px 45px;
     border: 2px solid #e1e1e1;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 15px;
+    font-family: 'Poppins', sans-serif;
     transition: all 0.3s ease;
     background-color: #f9f9f9;
 }
 
 .input-group input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #f093fb;
     background-color: #fff;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 4px rgba(240, 147, 251, 0.15);
+}
+
+.input-group input:focus + .input-icon,
+.input-wrapper:focus-within .input-icon {
+    color: #f093fb;
 }
 
 .input-group input::placeholder {
@@ -71,10 +125,21 @@ body {
 .toggle-password {
     position: absolute;
     right: 14px;
-    top: 42px;
     cursor: pointer;
-    font-size: 18px;
     user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password .material-icons {
+    font-size: 22px;
+    color: #aaa;
+    transition: color 0.3s ease;
+}
+
+.toggle-password:hover .material-icons {
+    color: #87CEEB;
 }
 
 .options {
@@ -97,7 +162,7 @@ body {
     width: 16px;
     height: 16px;
     cursor: pointer;
-    accent-color: #667eea;
+    accent-color: #87CEEB;
 }
 
 .forgot-password {
@@ -108,28 +173,37 @@ body {
 }
 
 .forgot-password:hover {
-    color: #764ba2;
+    color: #87CEEB;
     text-decoration: underline;
 }
 
 .login-btn {
     width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #87CEEB 0%, #667eea 50%, #4169E1 100%);
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
+    font-family: 'Poppins', sans-serif;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.login-btn .material-icons {
+    font-size: 20px;
 }
 
 .login-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(135, 206, 235, 0.5);
 }
 
 .login-btn:active {
@@ -137,7 +211,7 @@ body {
 }
 
 .login-btn:disabled {
-    background: #ccc;
+    background: linear-gradient(135deg, #ccc 0%, #aaa 100%);
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -146,7 +220,7 @@ body {
 .error-message {
     margin-top: 15px;
     padding: 0;
-    color: #e74c3c;
+    color: #f5576c;
     font-size: 14px;
     text-align: center;
     opacity: 0;
@@ -159,15 +233,16 @@ body {
     opacity: 1;
     max-height: 50px;
     padding: 10px;
-    background-color: #ffeaea;
-    border-radius: 8px;
+    background-color: #fff0f3;
+    border-radius: 10px;
+    border: 1px solid #f5576c;
 }
 
 .signup-link {
     text-align: center;
     margin-top: 25px;
     padding-top: 25px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #f0f0f0;
 }
 
 .signup-link p {
@@ -183,7 +258,7 @@ body {
 }
 
 .signup-link a:hover {
-    color: #764ba2;
+    color: #87CEEB;
     text-decoration: underline;
 }
 
@@ -193,8 +268,21 @@ body {
         padding: 30px 25px;
     }
 
-    .login-box h1 {
-        font-size: 24px;
+    .brand-title {
+        font-size: 28px;
+    }
+
+    .brand-subtitle {
+        font-size: 12px;
+    }
+
+    .brand-icon {
+        width: 60px;
+        height: 60px;
+    }
+
+    .brand-icon .material-icons {
+        font-size: 30px;
     }
 
     .options {
@@ -217,5 +305,5 @@ body {
 }
 
 .login-box {
-    animation: fadeInUp 0.5s ease-out;
+    animation: fadeInUp 0.6s ease-out;
 }
