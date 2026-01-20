@@ -20,5 +20,6 @@
     ],
     "java.project.sourcePaths": [
         "backend/src/main/java"
-    ]
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
