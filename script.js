@@ -1,7 +1,7 @@
 // =====================================================
-// MOCK DATA - SAMPLE THESES
+// MOCK DATA - SAMPLE THESES (FALLBACK DATA)
 // =====================================================
-const thesesData = [
+let thesesData = [
     {
         id: 1,
         title: "Smart Medical Record Management System",
@@ -75,12 +75,104 @@ const thesesData = [
 ];
 
 // Popular keywords
-const keywords = [
+let keywords = [
     { name: "Machine Learning", count: 28 },
     { name: "Blockchain", count: 15 },
     { name: "Smart Grid", count: 12 },
     { name: "Others", count: 34 }
 ];
+
+// =====================================================
+// CHECK AUTHENTICATION
+// =====================================================
+function checkAuth() {
+    // Use TPRSApi if available, fallback to sessionStorage
+    if (typeof TPRSApi !== 'undefined' && !TPRSApi.isLoggedIn()) {
+        window.location.href = 'login.html';
+        return false;
+    } else if (typeof TPRSApi === 'undefined' && sessionStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+        return false;
+    }
+    return true;
+}
+
+// =====================================================
+// LOAD DATA FROM BACKEND
+// =====================================================
+async function loadDataFromBackend() {
+    try {
+        // Try to get recent projects from backend
+        if (typeof TPRSApi !== 'undefined') {
+            const recentResult = await TPRSApi.getDashboardRecent(10);
+            if (recentResult.success && recentResult.projects && recentResult.projects.length > 0) {
+                // Convert backend data to display format
+                thesesData = recentResult.projects.map(project => ({
+                    id: project.id,
+                    title: project.title,
+                    author: project.studentName || project.authorName || 'Unknown',
+                    authorInitials: getInitials(project.studentName || project.authorName || 'Unknown'),
+                    department: project.department || 'CSE',
+                    degree: project.degree || 'Bachelor',
+                    year: new Date(project.createdAt || project.submittedAt).getFullYear(),
+                    session: project.session || '2024-2025',
+                    field: project.type || 'Thesis',
+                    views: project.views || 0,
+                    bookmarked: false,
+                    supervisor: project.supervisorName || project.supervisor || 'N/A',
+                    status: project.status || 'pending'
+                }));
+            }
+
+            // Get dashboard stats
+            const statsResult = await TPRSApi.getDashboardStats();
+            if (statsResult.success && statsResult.stats) {
+                document.getElementById('totalThesis').textContent = statsResult.stats.totalThesis || 0;
+                document.getElementById('totalProject').textContent = statsResult.stats.totalProject || 0;
+                document.getElementById('totalAuthors').textContent = statsResult.stats.totalAuthors || 0;
+            }
+        }
+    } catch (error) {
+        console.log('Backend not available, using local data');
+        // Load from localStorage as fallback
+        loadLocalStorageData();
+    }
+}
+
+// Load data from localStorage (fallback)
+function loadLocalStorageData() {
+    const submissions = JSON.parse(localStorage.getItem('thesisSubmissions') || '[]');
+    if (submissions.length > 0) {
+        const localTheses = submissions.map((sub, index) => ({
+            id: sub.id || (1000 + index),
+            title: sub.title,
+            author: sub.authorName,
+            authorInitials: getInitials(sub.authorName),
+            department: sub.department || 'CSE',
+            degree: sub.degree || 'Bachelor',
+            year: new Date(sub.submittedAt).getFullYear(),
+            session: sub.session || '2024-2025',
+            field: sub.type || 'Thesis',
+            views: 0,
+            bookmarked: false,
+            supervisor: sub.supervisor || 'N/A',
+            status: sub.status || 'pending'
+        }));
+        
+        // Merge with existing data (recent first)
+        thesesData = [...localTheses.reverse(), ...thesesData];
+    }
+}
+
+// Helper function to get initials
+function getInitials(name) {
+    if (!name) return 'NA';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+}
 
 // =====================================================
 // STATE MANAGEMENT
@@ -344,6 +436,9 @@ function setupProfileDropdown() {
     
     if (!userProfile || !profileDropdown) return;
     
+    // Update profile display with current user data
+    updateProfileDisplay();
+    
     // Toggle dropdown on profile click
     userProfile.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -374,11 +469,62 @@ function setupProfileDropdown() {
     const logoutBtn = profileDropdown.querySelector(".logout-btn");
     if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
-            alert("Logged out successfully!");
-            userProfile.classList.remove("active");
-            // In a real application, this would redirect to login page
-            // window.location.href = "/login";
+            // Use TPRSApi if available
+            if (typeof TPRSApi !== 'undefined') {
+                TPRSApi.logout();
+            } else {
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('userEmail');
+                sessionStorage.removeItem('currentUser');
+            }
+            window.location.href = 'login.html';
         });
+    }
+}
+
+/**
+ * Update profile display with current user data
+ */
+function updateProfileDisplay() {
+    let currentUser = null;
+    
+    // Get current user from TPRSApi or sessionStorage
+    if (typeof TPRSApi !== 'undefined') {
+        currentUser = TPRSApi.getCurrentUser();
+    }
+    if (!currentUser) {
+        currentUser = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
+    }
+    
+    if (currentUser) {
+        const fullName = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'User';
+        const initials = getInitials(fullName);
+        const email = currentUser.email || '';
+        const department = currentUser.department || 'N/A';
+        const studentId = currentUser.studentId || currentUser.id || 'N/A';
+        
+        // Update header profile
+        const userAvatar = document.querySelector('.user-avatar');
+        const userName = document.querySelector('.user-name');
+        if (userAvatar) userAvatar.textContent = initials;
+        if (userName) userName.textContent = fullName;
+        
+        // Update dropdown profile
+        const dropdownAvatar = document.querySelector('.dropdown-avatar');
+        const dropdownName = document.querySelector('.dropdown-name');
+        const dropdownEmail = document.querySelector('.dropdown-email');
+        const departmentItem = document.querySelectorAll('.dropdown-detail-item')[0];
+        const studentIdItem = document.querySelectorAll('.dropdown-detail-item')[1];
+        
+        if (dropdownAvatar) dropdownAvatar.textContent = initials;
+        if (dropdownName) dropdownName.textContent = fullName;
+        if (dropdownEmail) dropdownEmail.textContent = email;
+        if (departmentItem) {
+            departmentItem.innerHTML = `<span class="material-icons">business</span>${department} Department`;
+        }
+        if (studentIdItem) {
+            studentIdItem.innerHTML = `<span class="material-icons">badge</span>${studentId}`;
+        }
     }
 }
 
@@ -695,7 +841,16 @@ function setupAutocompletSearch() {
 /**
  * Initialize the application
  */
-function init() {
+async function init() {
+    // Check if user is authenticated
+    if (!checkAuth()) {
+        return;
+    }
+    
+    // Load data from backend (with localStorage fallback)
+    await loadDataFromBackend();
+    
+    // Render UI components
     renderThesisList();
     renderKeywords();
     updateStats();

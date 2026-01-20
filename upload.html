@@ -875,14 +875,15 @@
         </div>
     </div>
 
+    <script src="api.js"></script>
     <script>
         // Check if user is logged in
-        if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+        if (!TPRSApi.isLoggedIn()) {
             window.location.href = 'login.html';
         }
 
         // Get current user data and prefill author information
-        const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
+        const currentUser = TPRSApi.getCurrentUser() || JSON.parse(sessionStorage.getItem('currentUser') || '{}');
         if (currentUser.firstName) {
             document.getElementById('authorName').value = `${currentUser.firstName} ${currentUser.lastName}`;
             document.getElementById('authorEmail').value = currentUser.email;
@@ -1058,7 +1059,7 @@
         }
 
         // Form submission
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             // Validation
@@ -1078,8 +1079,18 @@
                 return;
             }
 
-            // Get form data
-            const formData = {
+            // Get co-authors
+            const coAuthors = [];
+            document.querySelectorAll('.co-author-item').forEach(item => {
+                const name = item.querySelector('input[name^="coAuthorName"]').value;
+                const id = item.querySelector('input[name^="coAuthorId"]').value;
+                if (name) {
+                    coAuthors.push({ name, id });
+                }
+            });
+
+            // Prepare project data for API
+            const projectData = {
                 title: document.getElementById('title').value,
                 type: document.getElementById('type').value,
                 degree: document.getElementById('degree').value,
@@ -1091,25 +1102,14 @@
                 authorEmail: document.getElementById('authorEmail').value,
                 supervisor: document.getElementById('supervisor').value,
                 coSupervisor: document.getElementById('coSupervisor').value,
-                keywords: keywords,
+                keywords: keywords.join(', '),
+                coAuthors: JSON.stringify(coAuthors),
+                studentId: currentUser.id || currentUser.studentId,
                 fileName: uploadedFile.name,
-                fileSize: uploadedFile.size,
-                submittedAt: new Date().toISOString(),
-                status: 'pending'
+                fileSize: uploadedFile.size
             };
 
-            // Get co-authors
-            const coAuthors = [];
-            document.querySelectorAll('.co-author-item').forEach(item => {
-                const name = item.querySelector('input[name^="coAuthorName"]').value;
-                const id = item.querySelector('input[name^="coAuthorId"]').value;
-                if (name) {
-                    coAuthors.push({ name, id });
-                }
-            });
-            formData.coAuthors = coAuthors;
-
-            // Simulate upload with progress
+            // Show upload progress
             const submitBtn = document.getElementById('submitBtn');
             const uploadProgress = document.getElementById('uploadProgress');
             const progressFill = document.getElementById('progressFill');
@@ -1118,29 +1118,74 @@
             submitBtn.disabled = true;
             uploadProgress.classList.add('show');
 
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
+            try {
+                // Try to submit to backend API with file
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    if (progress < 90) {
+                        progress += Math.random() * 10;
+                        progressFill.style.width = progress + '%';
+                        progressText.textContent = `Uploading... ${Math.round(progress)}%`;
+                    }
+                }, 200);
 
-                    // Save to localStorage
-                    const submissions = JSON.parse(localStorage.getItem('thesisSubmissions') || '[]');
-                    formData.id = Date.now();
-                    submissions.push(formData);
-                    localStorage.setItem('thesisSubmissions', JSON.stringify(submissions));
+                const result = await TPRSApi.submitProject(projectData, uploadedFile);
+                
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+                progressText.textContent = 'Upload complete!';
 
-                    progressText.textContent = 'Upload complete!';
+                if (result.success) {
                     showSuccess('Your thesis has been submitted successfully! It will be reviewed by the admin.');
-
+                    
+                    // Clear draft
+                    localStorage.removeItem('thesisDraft');
+                    
                     setTimeout(() => {
                         window.location.href = 'home.html';
                     }, 2000);
+                } else {
+                    showError(result.message || 'Failed to submit thesis. Please try again.');
+                    submitBtn.disabled = false;
+                    uploadProgress.classList.remove('show');
                 }
-                progressFill.style.width = progress + '%';
-                progressText.textContent = `Uploading... ${Math.round(progress)}%`;
-            }, 200);
+            } catch (error) {
+                console.log('API not available, using local storage fallback');
+                
+                // Fallback to localStorage
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+
+                        // Save to localStorage
+                        const formData = {
+                            ...projectData,
+                            id: Date.now(),
+                            submittedAt: new Date().toISOString(),
+                            status: 'pending'
+                        };
+                        
+                        const submissions = JSON.parse(localStorage.getItem('thesisSubmissions') || '[]');
+                        submissions.push(formData);
+                        localStorage.setItem('thesisSubmissions', JSON.stringify(submissions));
+
+                        progressText.textContent = 'Upload complete!';
+                        showSuccess('Your thesis has been submitted successfully! It will be reviewed by the admin.');
+
+                        // Clear draft
+                        localStorage.removeItem('thesisDraft');
+
+                        setTimeout(() => {
+                            window.location.href = 'home.html';
+                        }, 2000);
+                    }
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = `Uploading... ${Math.round(progress)}%`;
+                }, 200);
+            }
         });
 
         // Save draft functionality

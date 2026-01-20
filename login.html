@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="login.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="api.js"></script>
 </head>
 <body>
     <div class="login-container">
@@ -71,7 +72,7 @@
         }
 
         // Form submission handler
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const email = document.getElementById('email').value.trim();
@@ -95,40 +96,61 @@
                 return;
             }
             
-            // Simulate login process
+            // Show loading state
             const loginBtn = document.querySelector('.login-btn');
-            loginBtn.textContent = 'Logging in...';
+            const originalBtnContent = loginBtn.innerHTML;
+            loginBtn.innerHTML = '<span class="material-icons">hourglass_empty</span> Signing in...';
             loginBtn.disabled = true;
             
-            // Simulate API call
-            setTimeout(() => {
-                // Get registered users from localStorage
-                const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            try {
+                // Call backend API for authentication
+                const result = await TPRSApi.login(email, password, 'student');
                 
-                // Find user with matching email and password
-                const user = registeredUsers.find(u => u.email === email && u.password === password);
-                
-                if (user) {
-                    // Successful login
+                if (result.success) {
+                    // Successful login - save session
+                    TPRSApi.saveSession(result.user, result.userType);
+                    
+                    // Handle remember me
                     if (document.getElementById('remember').checked) {
                         localStorage.setItem('rememberedEmail', email);
                     } else {
                         localStorage.removeItem('rememberedEmail');
                     }
                     
-                    // Store login session with user data
+                    // Redirect to home page
+                    window.location.href = 'home.html';
+                } else {
+                    // Login failed
+                    showError(result.message || 'Invalid email or password');
+                    loginBtn.innerHTML = originalBtnContent;
+                    loginBtn.disabled = false;
+                }
+            } catch (error) {
+                // Network or server error - fallback to localStorage for demo
+                console.log('API not available, using local storage fallback');
+                
+                const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+                const user = registeredUsers.find(u => u.email === email && u.password === password);
+                
+                if (user) {
+                    // Successful login from localStorage
+                    if (document.getElementById('remember').checked) {
+                        localStorage.setItem('rememberedEmail', email);
+                    } else {
+                        localStorage.removeItem('rememberedEmail');
+                    }
+                    
                     sessionStorage.setItem('isLoggedIn', 'true');
                     sessionStorage.setItem('userEmail', email);
                     sessionStorage.setItem('currentUser', JSON.stringify(user));
                     
-                    // Redirect to home page
                     window.location.href = 'home.html';
                 } else {
                     showError('Invalid email or password');
-                    loginBtn.textContent = 'Login';
+                    loginBtn.innerHTML = originalBtnContent;
                     loginBtn.disabled = false;
                 }
-            }, 1500);
+            }
         });
 
         // Show error message
@@ -148,7 +170,7 @@
         });
 
         // Check if already logged in
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+        if (TPRSApi.isLoggedIn()) {
             window.location.href = 'home.html';
         }
     </script>

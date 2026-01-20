@@ -550,6 +550,7 @@
         </div>
     </div>
 
+    <script src="api.js"></script>
     <script>
         // Toggle password visibility
         function togglePassword(inputId) {
@@ -646,7 +647,7 @@
         }
 
         // Form submission handler
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const firstName = document.getElementById('firstName').value.trim();
@@ -687,13 +688,43 @@
                 return;
             }
             
-            // Simulate registration process
+            // Show loading state
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.textContent = 'Creating Account...';
             submitBtn.disabled = true;
             
-            // Simulate API call
-            setTimeout(() => {
+            try {
+                // Call backend API for registration
+                const studentData = {
+                    firstName,
+                    lastName,
+                    username,
+                    email,
+                    password,
+                    studentId,
+                    department,
+                    degreeType
+                };
+                
+                const result = await TPRSApi.registerStudent(studentData);
+                
+                if (result.success) {
+                    showSuccess('Account created successfully! Redirecting to login...');
+                    submitBtn.textContent = 'Account Created!';
+                    
+                    // Redirect to login page after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showError(result.message || 'Registration failed. Please try again.');
+                    submitBtn.textContent = 'Create Account';
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                // Network or server error - fallback to localStorage for demo
+                console.log('API not available, using local storage fallback');
+                
                 // Check if email already exists
                 const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
                 const emailExists = existingUsers.some(user => user.email === email);
@@ -705,7 +736,7 @@
                     return;
                 }
                 
-                // Store user data with password (in a real app, this would be sent to a server with hashed password)
+                // Store user data in localStorage as fallback
                 const userData = {
                     firstName,
                     lastName,
@@ -718,23 +749,20 @@
                     createdAt: new Date().toISOString()
                 };
                 
-                // Add to registered users array in localStorage
                 existingUsers.push(userData);
                 localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
                 
                 showSuccess('Account created successfully! Redirecting to login...');
                 submitBtn.textContent = 'Account Created!';
                 
-                // Redirect to login page after 2 seconds
                 setTimeout(() => {
                     window.location.href = 'login.html';
                 }, 2000);
-                
-            }, 1500);
+            }
         });
 
         // Check if already logged in
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+        if (TPRSApi.isLoggedIn()) {
             window.location.href = 'home.html';
         }
     </script>
