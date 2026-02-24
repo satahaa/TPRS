@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Thesis - Thesis & Project Repository System</title>
+    <title>Project Submission - Thesis & Project Repository System</title>
     <!-- Google Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <!-- Google Fonts - Poppins -->
@@ -646,10 +646,6 @@
                     Upload
                 </a>
             </nav>
-            <a href="home.html" class="back-btn">
-                <span class="material-icons">arrow_back</span>
-                Back to Home
-            </a>
         </div>
     </header>
 
@@ -660,7 +656,7 @@
         <!-- Page Header -->
         <div class="page-header">
             <span class="material-icons icon">cloud_upload</span>
-            <h1>Upload Thesis or Project</h1>
+            <h1>Project Submission</h1>
             <p>Share your academic work with the university community</p>
         </div>
 
@@ -692,7 +688,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="type">Type <span class="required">*</span></label>
-                            <select id="type" name="type" required>
+                            <select id="type" name="type" required onchange="onTypeChange()">
                                 <option value="">Select Type</option>
                                 <option value="Thesis">Thesis</option>
                                 <option value="Project">Project</option>
@@ -700,18 +696,6 @@
                                 <option value="Dissertation">Dissertation</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="degree">Degree Type <span class="required">*</span></label>
-                            <select id="degree" name="degree" required>
-                                <option value="">Select Degree</option>
-                                <option value="Bachelor">Bachelor</option>
-                                <option value="Master">Master</option>
-                                <option value="Doctoral">Doctoral</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
                         <div class="form-group">
                             <label for="department">Department <span class="required">*</span></label>
                             <select id="department" name="department" required>
@@ -723,23 +707,49 @@
                                 <option value="ME">Mechanical Engineering</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="session">Session <span class="required">*</span></label>
+                        <select id="session" name="session" required>
+                            <option value="">Select Session</option>
+                            <option value="2024-2025">2024-2025</option>
+                            <option value="2023-2024">2023-2024</option>
+                            <option value="2022-2023">2022-2023</option>
+                            <option value="2021-2022">2021-2022</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group">
-                            <label for="session">Session <span class="required">*</span></label>
-                            <select id="session" name="session" required>
-                                <option value="">Select Session</option>
-                                <option value="2024-2025">2024-2025</option>
-                                <option value="2023-2024">2023-2024</option>
-                                <option value="2022-2023">2022-2023</option>
-                                <option value="2021-2022">2021-2022</option>
-                                <option value="2020-2021">2020-2021</option>
+                            <label for="year">Year <span class="required">*</span></label>
+                            <select id="year" name="year" required onchange="updateSemesterOptions(); loadSupervisorByYearSemester();">
+                                <option value="">Select Year</option>
+                                <option value="1st">1st Year</option>
+                                <option value="2nd">2nd Year</option>
+                                <option value="3rd">3rd Year</option>
+                                <option value="4th">4th Year</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="semester">Semester <span class="required">*</span></label>
+                            <select id="semester" name="semester" required onchange="loadSupervisorByYearSemester()">
+                                <option value="">Select Year first</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- GitHub Link (only shown for Projects) -->
+                    <div class="form-group" id="githubLinkGroup" style="display:none;">
+                        <label for="githubLink">GitHub Repository Link <span class="required">*</span></label>
+                        <input type="text" id="githubLink" name="githubLink" placeholder="www.github.com/username/repository">
+                        <small>Provide the GitHub link for your project (e.g. www.github.com/username/repo)</small>
                     </div>
 
                     <div class="form-group">
                         <label for="abstract">Abstract <span class="required">*</span></label>
                         <textarea id="abstract" name="abstract" placeholder="Write a brief summary of your thesis/project (minimum 100 words)" required></textarea>
-                        <small>Minimum 100 words</small>
+                        <small>Minimum 50 words</small>
                     </div>
                 </div>
 
@@ -776,36 +786,21 @@
                     </button>
                 </div>
 
-                <!-- Supervisor Section -->
+                <!-- Supervisor Section (Auto-assigned) -->
                 <div class="form-section">
                     <h2 class="form-section-title">
                         <span class="material-icons">supervisor_account</span>
                         Supervisor Information
                     </h2>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="supervisor">Supervisor <span class="required">*</span></label>
-                            <select id="supervisor" name="supervisor" required>
-                                <option value="">Select Supervisor</option>
-                                <option value="A S M Delowar Hossain">A S M Delowar Hossain</option>
-                                <option value="Dr. Mostofa Kamal Nasir">Dr. Mostofa Kamal Nasir</option>
-                                <option value="Dr. Mehedi Hasan Talukder">Dr. Mehedi Hasan Talukder</option>
-                                <option value="Dr. Md. Sazzad Hossain">Dr. Md. Sazzad Hossain</option>
-                                <option value="Dr. Md. Rabiul Islam">Dr. Md. Rabiul Islam</option>
-                            </select>
+                    <div class="form-group">
+                        <label>Assigned Supervisor</label>
+                        <div id="assignedSupervisorDisplay" style="padding:0.8rem 1rem;background:#f0f4ff;border:1px solid #d0d8f0;border-radius:8px;color:#333;font-weight:500;display:flex;align-items:center;gap:0.5rem;">
+                            <span class="material-icons" style="color:#667eea;">person</span>
+                            <span id="supervisorNameText">Loading supervisor...</span>
                         </div>
-                        <div class="form-group">
-                            <label for="coSupervisor">Co-Supervisor (Optional)</label>
-                            <select id="coSupervisor" name="coSupervisor">
-                                <option value="">Select Co-Supervisor</option>
-                                <option value="A S M Delowar Hossain">A S M Delowar Hossain</option>
-                                <option value="Dr. Mostofa Kamal Nasir">Dr. Mostofa Kamal Nasir</option>
-                                <option value="Dr. Mehedi Hasan Talukder">Dr. Mehedi Hasan Talukder</option>
-                                <option value="Dr. Md. Sazzad Hossain">Dr. Md. Sazzad Hossain</option>
-                                <option value="Dr. Md. Rabiul Islam">Dr. Md. Rabiul Islam</option>
-                            </select>
-                        </div>
+                        <input type="hidden" id="supervisorId" name="supervisorId" value="">
+                        <small>Your supervisor is automatically assigned by the department</small>
                     </div>
                 </div>
 
@@ -821,7 +816,7 @@
                         <div class="keywords-container" id="keywordsContainer">
                             <input type="text" class="keyword-input" id="keywordInput" placeholder="Type a keyword and press Enter">
                         </div>
-                        <small>Press Enter to add keywords. Add at least 3 keywords.</small>
+                        <small>Press Enter to add keywords. Add at least 1 keyword.</small>
                     </div>
                 </div>
 
@@ -893,10 +888,127 @@
             }
         }
 
+        // Load supervisor based on year and semester selection
+        async function loadSupervisorByYearSemester() {
+            const studentId = currentUser.id;
+            if (!studentId) return;
+            const year = document.getElementById('year').value;
+            const semester = document.getElementById('semester').value;
+            if (!year || !semester) {
+                document.getElementById('supervisorNameText').textContent = 'Select year and semester to load supervisor';
+                document.getElementById('supervisorNameText').style.color = '#999';
+                document.getElementById('supervisorId').value = '';
+                return;
+            }
+            document.getElementById('supervisorNameText').textContent = 'Loading supervisor...';
+            document.getElementById('supervisorNameText').style.color = '#333';
+            try {
+                const result = await TPRSApi.getSupervisorsForStudent(studentId, year, semester);
+                if (result.success && result.supervisors && result.supervisors.length > 0) {
+                    const supervisor = result.supervisors[0];
+                    const name = (supervisor.firstName || '') + ' ' + (supervisor.lastName || '');
+                    document.getElementById('supervisorNameText').textContent = name.trim() || 'Assigned Supervisor';
+                    document.getElementById('supervisorNameText').style.color = '#333';
+                    document.getElementById('supervisorId').value = supervisor.id;
+                } else {
+                    document.getElementById('supervisorNameText').textContent = 'No supervisor assigned for this year/semester. Contact your department.';
+                    document.getElementById('supervisorNameText').style.color = '#e74c3c';
+                    document.getElementById('supervisorId').value = '';
+                }
+            } catch(e) {
+                document.getElementById('supervisorNameText').textContent = 'Could not load supervisor info';
+                document.getElementById('supervisorNameText').style.color = '#e74c3c';
+            }
+        }
+
+        // Initial supervisor display
+        document.getElementById('supervisorNameText').textContent = 'Select year and semester to load supervisor';
+        document.getElementById('supervisorNameText').style.color = '#999';
+
+        // Toggle GitHub link field based on type
+        function onTypeChange() {
+            const type = document.getElementById('type').value;
+            const githubGroup = document.getElementById('githubLinkGroup');
+            const githubInput = document.getElementById('githubLink');
+            if (type === 'Project') {
+                githubGroup.style.display = 'block';
+                githubInput.setAttribute('required', '');
+            } else {
+                githubGroup.style.display = 'none';
+                githubInput.removeAttribute('required');
+                githubInput.value = '';
+            }
+        }
+
+        // Update semester options based on selected year (Bachelor: 1st-4th year, 2 semesters each)
+        function updateSemesterOptions() {
+            const year = document.getElementById('year').value;
+            const semesterSelect = document.getElementById('semester');
+            semesterSelect.innerHTML = '';
+            if (!year) {
+                semesterSelect.innerHTML = '<option value="">Select Year first</option>';
+                return;
+            }
+            semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+            semesterSelect.innerHTML += '<option value="1st">1st Semester</option>';
+            semesterSelect.innerHTML += '<option value="2nd">2nd Semester</option>';
+        }
+
         // Keywords functionality
         const keywords = [];
         const keywordsContainer = document.getElementById('keywordsContainer');
         const keywordInput = document.getElementById('keywordInput');
+        let approvedKeywords = []; // Loaded from approved projects
+
+        // Load approved keywords from backend
+        (async function loadApprovedKeywords() {
+            try {
+                const result = await TPRSApi.getProjects({ status: 'approved' });
+                if (result.success && result.projects) {
+                    const kwSet = new Set();
+                    result.projects.forEach(p => {
+                        if (p.keywords) {
+                            p.keywords.split(',').forEach(k => {
+                                const trimmed = k.trim();
+                                if (trimmed) kwSet.add(trimmed);
+                            });
+                        }
+                    });
+                    approvedKeywords = Array.from(kwSet).sort();
+                }
+            } catch(e) { /* ignore */ }
+        })();
+
+        // Create suggestion dropdown
+        const kwSuggestBox = document.createElement('div');
+        kwSuggestBox.id = 'kwSuggestions';
+        kwSuggestBox.style.cssText = 'display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);max-height:180px;overflow-y:auto;z-index:100;';
+        keywordsContainer.style.position = 'relative';
+        keywordsContainer.appendChild(kwSuggestBox);
+
+        keywordInput.addEventListener('input', function() {
+            const val = this.value.trim().toLowerCase();
+            if (!val) { kwSuggestBox.style.display = 'none'; return; }
+            const matches = approvedKeywords.filter(k => k.toLowerCase().includes(val) && !keywords.includes(k)).slice(0, 8);
+            if (matches.length === 0) { kwSuggestBox.style.display = 'none'; return; }
+            kwSuggestBox.innerHTML = matches.map(m => 
+                '<div style="padding:0.5rem 0.8rem;cursor:pointer;font-size:0.85rem;border-bottom:1px solid #f0f0f0;" onmousedown="selectSuggestedKeyword(\'' + m.replace(/'/g, "\\'") + '\')">' + m + '</div>'
+            ).join('');
+            kwSuggestBox.style.display = 'block';
+        });
+
+        keywordInput.addEventListener('blur', function() {
+            setTimeout(() => { kwSuggestBox.style.display = 'none'; }, 200);
+        });
+
+        function selectSuggestedKeyword(kw) {
+            if (kw && !keywords.includes(kw)) {
+                keywords.push(kw);
+                renderKeywords();
+            }
+            keywordInput.value = '';
+            kwSuggestBox.style.display = 'none';
+        }
 
         keywordInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
@@ -907,6 +1019,7 @@
                     renderKeywords();
                 }
                 this.value = '';
+                kwSuggestBox.style.display = 'none';
             }
         });
 
@@ -1063,8 +1176,8 @@
             e.preventDefault();
 
             // Validation
-            if (keywords.length < 3) {
-                showError('Please add at least 3 keywords');
+            if (keywords.length < 1) {
+                showError('Please add at least 1 keyword');
                 return;
             }
 
@@ -1074,8 +1187,8 @@
             }
 
             const abstract = document.getElementById('abstract').value;
-            if (abstract.split(/\s+/).length < 100) {
-                showError('Abstract must be at least 100 words');
+            if (abstract.split(/\s+/).length < 50) {
+                showError('Abstract must be at least 50 words');
                 return;
             }
 
@@ -1093,21 +1206,41 @@
             const projectData = {
                 title: document.getElementById('title').value,
                 type: document.getElementById('type').value,
-                degree: document.getElementById('degree').value,
                 department: document.getElementById('department').value,
                 session: document.getElementById('session').value,
+                year: document.getElementById('year').value,
+                semester: document.getElementById('semester').value,
                 abstract: abstract,
                 authorName: document.getElementById('authorName').value,
                 authorId: document.getElementById('authorId').value,
                 authorEmail: document.getElementById('authorEmail').value,
-                supervisor: document.getElementById('supervisor').value,
-                coSupervisor: document.getElementById('coSupervisor').value,
+                supervisorId: document.getElementById('supervisorId').value,
                 keywords: keywords.join(', '),
                 coAuthors: JSON.stringify(coAuthors),
                 studentId: currentUser.id || currentUser.studentId,
                 fileName: uploadedFile.name,
                 fileSize: uploadedFile.size
             };
+
+            // Add GitHub link if it's a project
+            if (document.getElementById('type').value === 'Project') {
+                const githubLink = document.getElementById('githubLink').value.trim();
+                if (!githubLink) {
+                    showError('Please provide a GitHub repository link for your project');
+                    return;
+                }
+                if (!githubLink.startsWith('www.')) {
+                    showError('GitHub link must start with www. (e.g. www.github.com/username/repo)');
+                    return;
+                }
+                projectData.githubLink = githubLink;
+            }
+
+            // Validate supervisor is assigned
+            if (!projectData.supervisorId) {
+                showError('No supervisor has been assigned to you yet. Please contact your department.');
+                return;
+            }
 
             // Show upload progress
             const submitBtn = document.getElementById('submitBtn');
@@ -1136,7 +1269,7 @@
                 progressText.textContent = 'Upload complete!';
 
                 if (result.success) {
-                    showSuccess('Your thesis has been submitted successfully! It will be reviewed by the admin.');
+                    showSuccess('Your project has been submitted successfully! It will be reviewed by your supervisor.');
                     
                     // Clear draft
                     localStorage.removeItem('thesisDraft');
@@ -1173,7 +1306,7 @@
                         localStorage.setItem('thesisSubmissions', JSON.stringify(submissions));
 
                         progressText.textContent = 'Upload complete!';
-                        showSuccess('Your thesis has been submitted successfully! It will be reviewed by the admin.');
+                        showSuccess('Your project has been submitted successfully! It will be reviewed by your supervisor.');
 
                         // Clear draft
                         localStorage.removeItem('thesisDraft');
@@ -1193,15 +1326,15 @@
             const draftData = {
                 title: document.getElementById('title').value,
                 type: document.getElementById('type').value,
-                degree: document.getElementById('degree').value,
                 department: document.getElementById('department').value,
                 session: document.getElementById('session').value,
+                year: document.getElementById('year').value,
+                semester: document.getElementById('semester').value,
+                githubLink: document.getElementById('githubLink').value,
                 abstract: document.getElementById('abstract').value,
                 authorName: document.getElementById('authorName').value,
                 authorId: document.getElementById('authorId').value,
                 authorEmail: document.getElementById('authorEmail').value,
-                supervisor: document.getElementById('supervisor').value,
-                coSupervisor: document.getElementById('coSupervisor').value,
                 keywords: keywords,
                 savedAt: new Date().toISOString()
             };
@@ -1217,15 +1350,19 @@
                 if (confirm('You have a saved draft. Would you like to load it?')) {
                     document.getElementById('title').value = draft.title || '';
                     document.getElementById('type').value = draft.type || '';
-                    document.getElementById('degree').value = draft.degree || '';
                     document.getElementById('department').value = draft.department || '';
                     document.getElementById('session').value = draft.session || '';
+                    document.getElementById('year').value = draft.year || '';
+                    document.getElementById('semester').value = draft.semester || '';
                     document.getElementById('abstract').value = draft.abstract || '';
                     document.getElementById('authorName').value = draft.authorName || '';
                     document.getElementById('authorId').value = draft.authorId || '';
                     document.getElementById('authorEmail').value = draft.authorEmail || '';
-                    document.getElementById('supervisor').value = draft.supervisor || '';
-                    document.getElementById('coSupervisor').value = draft.coSupervisor || '';
+
+                    if (draft.type === 'Project' && draft.githubLink) {
+                        document.getElementById('githubLink').value = draft.githubLink;
+                        onTypeChange();
+                    }
 
                     if (draft.keywords && draft.keywords.length > 0) {
                         draft.keywords.forEach(kw => {

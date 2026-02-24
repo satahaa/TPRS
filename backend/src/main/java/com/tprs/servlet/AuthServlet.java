@@ -32,6 +32,56 @@ public class AuthServlet extends HttpServlet {
     }
     
     @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+        
+        JsonObject jsonResponse = new JsonObject();
+        
+        try {
+            BufferedReader reader = request.getReader();
+            JsonObject data = gson.fromJson(reader, JsonObject.class);
+            
+            String userType = getJsonString(data, "userType", "");
+            int userId = data.get("userId").getAsInt();
+            String phone = getJsonString(data, "phone", "");
+            
+            boolean success = false;
+            if ("student".equals(userType)) {
+                Student student = studentService.getById(userId);
+                if (student != null) {
+                    student.setPhone(phone);
+                    success = studentService.updateProfile(student);
+                }
+            } else if ("teacher".equals(userType)) {
+                Teacher teacher = teacherService.getById(userId);
+                if (teacher != null) {
+                    teacher.setPhone(phone);
+                    success = teacherService.updateProfile(teacher);
+                }
+            }
+            
+            if (success) {
+                jsonResponse.addProperty("success", true);
+                jsonResponse.addProperty("message", "Phone updated successfully");
+            } else {
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Failed to update phone");
+            }
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            jsonResponse.addProperty("success", false);
+            jsonResponse.addProperty("message", "Server error: " + e.getMessage());
+        }
+        
+        out.print(gson.toJson(jsonResponse));
+        out.flush();
+    }
+    
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
@@ -150,7 +200,12 @@ public class AuthServlet extends HttpServlet {
     private void handleTeacherRegistration(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
         try {
             Teacher teacher = new Teacher();
-            teacher.setTeacherId(getJsonString(data, "teacherId", ""));
+            String teacherIdInput = getJsonString(data, "teacherId", "");
+            if (teacherIdInput.isEmpty()) {
+                // Auto-generate teacher ID
+                teacherIdInput = "T" + System.currentTimeMillis();
+            }
+            teacher.setTeacherId(teacherIdInput);
             teacher.setFirstName(getJsonString(data, "firstName", ""));
             teacher.setLastName(getJsonString(data, "lastName", ""));
             teacher.setEmail(getJsonString(data, "email", ""));

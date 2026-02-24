@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS project (
     supervisor_id INT NOT NULL,
     status ENUM('pending', 'in_progress', 'completed', 'approved', 'rejected') DEFAULT 'pending',
     file_path VARCHAR(500),
+    file_name VARCHAR(500),
+    file_data LONGBLOB,
     keywords VARCHAR(500),
     year INT,
     semester VARCHAR(20),
@@ -91,7 +93,7 @@ CREATE TABLE IF NOT EXISTS supervisor_student (
     
     FOREIGN KEY (supervisor_id) REFERENCES teacher(id) ON DELETE CASCADE,
     FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_assignment (supervisor_id, student_id),
+    UNIQUE KEY unique_assignment (supervisor_id, student_id, year, semester),
     INDEX idx_supervisor (supervisor_id),
     INDEX idx_student (student_id)
 );
@@ -543,7 +545,10 @@ BEGIN
         (SELECT COUNT(*) FROM project WHERE status = 'approved') AS approved_projects,
         (SELECT COUNT(*) FROM project WHERE status = 'in_progress') AS in_progress_projects,
         (SELECT COUNT(*) FROM project WHERE status = 'completed') AS completed_projects,
-        (SELECT COUNT(*) FROM project WHERE status = 'rejected') AS rejected_projects;
+        (SELECT COUNT(*) FROM project WHERE status = 'rejected') AS rejected_projects,
+        (SELECT COUNT(*) FROM project WHERE type = 'thesis' AND status = 'approved') AS total_thesis,
+        (SELECT COUNT(*) FROM project WHERE type = 'project' AND status = 'approved') AS total_project,
+        (SELECT COUNT(DISTINCT student_id) FROM project WHERE status = 'approved') AS total_authors;
 END //
 DELIMITER ;
 

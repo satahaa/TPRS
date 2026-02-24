@@ -15,21 +15,28 @@ public class Project {
     private int supervisorId;
     private String status; // pending, in_progress, completed, approved, rejected
     private String filePath;
+    private String fileName;
+    private transient byte[] fileData; // transient: excluded from Gson serialization
     private String keywords;
-    private int year;
+    private String year;
     private String semester;
     private String department;
     private Timestamp submissionDate;
     private Timestamp approvalDate;
+    private String session;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    
+    // Non-DB fields (populated at runtime for API responses)
+    private String studentName;
+    private String supervisorName;
     
     // Default constructor
     public Project() {}
     
     // Parameterized constructor
     public Project(String title, String description, String type, int studentId,
-                   int supervisorId, String keywords, int year, String semester, String department) {
+                   int supervisorId, String keywords, String year, String semester, String department) {
         this.title = title;
         this.description = description;
         this.type = type;
@@ -107,6 +114,22 @@ public class Project {
         this.filePath = filePath;
     }
     
+    public String getFileName() {
+        return fileName;
+    }
+    
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+    
+    public byte[] getFileData() {
+        return fileData;
+    }
+    
+    public void setFileData(byte[] fileData) {
+        this.fileData = fileData;
+    }
+    
     public String getKeywords() {
         return keywords;
     }
@@ -115,11 +138,11 @@ public class Project {
         this.keywords = keywords;
     }
     
-    public int getYear() {
+    public String getYear() {
         return year;
     }
     
-    public void setYear(int year) {
+    public void setYear(String year) {
         this.year = year;
     }
     
@@ -169,6 +192,30 @@ public class Project {
     
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public String getSession() {
+        return session;
+    }
+    
+    public void setSession(String session) {
+        this.session = session;
+    }
+    
+    public String getStudentName() {
+        return studentName;
+    }
+    
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
+    }
+    
+    public String getSupervisorName() {
+        return supervisorName;
+    }
+    
+    public void setSupervisorName(String supervisorName) {
+        this.supervisorName = supervisorName;
     }
     
     @Override

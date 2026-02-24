@@ -53,6 +53,9 @@ public class DashboardServlet extends HttpServlet {
                     stats.addProperty("inProgressProjects", rs.getInt("in_progress_projects"));
                     stats.addProperty("completedProjects", rs.getInt("completed_projects"));
                     stats.addProperty("rejectedProjects", rs.getInt("rejected_projects"));
+                    stats.addProperty("totalThesis", rs.getInt("total_thesis"));
+                    stats.addProperty("totalProject", rs.getInt("total_project"));
+                    stats.addProperty("totalAuthors", rs.getInt("total_authors"));
                     
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("stats", stats);
@@ -126,14 +129,14 @@ public class DashboardServlet extends HttpServlet {
                 
                 if (value == null) {
                     row.add(columnName, null);
-                } else if (value instanceof Integer) {
-                    row.addProperty(columnName, (Integer) value);
-                } else if (value instanceof Long) {
-                    row.addProperty(columnName, (Long) value);
-                } else if (value instanceof Double) {
-                    row.addProperty(columnName, (Double) value);
-                } else if (value instanceof Boolean) {
-                    row.addProperty(columnName, (Boolean) value);
+                } else if (value instanceof Integer integer) {
+                    row.addProperty(columnName, integer);
+                } else if (value instanceof Long long1) {
+                    row.addProperty(columnName, long1);
+                } else if (value instanceof Double double1) {
+                    row.addProperty(columnName, double1);
+                } else if (value instanceof Boolean boolean1) {
+                    row.addProperty(columnName, boolean1);
                 } else {
                     row.addProperty(columnName, value.toString());
                 }

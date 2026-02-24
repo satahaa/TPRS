@@ -13,7 +13,7 @@ public class DatabaseConfig {
     // Database connection parameters
     private static final String DB_URL = "jdbc:mysql://localhost:3306/tprs_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "1457"; // Change this to your MySQL password
+    private static final String DB_PASSWORD = "100503"; // Change this to your MySQL password
     
     private static Connection connection = null;
     

@@ -226,15 +226,18 @@ const TPRSApi = {
     /**
      * Reject project
      * @param {number} projectId - Project ID
+     * @param {string} reason - Optional rejection reason
      * @returns {Promise} - API response
      */
-    async rejectProject(projectId) {
+    async rejectProject(projectId, reason = '') {
         try {
+            const body = reason ? { reason } : {};
             const response = await fetch(`${API_BASE_URL}/projects/${projectId}/reject`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify(body)
             });
             return await response.json();
         } catch (error) {
@@ -258,6 +261,14 @@ const TPRSApi = {
             console.error('Delete project error:', error);
             return { success: false, message: 'Failed to delete project.' };
         }
+    },
+
+    /**
+     * Download project file
+     * @param {number} projectId - Project ID
+     */
+    downloadProjectFile(projectId) {
+        window.open(`${API_BASE_URL}/projects/${projectId}/download`, '_blank');
     },
     
     /**
@@ -350,7 +361,7 @@ const TPRSApi = {
      */
     async getUnreadNotificationCount(userId, userType) {
         try {
-            const response = await fetch(`${API_BASE_URL}/notifications/unread-count?userId=${userId}&userType=${userType}`);
+            const response = await fetch(`${API_BASE_URL}/notifications/count?userId=${userId}&userType=${userType}`);
             return await response.json();
         } catch (error) {
             console.error('Get unread count error:', error);
@@ -365,7 +376,7 @@ const TPRSApi = {
      */
     async markNotificationRead(notificationId) {
         try {
-            const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
+            const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}`, {
                 method: 'PUT'
             });
             return await response.json();
@@ -383,7 +394,7 @@ const TPRSApi = {
      */
     async markAllNotificationsRead(userId, userType) {
         try {
-            const response = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
+            const response = await fetch(`${API_BASE_URL}/notifications/read-all`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId, userType })
@@ -435,12 +446,12 @@ const TPRSApi = {
      * @param {number} studentId - Student ID
      * @returns {Promise} - API response
      */
-    async assignStudent(supervisorId, studentId) {
+    async assignStudent(supervisorId, studentId, year, semester) {
         try {
             const response = await fetch(`${API_BASE_URL}/assignments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ supervisorId, studentId })
+                body: JSON.stringify({ supervisorId, studentId, year: year || null, semester: semester || null })
             });
             return await response.json();
         } catch (error) {
@@ -455,9 +466,12 @@ const TPRSApi = {
      * @param {number} studentId - Student ID
      * @returns {Promise} - API response
      */
-    async unassignStudent(supervisorId, studentId) {
+    async unassignStudent(supervisorId, studentId, year, semester) {
         try {
-            const response = await fetch(`${API_BASE_URL}/assignments?supervisorId=${supervisorId}&studentId=${studentId}`, {
+            let url = `${API_BASE_URL}/assignments?supervisorId=${supervisorId}&studentId=${studentId}`;
+            if (year) url += `&year=${encodeURIComponent(year)}`;
+            if (semester) url += `&semester=${encodeURIComponent(semester)}`;
+            const response = await fetch(url, {
                 method: 'DELETE'
             });
             return await response.json();
@@ -472,9 +486,13 @@ const TPRSApi = {
      * @param {number} studentId - Student ID
      * @returns {Promise} - API response with supervisors
      */
-    async getSupervisorsForStudent(studentId) {
+    async getSupervisorsForStudent(studentId, year, semester) {
         try {
-            const response = await fetch(`${API_BASE_URL}/assignments/by-student?studentId=${studentId}`);
+            let url = `${API_BASE_URL}/assignments/by-student?studentId=${studentId}`;
+            if (year && semester) {
+                url += `&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(semester)}`;
+            }
+            const response = await fetch(url);
             return await response.json();
         } catch (error) {
             console.error('Get supervisors error:', error);
@@ -533,6 +551,27 @@ const TPRSApi = {
         sessionStorage.removeItem('userEmail');
     },
     
+    /**
+     * Update user phone number
+     * @param {number} userId - User ID
+     * @param {string} userType - 'student' or 'teacher'
+     * @param {string} phone - Phone number
+     * @returns {Promise} - API response
+     */
+    async updatePhone(userId, userType, phone) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, userType, phone })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Update phone error:', error);
+            return { success: false, message: 'Failed to update phone.' };
+        }
+    },
+
     /**
      * Require authentication - redirect to login if not logged in
      */

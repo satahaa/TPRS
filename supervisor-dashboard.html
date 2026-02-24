@@ -434,6 +434,96 @@
 
         .modal-search:focus { border-color: #667eea; }
 
+        /* ===== Profile Modal ===== */
+        .profile-modal-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .profile-modal-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .profile-modal-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .profile-modal-role {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-modal-details {
+            width: 100%;
+            border-top: 1px solid #f0f2f7;
+        }
+
+        .profile-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 0.5rem;
+            border-bottom: 1px solid #f0f2f7;
+        }
+
+        .profile-detail-row .material-icons {
+            color: #667eea;
+            font-size: 1.3rem;
+            width: 30px;
+            text-align: center;
+        }
+
+        .profile-detail-label {
+            font-size: 0.7rem;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .profile-detail-value {
+            font-size: 0.95rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .profile-logout-btn {
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 2rem;
+            background: #fff;
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .profile-logout-btn:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
         /* ===== Empty State ===== */
         .empty-state {
             text-align: center;
@@ -476,6 +566,173 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ===== Confirmation Modal ===== */
+        .confirm-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(4px);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-modal-overlay.active { display: flex; }
+
+        .confirm-modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 420px;
+            max-width: 90vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            text-align: center;
+            animation: modalSlideIn 0.25s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .confirm-modal-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .confirm-modal-icon.approve {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+        }
+
+        .confirm-modal-icon.reject {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .confirm-modal-icon.remove {
+            background: linear-gradient(135deg, #ff9a44, #fc6076);
+        }
+
+        .confirm-modal-icon .material-icons {
+            font-size: 2rem;
+            color: white;
+        }
+
+        .confirm-modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .confirm-modal-message {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .confirm-modal-reason {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            margin-bottom: 1.2rem;
+            outline: none;
+            resize: vertical;
+            min-height: 80px;
+            transition: border-color 0.2s;
+        }
+
+        .confirm-modal-reason:focus { border-color: #667eea; }
+
+        .confirm-modal-reason::placeholder { color: #bbb; }
+
+        .confirm-modal-actions {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+        }
+
+        .confirm-modal-btn {
+            padding: 0.7rem 1.8rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .confirm-modal-btn.confirm-approve {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: #1a5c2e;
+        }
+
+        .confirm-modal-btn.confirm-approve:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .confirm-modal-btn.confirm-reject {
+            background: linear-gradient(135deg, #f5576c, #e8445a);
+            color: white;
+        }
+
+        .confirm-modal-btn.confirm-reject:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .confirm-modal-btn.confirm-remove {
+            background: linear-gradient(135deg, #ff9a44, #fc6076);
+            color: white;
+        }
+
+        .confirm-modal-btn.confirm-remove:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .confirm-modal-btn.confirm-cancel {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .confirm-modal-btn.confirm-cancel:hover { background: #e0e0e0; }
+
+        .confirm-modal-toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+            z-index: 400;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            animation: toastSlideUp 0.3s ease;
+        }
+
+        @keyframes toastSlideUp {
+            from { transform: translate(-50%, 20px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        .confirm-modal-toast.success { background: #43e97b; }
+        .confirm-modal-toast.error { background: #f5576c; }
     </style>
 </head>
 <body>
@@ -487,39 +744,40 @@
         </div>
         <div class="header-right">
             <nav>
-                <a href="supervisor-dashboard.html">Dashboard</a>
-                <a href="home.html">Browse Projects</a>
+                <a href="supervisor-dashboard.html">
+                    <span class="material-icons">dashboard</span>
+                    Dashboard
+                </a>
+                <a href="home.html">
+                    <span class="material-icons">folder_special</span>
+                    Browse Projects
+                </a>
             </nav>
-            <!-- Notification Bell -->
-            <div class="notification-bell" id="notifBell" onclick="toggleNotifDropdown()">
-                <span class="material-icons">notifications</span>
-                <span class="bell-badge hidden" id="bellBadge">0</span>
-            </div>
             <div class="user-profile" id="userProfile">
-                <div class="user-avatar" id="userAvatar">SV</div>
-                <span class="user-name" id="userName">Supervisor</span>
+                <div class="user-avatar" id="userAvatar">...</div>
+                <span class="user-name" id="userName">Loading...</span>
                 <span class="material-icons dropdown-arrow">expand_more</span>
                 <div class="profile-dropdown" id="profileDropdown">
                     <div class="dropdown-header">
-                        <div class="dropdown-avatar" id="dropdownAvatar">SV</div>
+                        <div class="dropdown-avatar" id="dropdownAvatar">...</div>
                         <div class="dropdown-info">
-                            <div class="dropdown-name" id="dropdownName">Supervisor</div>
-                            <div class="dropdown-email" id="dropdownEmail">supervisor@mbstu.ac.bd</div>
+                            <div class="dropdown-name" id="dropdownName">Loading...</div>
+                            <div class="dropdown-email" id="dropdownEmail"></div>
                             <div class="dropdown-details">
                                 <span class="dropdown-detail-item">
                                     <span class="material-icons">business</span>
-                                    <span id="dropdownDept">Department</span>
+                                    <span id="dropdownDept"></span>
                                 </span>
                                 <span class="dropdown-detail-item">
                                     <span class="material-icons">badge</span>
-                                    <span id="dropdownDesignation">Designation</span>
+                                    <span id="dropdownDesignation"></span>
                                 </span>
                             </div>
                         </div>
                     </div>
                     <div class="dropdown-divider"></div>
                     <div class="dropdown-menu">
-                        <a href="#profile" class="dropdown-item">
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="event.stopPropagation(); openProfileModal()">
                             <span class="material-icons">person</span>
                             Profile
                         </a>
@@ -640,6 +898,26 @@
                     <span class="material-icons">close</span>
                 </button>
             </div>
+            <div style="padding:0 1.5rem;display:flex;gap:0.8rem;margin-bottom:0.8rem;">
+                <div style="flex:1;">
+                    <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:0.3rem;">Year <span style="color:#f5576c;">*</span></label>
+                    <select id="assignYear" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;" required>
+                        <option value="">Select Year</option>
+                        <option value="1st">1st Year</option>
+                        <option value="2nd">2nd Year</option>
+                        <option value="3rd">3rd Year</option>
+                        <option value="4th">4th Year</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:0.3rem;">Semester <span style="color:#f5576c;">*</span></label>
+                    <select id="assignSemester" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;" required>
+                        <option value="">Select Semester</option>
+                        <option value="1st">1st Semester</option>
+                        <option value="2nd">2nd Semester</option>
+                    </select>
+                </div>
+            </div>
             <input type="text" class="modal-search" id="studentSearch" placeholder="Search by name or ID..." oninput="filterStudents()">
             <div class="scrollable-list" id="unassignedStudentsList">
                 <div class="empty-state">
@@ -648,6 +926,197 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- ===== Supervisor Profile Modal ===== -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-box" style="max-width:480px;">
+            <div class="modal-header">
+                <h2>My Profile</h2>
+                <button class="modal-close" onclick="closeProfileModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="profile-modal-body">
+                <div class="profile-modal-avatar" id="profileAvatar">...</div>
+                <div class="profile-modal-name" id="profileName">Loading...</div>
+                <div class="profile-modal-role">Supervisor / Teacher</div>
+                <div class="profile-modal-details">
+                    <div class="profile-detail-row">
+                        <span class="material-icons">email</span>
+                        <div>
+                            <div class="profile-detail-label">Email</div>
+                            <div class="profile-detail-value" id="profileEmail">—</div>
+                        </div>
+                    </div>
+                    <div class="profile-detail-row">
+                        <span class="material-icons">business</span>
+                        <div>
+                            <div class="profile-detail-label">Department</div>
+                            <div class="profile-detail-value" id="profileDept">—</div>
+                        </div>
+                    </div>
+                    <div class="profile-detail-row">
+                        <span class="material-icons">military_tech</span>
+                        <div>
+                            <div class="profile-detail-label">Designation</div>
+                            <div class="profile-detail-value" id="profileDesignation">—</div>
+                        </div>
+                    </div>
+                    <div class="profile-detail-row">
+                        <span class="material-icons">science</span>
+                        <div>
+                            <div class="profile-detail-label">Specialization</div>
+                            <div class="profile-detail-value" id="profileSpecialization">—</div>
+                        </div>
+                    </div>
+                    <div class="profile-detail-row">
+                        <span class="material-icons">phone</span>
+                        <div style="flex:1;">
+                            <div class="profile-detail-label">Phone</div>
+                            <div id="profilePhoneDisplay">
+                                <span class="profile-detail-value" id="profilePhone">—</span>
+                                <span class="material-icons" onclick="editSupervisorPhone()" style="font-size:1rem;color:#667eea;cursor:pointer;vertical-align:middle;margin-left:0.5rem;">edit</span>
+                            </div>
+                            <div id="profilePhoneEdit" style="display:none;margin-top:0.3rem;">
+                                <div style="display:flex;gap:0.4rem;align-items:center;">
+                                    <input type="tel" id="profilePhoneInput" style="flex:1;padding:0.4rem 0.6rem;border:1px solid #ddd;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.85rem;" placeholder="Enter phone number">
+                                    <button onclick="saveSupervisorPhone()" style="background:#667eea;color:white;border:none;padding:0.4rem 0.8rem;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">Save</button>
+                                    <button onclick="cancelSupervisorPhoneEdit()" style="background:#eee;color:#666;border:none;padding:0.4rem 0.6rem;border-radius:8px;cursor:pointer;font-size:0.8rem;">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="profile-logout-btn" onclick="handleLogout()">
+                    <span class="material-icons">logout</span>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Project Detail Modal ===== -->
+    <div class="modal-overlay" id="projectDetailModal">
+        <div class="modal-box" style="max-width:600px;">
+            <div class="modal-header">
+                <h2>Project Details</h2>
+                <button class="modal-close" onclick="closeProjectDetailModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="profile-modal-body" style="padding:1.2rem 1.5rem;">
+                <div style="width:100%;">
+                    <h3 id="pdTitle" style="margin:0 0 0.5rem;font-size:1.2rem;color:#1e293b;"></h3>
+                    <span id="pdStatusBadge" class="project-status status-pending" style="margin-bottom:1rem;display:inline-block;">Pending</span>
+                    <div style="margin-top:1rem;" id="pdDescription"></div>
+                    <div class="profile-modal-details" style="margin-top:1.2rem;">
+                        <div class="profile-detail-row">
+                            <span class="material-icons">category</span>
+                            <div><div class="profile-detail-label">Type</div><div class="profile-detail-value" id="pdType">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">person</span>
+                            <div><div class="profile-detail-label">Student</div><div class="profile-detail-value" id="pdStudent">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">business</span>
+                            <div><div class="profile-detail-label">Department</div><div class="profile-detail-value" id="pdDept">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">label</span>
+                            <div><div class="profile-detail-label">Keywords</div><div class="profile-detail-value" id="pdKeywords">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">school</span>
+                            <div><div class="profile-detail-label">Year / Semester</div><div class="profile-detail-value" id="pdYearSem">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">event_note</span>
+                            <div><div class="profile-detail-label">Session</div><div class="profile-detail-value" id="pdSession">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">calendar_today</span>
+                            <div><div class="profile-detail-label">Submitted</div><div class="profile-detail-value" id="pdDate">—</div></div>
+                        </div>
+                        <div class="profile-detail-row" id="pdFileRow" style="display:none;">
+                            <span class="material-icons">description</span>
+                            <div><div class="profile-detail-label">Document</div><div class="profile-detail-value" id="pdFile">—</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Approve Confirmation Modal ===== -->
+    <div class="confirm-modal-overlay" id="approveModal">
+        <div class="confirm-modal-box">
+            <div class="confirm-modal-icon approve">
+                <span class="material-icons">check_circle</span>
+            </div>
+            <div class="confirm-modal-title">Approve Project</div>
+            <div class="confirm-modal-message">Are you sure you want to approve this project/thesis? The student will be notified.</div>
+            <div class="confirm-modal-actions">
+                <button class="confirm-modal-btn confirm-cancel" onclick="closeApproveModal()">
+                    <span class="material-icons" style="font-size:1rem">close</span>
+                    Cancel
+                </button>
+                <button class="confirm-modal-btn confirm-approve" id="confirmApproveBtn">
+                    <span class="material-icons" style="font-size:1rem">check</span>
+                    Yes, Approve
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Reject Confirmation Modal ===== -->
+    <div class="confirm-modal-overlay" id="rejectModal">
+        <div class="confirm-modal-box">
+            <div class="confirm-modal-icon reject">
+                <span class="material-icons">cancel</span>
+            </div>
+            <div class="confirm-modal-title">Reject Project</div>
+            <div class="confirm-modal-message">Are you sure you want to reject this project/thesis? You can optionally provide a reason below.</div>
+            <textarea class="confirm-modal-reason" id="rejectReasonInput" placeholder="Enter reason for rejection (optional)..."></textarea>
+            <div class="confirm-modal-actions">
+                <button class="confirm-modal-btn confirm-cancel" onclick="closeRejectModal()">
+                    <span class="material-icons" style="font-size:1rem">close</span>
+                    Cancel
+                </button>
+                <button class="confirm-modal-btn confirm-reject" id="confirmRejectBtn">
+                    <span class="material-icons" style="font-size:1rem">block</span>
+                    Yes, Reject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Remove Student Confirmation Modal ===== -->
+    <div class="confirm-modal-overlay" id="removeStudentModal">
+        <div class="confirm-modal-box">
+            <div class="confirm-modal-icon remove">
+                <span class="material-icons">person_remove</span>
+            </div>
+            <div class="confirm-modal-title">Remove Student</div>
+            <div class="confirm-modal-message">Are you sure you want to remove this student from your assigned list?</div>
+            <div class="confirm-modal-actions">
+                <button class="confirm-modal-btn confirm-cancel" onclick="closeRemoveStudentModal()">
+                    <span class="material-icons" style="font-size:1rem">close</span>
+                    Cancel
+                </button>
+                <button class="confirm-modal-btn confirm-remove" id="confirmRemoveStudentBtn">
+                    <span class="material-icons" style="font-size:1rem">person_remove</span>
+                    Yes, Remove
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Toast Notification ===== -->
+    <div class="confirm-modal-toast" id="actionToast">
+        <span class="material-icons" id="toastIcon">check_circle</span>
+        <span id="toastMessage"></span>
     </div>
 
     <!-- ===== SCRIPTS ===== -->
@@ -695,10 +1164,13 @@
             // Profile dropdown toggle
             document.getElementById('userProfile').addEventListener('click', function(e) {
                 e.stopPropagation();
-                document.getElementById('profileDropdown').classList.toggle('show');
+                document.getElementById('userProfile').classList.toggle('active');
             });
-            document.addEventListener('click', function() {
-                document.getElementById('profileDropdown').classList.remove('show');
+            document.addEventListener('click', function(e) {
+                const userProfile = document.getElementById('userProfile');
+                if (!userProfile.contains(e.target)) {
+                    userProfile.classList.remove('active');
+                }
             });
         }
 
@@ -712,11 +1184,13 @@
             document.getElementById('statNotifications').textContent = unreadCount;
 
             const bellBadge = document.getElementById('bellBadge');
-            if (unreadCount > 0) {
-                bellBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-                bellBadge.classList.remove('hidden');
-            } else {
-                bellBadge.classList.add('hidden');
+            if (bellBadge) {
+                if (unreadCount > 0) {
+                    bellBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                    bellBadge.classList.remove('hidden');
+                } else {
+                    bellBadge.classList.add('hidden');
+                }
             }
 
             const container = document.getElementById('notificationsList');
@@ -795,16 +1269,17 @@
 
             container.innerHTML = result.students.map(s => {
                 const initials = ((s.firstName || 'S')[0] + (s.lastName || '')[0]).toUpperCase();
+                const yearSem = [s.assignedYear ? s.assignedYear + ' Year' : '', s.assignedSemester ? s.assignedSemester + ' Sem' : ''].filter(Boolean).join(', ');
                 return `
                     <div class="student-item">
                         <div class="student-info">
                             <div class="student-avatar">${initials}</div>
                             <div>
                                 <div class="student-name">${escapeHtml(s.firstName + ' ' + s.lastName)}</div>
-                                <div class="student-detail">${escapeHtml(s.studentId || '')} · ${escapeHtml(s.department || '')}</div>
+                                <div class="student-detail">${escapeHtml(s.studentId || '')} · ${escapeHtml(s.department || '')}${yearSem ? ' · ' + yearSem : ''}</div>
                             </div>
                         </div>
-                        <button class="btn-unassign" onclick="unassignStudent(${s.id})">
+                        <button class="btn-unassign" onclick="unassignStudent(${s.id}, '${s.assignedYear || ''}', '${s.assignedSemester || ''}')">
                             <span class="material-icons" style="font-size:1rem">person_remove</span>
                             Remove
                         </button>
@@ -813,15 +1288,42 @@
             }).join('');
         }
 
-        async function unassignStudent(studentId) {
-            if (!confirm('Are you sure you want to remove this student?')) return;
-            const result = await TPRSApi.unassignStudent(currentUser.id, studentId);
+        let pendingRemoveStudentId = null;
+        let pendingRemoveYear = null;
+        let pendingRemoveSemester = null;
+
+        async function unassignStudent(studentId, year, semester) {
+            pendingRemoveStudentId = studentId;
+            pendingRemoveYear = year || null;
+            pendingRemoveSemester = semester || null;
+            document.getElementById('removeStudentModal').classList.add('active');
+        }
+
+        function closeRemoveStudentModal() {
+            document.getElementById('removeStudentModal').classList.remove('active');
+            pendingRemoveStudentId = null;
+            pendingRemoveYear = null;
+            pendingRemoveSemester = null;
+        }
+
+        document.getElementById('confirmRemoveStudentBtn').addEventListener('click', async function() {
+            if (!pendingRemoveStudentId) return;
+            const studentId = pendingRemoveStudentId;
+            const year = pendingRemoveYear;
+            const semester = pendingRemoveSemester;
+            closeRemoveStudentModal();
+            const result = await TPRSApi.unassignStudent(currentUser.id, studentId, year, semester);
             if (result.success) {
+                showToast('Student removed successfully.', 'success');
                 await loadAssignedStudents();
             } else {
-                alert(result.message || 'Failed to unassign student.');
+                showToast(result.message || 'Failed to unassign student.', 'error');
             }
-        }
+        });
+
+        document.getElementById('removeStudentModal').addEventListener('click', function(e) {
+            if (e.target === this) closeRemoveStudentModal();
+        });
 
         // ===== Pending Projects =====
         async function loadPendingProjects() {
@@ -860,7 +1362,7 @@
             }
 
             container.innerHTML = projects.map(p => `
-                <div class="project-item">
+                <div class="project-item" onclick="openProjectDetailModal(${p.id})" style="cursor:pointer;">
                     <div class="project-top">
                         <div class="project-title-text">${escapeHtml(p.title)}</div>
                         <span class="project-status status-pending">Pending</span>
@@ -869,8 +1371,13 @@
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">person</span> ${escapeHtml(p.studentName || 'Unknown')}</span>
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">business</span> ${escapeHtml(p.department || '')}</span>
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">calendar_today</span> ${formatDate(p.submissionDate || p.createdAt)}</span>
+                        ${p.year || p.semester ? `<span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">school</span> ${escapeHtml((p.year || '') + (p.year && p.semester ? ' Year, ' : '') + (p.semester || '') + (p.semester ? ' Sem' : ''))}</span>` : ''}
                     </div>
-                    <div class="project-actions">
+                    <div class="project-actions" onclick="event.stopPropagation()">
+                        ${p.fileName ? `<button class="btn-download" onclick="TPRSApi.downloadProjectFile(${p.id})" style="background:#e3f2fd;color:#1976d2;border:none;padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;gap:0.3rem;">
+                            <span class="material-icons" style="font-size:1rem">download</span>
+                            ${escapeHtml(p.fileName)}
+                        </button>` : ''}
                         <button class="btn-approve" onclick="approveProject(${p.id})">
                             <span class="material-icons" style="font-size:1rem">check</span>
                             Approve
@@ -884,25 +1391,74 @@
             `).join('');
         }
 
-        async function approveProject(projectId) {
-            if (!confirm('Approve this project/thesis?')) return;
-            const result = await TPRSApi.approveProject(projectId);
-            if (result.success) {
-                await Promise.all([loadPendingProjects(), loadNotifications()]);
-            } else {
-                alert(result.message || 'Failed to approve project.');
-            }
+        let pendingActionProjectId = null;
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('actionToast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMessage = document.getElementById('toastMessage');
+            toast.className = 'confirm-modal-toast ' + type;
+            toastIcon.textContent = type === 'success' ? 'check_circle' : 'error';
+            toastMessage.textContent = message;
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
 
-        async function rejectProject(projectId) {
-            if (!confirm('Reject this project/thesis?')) return;
-            const result = await TPRSApi.rejectProject(projectId);
+        function approveProject(projectId) {
+            pendingActionProjectId = projectId;
+            document.getElementById('approveModal').classList.add('active');
+        }
+
+        function closeApproveModal() {
+            document.getElementById('approveModal').classList.remove('active');
+            pendingActionProjectId = null;
+        }
+
+        document.getElementById('confirmApproveBtn').addEventListener('click', async function() {
+            if (!pendingActionProjectId) return;
+            const projectId = pendingActionProjectId;
+            closeApproveModal();
+            const result = await TPRSApi.approveProject(projectId);
             if (result.success) {
+                showToast('Project approved successfully!', 'success');
                 await Promise.all([loadPendingProjects(), loadNotifications()]);
             } else {
-                alert(result.message || 'Failed to reject project.');
+                showToast(result.message || 'Failed to approve project.', 'error');
             }
+        });
+
+        document.getElementById('approveModal').addEventListener('click', function(e) {
+            if (e.target === this) closeApproveModal();
+        });
+
+        function rejectProject(projectId) {
+            pendingActionProjectId = projectId;
+            document.getElementById('rejectReasonInput').value = '';
+            document.getElementById('rejectModal').classList.add('active');
         }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.remove('active');
+            pendingActionProjectId = null;
+        }
+
+        document.getElementById('confirmRejectBtn').addEventListener('click', async function() {
+            if (!pendingActionProjectId) return;
+            const projectId = pendingActionProjectId;
+            const reason = document.getElementById('rejectReasonInput').value.trim();
+            closeRejectModal();
+            const result = await TPRSApi.rejectProject(projectId, reason);
+            if (result.success) {
+                showToast('Project rejected.', 'success');
+                await Promise.all([loadPendingProjects(), loadNotifications()]);
+            } else {
+                showToast(result.message || 'Failed to reject project.', 'error');
+            }
+        });
+
+        document.getElementById('rejectModal').addEventListener('click', function(e) {
+            if (e.target === this) closeRejectModal();
+        });
 
         // ===== Assign Modal =====
         async function openAssignModal() {
@@ -962,7 +1518,13 @@
         }
 
         async function assignStudentFromModal(studentId) {
-            const result = await TPRSApi.assignStudent(currentUser.id, studentId);
+            const year = document.getElementById('assignYear').value;
+            const semester = document.getElementById('assignSemester').value;
+            if (!year || !semester) {
+                alert('Please specify the year and semester for this assignment.');
+                return;
+            }
+            const result = await TPRSApi.assignStudent(currentUser.id, studentId, year, semester);
             if (result.success) {
                 closeAssignModal();
                 await Promise.all([loadAssignedStudents(), loadPendingProjects()]);
@@ -970,6 +1532,97 @@
                 alert(result.message || 'Failed to assign student.');
             }
         }
+
+        // ===== Profile Modal =====
+        function openProfileModal() {
+            document.getElementById('userProfile').classList.remove('active');
+            const name = (currentUser.firstName || '') + ' ' + (currentUser.lastName || '');
+            const initials = ((currentUser.firstName || 'S')[0] + (currentUser.lastName || 'V')[0]).toUpperCase();
+
+            document.getElementById('profileAvatar').textContent = initials;
+            document.getElementById('profileName').textContent = name.trim() || 'Supervisor';
+            document.getElementById('profileEmail').textContent = currentUser.email || '—';
+            document.getElementById('profileDept').textContent = currentUser.department || '—';
+            document.getElementById('profileDesignation').textContent = currentUser.designation || '—';
+            document.getElementById('profileSpecialization').textContent = currentUser.specialization || '—';
+            document.getElementById('profilePhone').textContent = currentUser.phone || '—';
+
+            document.getElementById('profileModal').classList.add('active');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('active');
+            cancelSupervisorPhoneEdit();
+        }
+
+        function editSupervisorPhone() {
+            document.getElementById('profilePhoneInput').value = currentUser && currentUser.phone ? currentUser.phone : '';
+            document.getElementById('profilePhoneDisplay').style.display = 'none';
+            document.getElementById('profilePhoneEdit').style.display = 'block';
+        }
+
+        function cancelSupervisorPhoneEdit() {
+            document.getElementById('profilePhoneDisplay').style.display = '';
+            document.getElementById('profilePhoneEdit').style.display = 'none';
+        }
+
+        async function saveSupervisorPhone() {
+            if (!currentUser) return;
+            const phone = document.getElementById('profilePhoneInput').value.trim();
+            const result = await TPRSApi.updatePhone(currentUser.id, 'teacher', phone);
+            if (result.success) {
+                currentUser.phone = phone;
+                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+                document.getElementById('profilePhone').textContent = phone || '—';
+                cancelSupervisorPhoneEdit();
+            } else {
+                alert(result.message || 'Failed to update phone.');
+            }
+        }
+
+        // Close profile modal when clicking outside
+        document.getElementById('profileModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProfileModal();
+        });
+
+        // ===== Project Detail Modal =====
+        async function openProjectDetailModal(projectId) {
+            const result = await TPRSApi.getProject(projectId);
+            if (!result.success || !result.project) {
+                showToast('Failed to load project details', 'error');
+                return;
+            }
+            const p = result.project;
+            document.getElementById('pdTitle').textContent = p.title || 'Untitled';
+            const statusBadge = document.getElementById('pdStatusBadge');
+            statusBadge.textContent = (p.status || 'pending').charAt(0).toUpperCase() + (p.status || 'pending').slice(1);
+            statusBadge.className = 'project-status status-' + (p.status || 'pending');
+            document.getElementById('pdDescription').textContent = p.description || 'No description provided.';
+            document.getElementById('pdType').textContent = p.projectType || p.field || '—';
+            document.getElementById('pdStudent').textContent = p.studentName || '—';
+            document.getElementById('pdDept').textContent = p.department || '—';
+            document.getElementById('pdKeywords').textContent = p.keywords || '—';
+            const yearSem = ((p.year || '') + (p.year && p.semester ? ' Year, ' : '') + (p.semester || '') + (p.semester ? ' Semester' : '')) || '—';
+            document.getElementById('pdYearSem').textContent = yearSem;
+            document.getElementById('pdSession').textContent = p.session || '—';
+            document.getElementById('pdDate').textContent = formatDate(p.submissionDate || p.createdAt);
+            const fileRow = document.getElementById('pdFileRow');
+            if (p.fileName) {
+                fileRow.style.display = '';
+                document.getElementById('pdFile').innerHTML = `<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectFile(${p.id})" style="color:#667eea;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">download</span>${escapeHtml(p.fileName)}</a>`;
+            } else {
+                fileRow.style.display = 'none';
+            }
+            document.getElementById('projectDetailModal').classList.add('active');
+        }
+
+        function closeProjectDetailModal() {
+            document.getElementById('projectDetailModal').classList.remove('active');
+        }
+
+        document.getElementById('projectDetailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProjectDetailModal();
+        });
 
         // ===== Utilities =====
         function escapeHtml(str) {
@@ -982,16 +1635,22 @@
         function formatTimeAgo(dateStr) {
             if (!dateStr) return '';
             const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return '';
             const now = new Date();
             const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return diffMins + 'm ago';
+            if (diffMs < 0) return 'Just now';
+            const diffSecs = Math.floor(diffMs / 1000);
+            if (diffSecs < 60) return 'Just now';
+            const diffMins = Math.floor(diffSecs / 60);
+            if (diffMins < 60) return diffMins + (diffMins === 1 ? ' minute ago' : ' minutes ago');
             const diffHrs = Math.floor(diffMins / 60);
-            if (diffHrs < 24) return diffHrs + 'h ago';
+            if (diffHrs < 24) return diffHrs + (diffHrs === 1 ? ' hour ago' : ' hours ago');
             const diffDays = Math.floor(diffHrs / 24);
-            if (diffDays < 7) return diffDays + 'd ago';
-            return date.toLocaleDateString();
+            if (diffDays < 30) return diffDays + (diffDays === 1 ? ' day ago' : ' days ago');
+            const diffMonths = Math.floor(diffDays / 30);
+            if (diffMonths < 12) return diffMonths + (diffMonths === 1 ? ' month ago' : ' months ago');
+            const diffYears = Math.floor(diffMonths / 12);
+            return diffYears + (diffYears === 1 ? ' year ago' : ' years ago');
         }
 
         function formatDate(dateStr) {

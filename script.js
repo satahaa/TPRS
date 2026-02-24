@@ -1,86 +1,10 @@
 // =====================================================
-// MOCK DATA - SAMPLE THESES (FALLBACK DATA)
+// DATA - Loaded from backend API
 // =====================================================
-let thesesData = [
-    {
-        id: 1,
-        title: "Smart Medical Record Management System",
-        author: "Sumayea Akter",
-        authorInitials: "SA",
-        department: "CSE",
-        degree: "Bachelor",
-        year: 2022,
-        session: "2022-2023",
-        field: "Healthcare IT",
-        views: 245,
-        bookmarked: false,
-        supervisor: "A S M Delowar Hossain"
-    },
-    {
-        id: 2,
-        title: "Shape Ditector",
-        author: "Mst. Joba Sarkar",
-        authorInitials: "JS",
-        department: "CSE",
-        degree: "Bachelor",
-        year: 2022,
-        session: "2022-2023",
-        field: "Computer Vision",
-        views: 189,
-        bookmarked: false,
-        supervisor: "A S M Delowar Hossain"
-    },
-    {
-        id: 3,
-        title: "Virtual Study Assistant",
-        author: "Juthi Basak",
-        authorInitials: "JB",
-        department: "CSE",
-        degree: "Master",
-        year: 2023,
-        session: "2023-2024",
-        field: "Machine Learning",
-        views: 312,
-        bookmarked: false,
-        supervisor: "A S M Delowar Hossain"
-    },
-    {
-        id: 4,
-        title: "Waste Management System",
-        author: "Md. Niamul Islam Mahin",
-        authorInitials: "MN",
-        department: "ICT",
-        degree: "Bachelor",
-        year: 2022,
-        session: "2022-2023",
-        field: "IoT & Sensors",
-        views: 156,
-        bookmarked: false,
-        supervisor: "Dr. Md. Sazzad Hossain"
-    },
-    {
-        id: 5,
-        title: "Simple Imperative Language Compiler",
-        author: "S A Tahaa",
-        authorInitials: "ST",
-        department: "CSE",
-        degree: "Bachelor",
-        year: 2024,
-        session: "2024-2025",
-        field: "Compiler Design",
-        views: 189,
-        bookmarked: false,
-        supervisor: "Dr. Mehedi Hasan Talukder"
-    }
-];
+let thesesData = [];
 
-// Popular keywords
-let keywords = [
-    { name: "Machine Learning", count: 28 },
-    { name: "Blockchain", count: 15 },
-    { name: "Smart Grid", count: 12 },
-    { name: "Others", count: 34 }
-];
+// Popular keywords (loaded dynamically)
+let keywords = [];
 
 // =====================================================
 // CHECK AUTHENTICATION
@@ -104,7 +28,8 @@ async function loadDataFromBackend() {
     try {
         // Try to get recent projects from backend
         if (typeof TPRSApi !== 'undefined') {
-            const recentResult = await TPRSApi.getDashboardRecent(10);
+            // Only load approved projects for student dashboard
+            const recentResult = await TPRSApi.getProjects({ status: 'approved' });
             if (recentResult.success && recentResult.projects && recentResult.projects.length > 0) {
                 // Convert backend data to display format
                 thesesData = recentResult.projects.map(project => ({
@@ -114,13 +39,15 @@ async function loadDataFromBackend() {
                     authorInitials: getInitials(project.studentName || project.authorName || 'Unknown'),
                     department: project.department || 'CSE',
                     degree: project.degree || 'Bachelor',
-                    year: new Date(project.createdAt || project.submittedAt).getFullYear(),
-                    session: project.session || '2024-2025',
+                    year: project.year || '',
+                    semester: project.semester || '',
+                    session: project.session || '',
                     field: project.type || 'Thesis',
+                    keywords: project.keywords || '',
                     views: project.views || 0,
                     bookmarked: false,
                     supervisor: project.supervisorName || project.supervisor || 'N/A',
-                    status: project.status || 'pending'
+                    status: project.status || 'approved'
                 }));
             }
 
@@ -130,6 +57,35 @@ async function loadDataFromBackend() {
                 document.getElementById('totalThesis').textContent = statsResult.stats.totalThesis || 0;
                 document.getElementById('totalProject').textContent = statsResult.stats.totalProject || 0;
                 document.getElementById('totalAuthors').textContent = statsResult.stats.totalAuthors || 0;
+            }
+
+            // Build keywords from loaded project data
+            const keywordMap = {};
+            thesesData.forEach(item => {
+                if (item.keywords) {
+                    item.keywords.split(',').forEach(kw => {
+                        const trimmed = kw.trim();
+                        if (trimmed) {
+                            keywordMap[trimmed] = (keywordMap[trimmed] || 0) + 1;
+                        }
+                    });
+                }
+            });
+            keywords = Object.entries(keywordMap)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10);
+
+            // Populate supervisor filter dynamically from loaded projects
+            const supervisorNames = [...new Set(thesesData.map(t => t.supervisor).filter(s => s && s !== 'N/A'))].sort();
+            const supervisorSelect = document.getElementById('supervisorFilter');
+            if (supervisorSelect) {
+                supervisorNames.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    supervisorSelect.appendChild(opt);
+                });
             }
         }
     } catch (error) {
@@ -151,6 +107,7 @@ function loadLocalStorageData() {
             department: sub.department || 'CSE',
             degree: sub.degree || 'Bachelor',
             year: new Date(sub.submittedAt).getFullYear(),
+            semester: sub.semester || '',
             session: sub.session || '2024-2025',
             field: sub.type || 'Thesis',
             views: 0,
@@ -178,9 +135,14 @@ function getInitials(name) {
 // STATE MANAGEMENT
 // =====================================================
 let displayedTheses = [...thesesData];
+let currentPage = 1;
+const ITEMS_PER_PAGE = 10;
+let isBookmarkView = false;
 let filters = {
-    sessions: ["2024-2025"],
+    sessions: [],
     degrees: [],
+    semesters: [],
+    years: [],
     author: "",
     supervisor: "",
     keyword: ""
@@ -196,6 +158,8 @@ const authorFilterInput = document.getElementById("authorFilter");
 const supervisorFilterSelect = document.getElementById("supervisorFilter");
 const sessionFilterGroup = document.getElementById("sessionFilter");
 const degreeFilterGroup = document.getElementById("degreeFilter");
+const yearFilterGroup = document.getElementById("yearFilter");
+const semesterFilterGroup = document.getElementById("semesterFilter");
 const keywordsListEl = document.getElementById("keywordsList");
 const totalThesisEl = document.getElementById("totalThesis");
 const totalAuthorsEl = document.getElementById("totalAuthors");
@@ -208,13 +172,48 @@ const totalAuthorsEl = document.getElementById("totalAuthors");
  * Render the thesis list based on current filters and search
  */
 function renderThesisList() {
-    if (displayedTheses.length === 0) {
-        thesisListEl.innerHTML = '<div class="no-results">No theses found matching your search criteria.</div>';
+    // Update section title based on bookmark view state
+    const sectionTitle = document.querySelector('.section-title');
+    if (sectionTitle) {
+        if (isBookmarkView) {
+            sectionTitle.innerHTML = '<span class="material-icons" style="cursor:pointer;margin-right:0.4rem;vertical-align:middle;color:#667eea;" onclick="exitBookmarkView()">arrow_back</span> Bookmarks';
+        } else {
+            sectionTitle.textContent = 'Recent Thesis & Projects';
+        }
+    }
+
+    // In bookmark view, filter to only bookmarked items
+    let listToRender = isBookmarkView 
+        ? displayedTheses.filter(t => t.bookmarked)
+        : displayedTheses;
+
+    if (listToRender.length === 0) {
+        if (isBookmarkView) {
+            thesisListEl.innerHTML = '<div class="no-results"><span class="material-icons" style="font-size:2.5rem;display:block;margin-bottom:0.5rem;opacity:0.3;">bookmark_border</span>No bookmarked projects yet. Click the bookmark icon on a project to save it here.</div>';
+        } else if (thesesData.length === 0) {
+            thesisListEl.innerHTML = '<div class="no-results"><span class="material-icons" style="font-size:2.5rem;display:block;margin-bottom:0.5rem;opacity:0.3;">folder_open</span>No approved projects yet. Projects will appear here once they are approved by a supervisor.</div>';
+        } else {
+            thesisListEl.innerHTML = '<div class="no-results">No projects found matching your search criteria.</div>';
+        }
         return;
     }
 
-    thesisListEl.innerHTML = displayedTheses.map(thesis => `
-        <div class="thesis-card" data-thesis-id="${thesis.id}">
+    // Sort bookmarked items first (only in non-bookmark view)
+    if (!isBookmarkView) {
+        listToRender.sort((a, b) => (b.bookmarked ? 1 : 0) - (a.bookmarked ? 1 : 0));
+    }
+
+    // Pagination
+    const totalPages = Math.ceil(listToRender.length / ITEMS_PER_PAGE);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    const pageTheses = listToRender.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+    let html = pageTheses.map(thesis => {
+        const firstKeyword = thesis.keywords ? thesis.keywords.split(',')[0].trim() : '';
+        return `
+        <div class="thesis-card" data-thesis-id="${thesis.id}" onclick="openProjectDetail(${thesis.id})" style="cursor:pointer;">
             <span class="material-icons thesis-icon">description</span>
             <div class="thesis-content">
                 <div class="thesis-title">${thesis.title}</div>
@@ -223,10 +222,12 @@ function renderThesisList() {
                         <div class="author-avatar">${thesis.authorInitials}</div>
                         <span>${thesis.author}</span>
                     </div>
-                    <span class="meta-tag">${thesis.department}</span>
-                    <span class="meta-tag">${thesis.degree}</span>
-                    <span class="meta-tag">${thesis.year}</span>
+                    ${thesis.degree ? `<span class="meta-tag">${thesis.degree}</span>` : ''}
+                    ${thesis.session ? `<span class="meta-tag">${thesis.session}</span>` : ''}
+                    ${thesis.year ? `<span class="meta-tag">${thesis.year} Year</span>` : ''}
+                    ${thesis.semester ? `<span class="meta-tag">${thesis.semester} Semester</span>` : ''}
                     <span class="meta-tag">${thesis.field}</span>
+                    ${firstKeyword ? `<span class="meta-tag keyword-tag-meta">${firstKeyword}</span>` : ''}
                 </div>
             </div>
             <div class="thesis-actions">
@@ -239,15 +240,30 @@ function renderThesisList() {
                 </button>
             </div>
         </div>
-    `).join("");
+    `}).join("");
+
+    // Pagination controls
+    if (totalPages > 1) {
+        html += '<div class="pagination" style="display:flex;justify-content:center;align-items:center;gap:0.5rem;margin-top:1.5rem;flex-wrap:wrap;">';
+        html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="padding:0.4rem 0.8rem;border:1px solid #ddd;border-radius:6px;background:${currentPage === 1 ? '#f5f5f5' : '#fff'};cursor:${currentPage === 1 ? 'not-allowed' : 'pointer'};font-size:0.85rem;color:#555;"><span class="material-icons" style="font-size:1rem;vertical-align:middle;">chevron_left</span></button>`;
+        for (let i = 1; i <= totalPages; i++) {
+            if (totalPages <= 7 || i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                html += `<button class="page-btn" onclick="goToPage(${i})" style="padding:0.4rem 0.8rem;border:1px solid ${i === currentPage ? '#667eea' : '#ddd'};border-radius:6px;background:${i === currentPage ? '#667eea' : '#fff'};color:${i === currentPage ? '#fff' : '#555'};cursor:pointer;font-size:0.85rem;font-weight:${i === currentPage ? '600' : '400'};">${i}</button>`;
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                html += '<span style="color:#999;">…</span>';
+            }
+        }
+        html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} style="padding:0.4rem 0.8rem;border:1px solid #ddd;border-radius:6px;background:${currentPage === totalPages ? '#f5f5f5' : '#fff'};cursor:${currentPage === totalPages ? 'not-allowed' : 'pointer'};font-size:0.85rem;color:#555;"><span class="material-icons" style="font-size:1rem;vertical-align:middle;">chevron_right</span></button>`;
+        html += `<span style="color:#999;font-size:0.8rem;margin-left:0.5rem;">Page ${currentPage} of ${totalPages}</span>`;
+        html += '</div>';
+    }
+
+    thesisListEl.innerHTML = html;
 
     // Add event listeners to bookmark buttons
     document.querySelectorAll(".bookmark-btn").forEach(btn => {
         btn.addEventListener("click", handleBookmarkClick);
     });
-
-    // Update stats
-    updateStats();
 }
 
 /**
@@ -257,9 +273,6 @@ function renderKeywords() {
     keywordsListEl.innerHTML = keywords.map((kw, index) => `
         <div class="keyword-item ${filters.keyword === kw.name ? 'active' : ''}" data-keyword="${kw.name}">
             <div class="keyword-label">
-                <span class="material-icons keyword-icon">
-                    ${index === 0 ? 'auto_awesome' : index === 1 ? 'link' : index === 2 ? 'electric_bolt' : 'label'}
-                </span>
                 ${kw.name}
             </div>
             <span class="keyword-count">${kw.count}</span>
@@ -302,6 +315,16 @@ function applyFilters() {
             return false;
         }
 
+        // Year filter
+        if (filters.years.length > 0 && !filters.years.includes(thesis.year)) {
+            return false;
+        }
+
+        // Semester filter
+        if (filters.semesters.length > 0 && !filters.semesters.includes(thesis.semester)) {
+            return false;
+        }
+
         // Author filter
         if (filters.author && !thesis.author.toLowerCase().includes(filters.author.toLowerCase())) {
             return false;
@@ -318,13 +341,14 @@ function applyFilters() {
         }
 
         // Keyword filter
-        if (filters.keyword && thesis.field !== filters.keyword) {
+        if (filters.keyword && !(thesis.keywords && thesis.keywords.split(',').map(k => k.trim()).includes(filters.keyword))) {
             return false;
         }
 
         return true;
     });
 
+    currentPage = 1;
     renderThesisList();
 }
 
@@ -351,6 +375,34 @@ degreeFilterGroup.addEventListener("change", (e) => {
         applyFilters();
     }
 });
+
+/**
+ * Handle year checkbox changes
+ */
+if (yearFilterGroup) {
+    yearFilterGroup.addEventListener("change", (e) => {
+        if (e.target.type === "checkbox") {
+            const checked = Array.from(yearFilterGroup.querySelectorAll("input:checked"))
+                .map(input => input.value);
+            filters.years = checked;
+            applyFilters();
+        }
+    });
+}
+
+/**
+ * Handle semester checkbox changes
+ */
+if (semesterFilterGroup) {
+    semesterFilterGroup.addEventListener("change", (e) => {
+        if (e.target.type === "checkbox") {
+            const checked = Array.from(semesterFilterGroup.querySelectorAll("input:checked"))
+                .map(input => input.value);
+            filters.semesters = checked;
+            applyFilters();
+        }
+    });
+}
 
 /**
  * Handle author filter input
@@ -411,6 +463,24 @@ function handleBookmarkClick(e) {
 }
 
 /**
+ * Enter bookmark view - show only bookmarked projects
+ */
+function enterBookmarkView() {
+    isBookmarkView = true;
+    currentPage = 1;
+    renderThesisList();
+}
+
+/**
+ * Exit bookmark view - return to normal view
+ */
+function exitBookmarkView() {
+    isBookmarkView = false;
+    currentPage = 1;
+    renderThesisList();
+}
+
+/**
  * Handle keyword item clicks
  */
 function handleKeywordClick(e) {
@@ -425,6 +495,19 @@ function handleKeywordClick(e) {
     
     applyFilters();
     renderKeywords();
+}
+
+/**
+ * Navigate to a specific page
+ */
+function goToPage(page) {
+    const totalPages = Math.ceil(displayedTheses.length / ITEMS_PER_PAGE);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderThesisList();
+    // Scroll to top of thesis list
+    const thesisList = document.getElementById('thesisList');
+    if (thesisList) thesisList.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /**
@@ -513,18 +596,14 @@ function updateProfileDisplay() {
         const dropdownAvatar = document.querySelector('.dropdown-avatar');
         const dropdownName = document.querySelector('.dropdown-name');
         const dropdownEmail = document.querySelector('.dropdown-email');
-        const departmentItem = document.querySelectorAll('.dropdown-detail-item')[0];
-        const studentIdItem = document.querySelectorAll('.dropdown-detail-item')[1];
+        const dropdownDept = document.querySelector('.dropdown-dept');
+        const dropdownStudentId = document.querySelector('.dropdown-student-id');
         
         if (dropdownAvatar) dropdownAvatar.textContent = initials;
         if (dropdownName) dropdownName.textContent = fullName;
         if (dropdownEmail) dropdownEmail.textContent = email;
-        if (departmentItem) {
-            departmentItem.innerHTML = `<span class="material-icons">business</span>${department} Department`;
-        }
-        if (studentIdItem) {
-            studentIdItem.innerHTML = `<span class="material-icons">badge</span>${studentId}`;
-        }
+        if (dropdownDept) dropdownDept.textContent = department + ' Department';
+        if (dropdownStudentId) dropdownStudentId.textContent = studentId;
     }
 }
 
@@ -847,14 +926,18 @@ async function init() {
         return;
     }
     
+    // Setup profile immediately (don't wait for backend)
+    setupProfileDropdown();
+    
     // Load data from backend (with localStorage fallback)
     await loadDataFromBackend();
+    
+    // Update displayedTheses after data is loaded
+    displayedTheses = [...thesesData];
     
     // Render UI components
     renderThesisList();
     renderKeywords();
-    updateStats();
-    setupProfileDropdown();
     setupAutocompletSearch();
 
     // Add smooth scroll behavior

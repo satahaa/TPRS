@@ -94,6 +94,54 @@
             margin-bottom: 2rem;
         }
 
+        /* Multi-tag specialization input */
+        .spec-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            min-height: 42px;
+            cursor: text;
+            transition: border-color 0.3s;
+            align-items: center;
+        }
+        .spec-tags-container:focus-within { border-color: #667eea; }
+        .spec-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .spec-tag .remove-tag {
+            cursor: pointer;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .spec-tag .remove-tag:hover { opacity: 1; }
+        .spec-tags-input {
+            border: none;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 100px;
+            padding: 0.2rem;
+        }
+        .spec-hint {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 0.3rem;
+        }
+
         .signup-header .material-icons {
             font-size: 3rem;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -499,14 +547,21 @@
                         <label for="studentId">Student ID</label>
                         <input type="text" id="studentId" name="studentId" placeholder="e.g., CE23046">
                     </div>
+                    <div class="form-group">
+                        <label for="session">Session</label>
+                        <select id="session" name="session">
+                            <option value="">Select Session</option>
+                            <option value="2024-2025">2024-2025</option>
+                            <option value="2023-2024">2023-2024</option>
+                            <option value="2022-2023">2022-2023</option>
+                            <option value="2021-2022">2021-2022</option>
+                            <option value="2020-2021">2020-2021</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Teacher-specific fields -->
                 <div id="teacherFields" style="display: none;">
-                    <div class="form-group">
-                        <label for="teacherId">Teacher ID</label>
-                        <input type="text" id="teacherId" name="teacherId" placeholder="e.g., T001">
-                    </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="designation">Designation</label>
@@ -519,8 +574,12 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="specialization">Specialization</label>
-                            <input type="text" id="specialization" name="specialization" placeholder="e.g., Machine Learning">
+                            <label>Specializations</label>
+                            <div class="spec-tags-container" id="specTagsContainer" onclick="document.getElementById('specInput').focus()">
+                                <input type="text" class="spec-tags-input" id="specInput" placeholder="e.g., Machine Learning" onkeydown="handleSpecKeydown(event)">
+                            </div>
+                            <div class="spec-hint">Press Enter or comma to add. Click × to remove.</div>
+                            <input type="hidden" id="specialization" name="specialization">
                         </div>
                     </div>
                 </div>
@@ -589,6 +648,57 @@
 
     <script src="api.js"></script>
     <script>
+        // ===== Multi-tag Specialization =====
+        let specTags = [];
+
+        function handleSpecKeydown(e) {
+            const input = e.target;
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                addSpecTag(input.value);
+                input.value = '';
+            } else if (e.key === 'Backspace' && input.value === '' && specTags.length > 0) {
+                removeSpecTag(specTags.length - 1);
+            }
+        }
+
+        function addSpecTag(val) {
+            val = val.replace(/,/g, '').trim();
+            if (!val || specTags.includes(val)) return;
+            specTags.push(val);
+            renderSpecTags();
+        }
+
+        function removeSpecTag(idx) {
+            specTags.splice(idx, 1);
+            renderSpecTags();
+        }
+
+        function renderSpecTags() {
+            const container = document.getElementById('specTagsContainer');
+            const input = document.getElementById('specInput');
+            // Remove existing tags
+            container.querySelectorAll('.spec-tag').forEach(t => t.remove());
+            // Add tags before input
+            specTags.forEach((tag, i) => {
+                const el = document.createElement('span');
+                el.className = 'spec-tag';
+                el.innerHTML = tag + ' <span class="material-icons remove-tag" onclick="removeSpecTag(' + i + ')">close</span>';
+                container.insertBefore(el, input);
+            });
+            // Update hidden field
+            document.getElementById('specialization').value = specTags.join(', ');
+            input.placeholder = specTags.length > 0 ? '' : 'e.g., Machine Learning';
+        }
+
+        // Also add tag when input loses focus
+        document.getElementById('specInput').addEventListener('blur', function() {
+            if (this.value.trim()) {
+                addSpecTag(this.value);
+                this.value = '';
+            }
+        });
+
         // Toggle role-specific fields
         function toggleRoleFields() {
             const role = document.getElementById('role').value;
@@ -601,13 +711,11 @@
                 teacherFields.style.display = 'block';
                 degreeGroup.style.display = 'none';
                 document.getElementById('studentId').removeAttribute('required');
-                document.getElementById('teacherId').setAttribute('required', '');
             } else {
                 studentFields.style.display = 'block';
                 teacherFields.style.display = 'none';
                 degreeGroup.style.display = 'block';
                 document.getElementById('studentId').setAttribute('required', '');
-                document.getElementById('teacherId').removeAttribute('required');
             }
         }
 
@@ -773,22 +881,15 @@
                         password,
                         studentId,
                         department,
-                        degreeType
+                        degreeType,
+                        session: document.getElementById('session').value
                     };
                     result = await TPRSApi.registerStudent(studentData);
                     
                 } else {
                     // Teacher / Supervisor
-                    const teacherId = document.getElementById('teacherId').value.trim();
                     const designation = document.getElementById('designation').value;
                     const specialization = document.getElementById('specialization').value.trim();
-                    
-                    if (!teacherId) {
-                        showError('Teacher ID is required');
-                        submitBtn.textContent = 'Create Account';
-                        submitBtn.disabled = false;
-                        return;
-                    }
                     
                     const teacherData = {
                         firstName,
@@ -796,7 +897,6 @@
                         username,
                         email,
                         password,
-                        teacherId,
                         department,
                         designation,
                         specialization
@@ -843,8 +943,8 @@
                 if (role === 'student') {
                     userData.studentId = document.getElementById('studentId').value.trim();
                     userData.degreeType = document.getElementById('degreeType').value;
+                    userData.session = document.getElementById('session').value;
                 } else {
-                    userData.teacherId = document.getElementById('teacherId').value.trim();
                     userData.designation = document.getElementById('designation').value;
                     userData.specialization = document.getElementById('specialization').value.trim();
                 }

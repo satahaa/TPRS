@@ -25,10 +25,24 @@ public class SupervisorStudentService {
     }
     
     /**
+     * Assign a student to a supervisor for a specific year and semester
+     */
+    public boolean assignStudent(int supervisorId, int studentId, String year, String semester) {
+        return supervisorStudentDAO.assign(supervisorId, studentId, year, semester);
+    }
+    
+    /**
      * Remove a student from a supervisor
      */
     public boolean unassignStudent(int supervisorId, int studentId) {
         return supervisorStudentDAO.unassign(supervisorId, studentId);
+    }
+    
+    /**
+     * Remove a student from a supervisor for specific year/semester
+     */
+    public boolean unassignStudent(int supervisorId, int studentId, String year, String semester) {
+        return supervisorStudentDAO.unassign(supervisorId, studentId, year, semester);
     }
     
     /**
@@ -43,6 +57,13 @@ public class SupervisorStudentService {
      */
     public List<Teacher> getSupervisorsForStudent(int studentId) {
         return supervisorStudentDAO.getSupervisorsForStudent(studentId);
+    }
+    
+    /**
+     * Get supervisors for a student by year and semester
+     */
+    public List<Teacher> getSupervisorsForStudent(int studentId, String year, String semester) {
+        return supervisorStudentDAO.getSupervisorsForStudent(studentId, year, semester);
     }
     
     /**

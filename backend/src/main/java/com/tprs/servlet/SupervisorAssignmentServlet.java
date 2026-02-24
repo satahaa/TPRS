@@ -76,7 +76,14 @@ public class SupervisorAssignmentServlet extends HttpServlet {
             } else if (pathInfo != null && "/by-student".equals(pathInfo)) {
                 // Get supervisors for a student
                 if (studentId != null) {
-                    List<Teacher> supervisors = assignmentService.getSupervisorsForStudent(Integer.parseInt(studentId));
+                    String year = request.getParameter("year");
+                    String semester = request.getParameter("semester");
+                    List<Teacher> supervisors;
+                    if (year != null && semester != null) {
+                        supervisors = assignmentService.getSupervisorsForStudent(Integer.parseInt(studentId), year, semester);
+                    } else {
+                        supervisors = assignmentService.getSupervisorsForStudent(Integer.parseInt(studentId));
+                    }
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("supervisors", gson.toJsonTree(supervisors));
                 } else {
@@ -112,14 +119,16 @@ public class SupervisorAssignmentServlet extends HttpServlet {
             
             int supId = data.get("supervisorId").getAsInt();
             int stuId = data.get("studentId").getAsInt();
+            String year = data.has("year") && !data.get("year").isJsonNull() ? data.get("year").getAsString() : null;
+            String semester = data.has("semester") && !data.get("semester").isJsonNull() ? data.get("semester").getAsString() : null;
             
-            boolean success = assignmentService.assignStudent(supId, stuId);
+            boolean success = assignmentService.assignStudent(supId, stuId, year, semester);
             
             if (success) {
                 // Send notification to the student
                 Teacher supervisor = teacherService.getById(supId);
                 if (supervisor != null) {
-                    notificationService.notifyAssignment(stuId, supId, supervisor.getFullName());
+                    notificationService.notifyAssignment(stuId, supId, supervisor.getFullName(), year, semester);
                 }
                 
                 jsonResponse.addProperty("success", true);
@@ -152,10 +161,18 @@ public class SupervisorAssignmentServlet extends HttpServlet {
         try {
             String supervisorId = request.getParameter("supervisorId");
             String studentId = request.getParameter("studentId");
+            String year = request.getParameter("year");
+            String semester = request.getParameter("semester");
             
             if (supervisorId != null && studentId != null) {
-                boolean success = assignmentService.unassignStudent(
-                        Integer.parseInt(supervisorId), Integer.parseInt(studentId));
+                boolean success;
+                if (year != null && !year.isEmpty() && semester != null && !semester.isEmpty()) {
+                    success = assignmentService.unassignStudent(
+                            Integer.parseInt(supervisorId), Integer.parseInt(studentId), year, semester);
+                } else {
+                    success = assignmentService.unassignStudent(
+                            Integer.parseInt(supervisorId), Integer.parseInt(studentId));
+                }
                 
                 jsonResponse.addProperty("success", success);
                 jsonResponse.addProperty("message", success ? "Student removed successfully" : "Failed to remove student");

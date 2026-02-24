@@ -30,7 +30,7 @@ public class ProjectDAO {
      * @return true if successful, false otherwise
      */
     public boolean create(Project project) {
-        String sql = "INSERT INTO project (title, description, type, student_id, supervisor_id, status, file_path, keywords, year, semester, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO project (title, description, type, student_id, supervisor_id, status, file_path, file_name, file_data, keywords, year, semester, department, session) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection connection = getConnection();
         
         if (connection == null) {
@@ -46,10 +46,17 @@ public class ProjectDAO {
             stmt.setInt(5, project.getSupervisorId());
             stmt.setString(6, project.getStatus());
             stmt.setString(7, project.getFilePath());
-            stmt.setString(8, project.getKeywords());
-            stmt.setInt(9, project.getYear());
-            stmt.setString(10, project.getSemester());
-            stmt.setString(11, project.getDepartment());
+            stmt.setString(8, project.getFileName());
+            if (project.getFileData() != null) {
+                stmt.setBytes(9, project.getFileData());
+            } else {
+                stmt.setNull(9, Types.BLOB);
+            }
+            stmt.setString(10, project.getKeywords());
+            stmt.setString(11, project.getYear());
+            stmt.setString(12, project.getSemester());
+            stmt.setString(13, project.getDepartment());
+            stmt.setString(14, project.getSession());
             
             int rowsAffected = stmt.executeUpdate();
             
@@ -321,6 +328,33 @@ public class ProjectDAO {
     }
     
     /**
+     * Get file data and file name for a project (for download)
+     * @param projectId Project ID
+     * @return Project with only fileName and fileData populated, or null
+     */
+    public Project getFileDataById(int projectId) {
+        String sql = "SELECT file_name, file_data FROM project WHERE id = ?";
+        Connection connection = getConnection();
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, projectId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                Project project = new Project();
+                project.setId(projectId);
+                project.setFileName(rs.getString("file_name"));
+                project.setFileData(rs.getBytes("file_data"));
+                return project;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting file data: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    /**
      * Map ResultSet to Project object
      */
     private Project mapResultSetToProject(ResultSet rs) throws SQLException {
@@ -333,10 +367,12 @@ public class ProjectDAO {
         project.setSupervisorId(rs.getInt("supervisor_id"));
         project.setStatus(rs.getString("status"));
         project.setFilePath(rs.getString("file_path"));
+        project.setFileName(rs.getString("file_name"));
         project.setKeywords(rs.getString("keywords"));
-        project.setYear(rs.getInt("year"));
+        project.setYear(rs.getString("year"));
         project.setSemester(rs.getString("semester"));
         project.setDepartment(rs.getString("department"));
+        project.setSession(rs.getString("session"));
         project.setSubmissionDate(rs.getTimestamp("submission_date"));
         project.setApprovalDate(rs.getTimestamp("approval_date"));
         project.setCreatedAt(rs.getTimestamp("created_at"));
