@@ -96,6 +96,7 @@ public class ProjectServlet extends HttpServlet {
                     }
                 }
                 
+                enrichProjects(projects);
                 jsonResponse.addProperty("success", true);
                 jsonResponse.add("projects", gson.toJsonTree(projects));
                 jsonResponse.addProperty("count", projects.size());
@@ -110,19 +111,23 @@ public class ProjectServlet extends HttpServlet {
                     if (projects.size() > 10) {
                         projects = projects.subList(0, 10);
                     }
+                    enrichProjects(projects);
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("projects", gson.toJsonTree(projects));
                 } else if ("pending".equals(projectId)) {
                     List<Project> projects = projectService.getPendingProjects();
+                    enrichProjects(projects);
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("projects", gson.toJsonTree(projects));
                 } else if ("approved".equals(projectId)) {
                     List<Project> projects = projectService.getApprovedProjects();
+                    enrichProjects(projects);
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("projects", gson.toJsonTree(projects));
                 } else {
                     Project project = projectService.getById(Integer.parseInt(projectId));
                     if (project != null) {
+                        enrichProject(project);
                         jsonResponse.addProperty("success", true);
                         jsonResponse.add("project", gson.toJsonTree(project));
                     } else {
@@ -166,9 +171,10 @@ public class ProjectServlet extends HttpServlet {
                 project.setStudentId(Integer.parseInt(request.getParameter("studentId")));
                 project.setSupervisorId(Integer.parseInt(request.getParameter("supervisorId")));
                 project.setKeywords(request.getParameter("keywords"));
-                project.setYear(Integer.parseInt(request.getParameter("year")));
+                project.setYear(request.getParameter("year"));
                 project.setSemester(request.getParameter("semester"));
                 project.setDepartment(request.getParameter("department"));
+                project.setSession(request.getParameter("session"));
                 
                 // Handle file upload
                 Part filePart = request.getPart("file");
@@ -200,9 +206,10 @@ public class ProjectServlet extends HttpServlet {
                 project.setStudentId(requestData.get("studentId").getAsInt());
                 project.setSupervisorId(requestData.get("supervisorId").getAsInt());
                 project.setKeywords(requestData.has("keywords") ? requestData.get("keywords").getAsString() : "");
-                project.setYear(requestData.get("year").getAsInt());
+                project.setYear(requestData.get("year").getAsString());
                 project.setSemester(requestData.has("semester") ? requestData.get("semester").getAsString() : "");
                 project.setDepartment(requestData.get("department").getAsString());
+                project.setSession(requestData.has("session") ? requestData.get("session").getAsString() : "");
             }
             
             boolean success = projectService.submitProject(project);
@@ -307,9 +314,11 @@ public class ProjectServlet extends HttpServlet {
                                     : projectForNotify.getSupervisorId();
                                 Teacher supervisor = teacherService.getById(supervisorId);
                                 String supervisorName = supervisor != null ? supervisor.getFullName() : "Your supervisor";
+                                String reason = requestData != null && requestData.has("reason")
+                                    ? requestData.get("reason").getAsString() : null;
                                 notificationService.notifyProjectRejected(
                                     projectForNotify.getStudentId(), supervisorId, supervisorName,
-                                    projectId, projectForNotify.getTitle());
+                                    projectId, projectForNotify.getTitle(), reason);
                             } catch (Exception ex) {
                                 System.err.println("Warning: Failed to send rejection notification: " + ex.getMessage());
                             }
@@ -408,5 +417,32 @@ public class ProjectServlet extends HttpServlet {
             }
         }
         return "unknown";
+    }
+    
+    /**
+     * Enrich a list of projects with student and supervisor names
+     */
+    private void enrichProjects(List<Project> projects) {
+        for (Project project : projects) {
+            enrichProject(project);
+        }
+    }
+    
+    /**
+     * Enrich a single project with student and supervisor names
+     */
+    private void enrichProject(Project project) {
+        try {
+            Student student = studentService.getById(project.getStudentId());
+            if (student != null) {
+                project.setStudentName(student.getFullName());
+            }
+            Teacher teacher = teacherService.getById(project.getSupervisorId());
+            if (teacher != null) {
+                project.setSupervisorName(teacher.getFullName());
+            }
+        } catch (Exception e) {
+            // Ignore enrichment errors
+        }
     }
 }

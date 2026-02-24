@@ -66,6 +66,9 @@ nav a {
     font-weight: 500;
     transition: opacity 0.3s ease;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 nav a:hover {

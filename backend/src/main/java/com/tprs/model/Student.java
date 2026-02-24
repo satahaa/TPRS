@@ -19,6 +19,10 @@ public class Student {
     private Timestamp createdAt;
     private Timestamp updatedAt;
     
+    // Fields for supervisor-student assignment context
+    private String assignedYear;
+    private String assignedSemester;
+    
     // Default constructor
     public Student() {}
     
@@ -122,6 +126,22 @@ public class Student {
     
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public String getAssignedYear() {
+        return assignedYear;
+    }
+    
+    public void setAssignedYear(String assignedYear) {
+        this.assignedYear = assignedYear;
+    }
+    
+    public String getAssignedSemester() {
+        return assignedSemester;
+    }
+    
+    public void setAssignedSemester(String assignedSemester) {
+        this.assignedSemester = assignedSemester;
     }
     
     // Get full name

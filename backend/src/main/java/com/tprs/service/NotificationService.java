@@ -59,6 +59,13 @@ public class NotificationService {
      * Send notification to student when project is rejected
      */
     public boolean notifyProjectRejected(int studentId, int supervisorId, String supervisorName, int projectId, String projectTitle) {
+        return notifyProjectRejected(studentId, supervisorId, supervisorName, projectId, projectTitle, null);
+    }
+
+    /**
+     * Send notification to student when project is rejected (with reason)
+     */
+    public boolean notifyProjectRejected(int studentId, int supervisorId, String supervisorName, int projectId, String projectTitle, String reason) {
         Notification notification = new Notification();
         notification.setRecipientId(studentId);
         notification.setRecipientType("student");
@@ -66,7 +73,13 @@ public class NotificationService {
         notification.setSenderType("teacher");
         notification.setType("project_rejected");
         notification.setTitle("Project Rejected");
-        notification.setMessage("Your project \"" + projectTitle + "\" has been rejected by " + supervisorName + ". Please review and resubmit.");
+        String msg = "Your project \"" + projectTitle + "\" has been rejected by " + supervisorName + ".";
+        if (reason != null && !reason.trim().isEmpty()) {
+            msg += " Reason: " + reason.trim();
+        } else {
+            msg += " Please review and resubmit.";
+        }
+        notification.setMessage(msg);
         notification.setProjectId(projectId);
         return notificationDAO.create(notification);
     }

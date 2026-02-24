@@ -76,7 +76,14 @@ public class SupervisorAssignmentServlet extends HttpServlet {
             } else if (pathInfo != null && "/by-student".equals(pathInfo)) {
                 // Get supervisors for a student
                 if (studentId != null) {
-                    List<Teacher> supervisors = assignmentService.getSupervisorsForStudent(Integer.parseInt(studentId));
+                    String year = request.getParameter("year");
+                    String semester = request.getParameter("semester");
+                    List<Teacher> supervisors;
+                    if (year != null && semester != null) {
+                        supervisors = assignmentService.getSupervisorsForStudent(Integer.parseInt(studentId), year, semester);
+                    } else {
+                        supervisors = assignmentService.getSupervisorsForStudent(Integer.parseInt(studentId));
+                    }
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("supervisors", gson.toJsonTree(supervisors));
                 } else {
@@ -112,8 +119,10 @@ public class SupervisorAssignmentServlet extends HttpServlet {
             
             int supId = data.get("supervisorId").getAsInt();
             int stuId = data.get("studentId").getAsInt();
+            String year = data.has("year") && !data.get("year").isJsonNull() ? data.get("year").getAsString() : null;
+            String semester = data.has("semester") && !data.get("semester").isJsonNull() ? data.get("semester").getAsString() : null;
             
-            boolean success = assignmentService.assignStudent(supId, stuId);
+            boolean success = assignmentService.assignStudent(supId, stuId, year, semester);
             
             if (success) {
                 // Send notification to the student

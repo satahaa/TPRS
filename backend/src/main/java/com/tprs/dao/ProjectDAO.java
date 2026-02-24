@@ -30,7 +30,7 @@ public class ProjectDAO {
      * @return true if successful, false otherwise
      */
     public boolean create(Project project) {
-        String sql = "INSERT INTO project (title, description, type, student_id, supervisor_id, status, file_path, keywords, year, semester, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO project (title, description, type, student_id, supervisor_id, status, file_path, keywords, year, semester, department, session) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection connection = getConnection();
         
         if (connection == null) {
@@ -47,9 +47,10 @@ public class ProjectDAO {
             stmt.setString(6, project.getStatus());
             stmt.setString(7, project.getFilePath());
             stmt.setString(8, project.getKeywords());
-            stmt.setInt(9, project.getYear());
+            stmt.setString(9, project.getYear());
             stmt.setString(10, project.getSemester());
             stmt.setString(11, project.getDepartment());
+            stmt.setString(12, project.getSession());
             
             int rowsAffected = stmt.executeUpdate();
             
@@ -334,9 +335,10 @@ public class ProjectDAO {
         project.setStatus(rs.getString("status"));
         project.setFilePath(rs.getString("file_path"));
         project.setKeywords(rs.getString("keywords"));
-        project.setYear(rs.getInt("year"));
+        project.setYear(rs.getString("year"));
         project.setSemester(rs.getString("semester"));
         project.setDepartment(rs.getString("department"));
+        project.setSession(rs.getString("session"));
         project.setSubmissionDate(rs.getTimestamp("submission_date"));
         project.setApprovalDate(rs.getTimestamp("approval_date"));
         project.setCreatedAt(rs.getTimestamp("created_at"));

@@ -3,6 +3,7 @@ package com.tprs.servlet;
 import com.tprs.service.NotificationService;
 import com.tprs.model.Notification;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import javax.servlet.ServletException;
@@ -25,7 +26,7 @@ public class NotificationServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         notificationService = new NotificationService();
-        gson = new Gson();
+        gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
     }
     
     @Override

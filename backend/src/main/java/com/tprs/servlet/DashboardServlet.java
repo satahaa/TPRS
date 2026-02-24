@@ -53,6 +53,9 @@ public class DashboardServlet extends HttpServlet {
                     stats.addProperty("inProgressProjects", rs.getInt("in_progress_projects"));
                     stats.addProperty("completedProjects", rs.getInt("completed_projects"));
                     stats.addProperty("rejectedProjects", rs.getInt("rejected_projects"));
+                    stats.addProperty("totalThesis", rs.getInt("total_thesis"));
+                    stats.addProperty("totalProject", rs.getInt("total_project"));
+                    stats.addProperty("totalAuthors", rs.getInt("total_authors"));
                     
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("stats", stats);

@@ -22,7 +22,14 @@ public class SupervisorStudentDAO {
      * Assign a student to a supervisor
      */
     public boolean assign(int supervisorId, int studentId) {
-        String sql = "INSERT IGNORE INTO supervisor_student (supervisor_id, student_id) VALUES (?, ?)";
+        return assign(supervisorId, studentId, null, null);
+    }
+    
+    /**
+     * Assign a student to a supervisor for a specific year and semester
+     */
+    public boolean assign(int supervisorId, int studentId, String year, String semester) {
+        String sql = "INSERT IGNORE INTO supervisor_student (supervisor_id, student_id, year, semester) VALUES (?, ?, ?, ?)";
         Connection connection = getConnection();
         
         if (connection == null) return false;
@@ -30,6 +37,8 @@ public class SupervisorStudentDAO {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, supervisorId);
             stmt.setInt(2, studentId);
+            stmt.setString(3, year);
+            stmt.setString(4, semester);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error assigning student to supervisor: " + e.getMessage());
@@ -61,7 +70,7 @@ public class SupervisorStudentDAO {
      */
     public List<Student> getStudentsBySupervisor(int supervisorId) {
         List<Student> students = new ArrayList<>();
-        String sql = "SELECT s.* FROM student s JOIN supervisor_student ss ON s.id = ss.student_id WHERE ss.supervisor_id = ? ORDER BY s.last_name, s.first_name";
+        String sql = "SELECT s.*, ss.year AS assigned_year, ss.semester AS assigned_semester FROM student s JOIN supervisor_student ss ON s.id = ss.student_id WHERE ss.supervisor_id = ? ORDER BY s.last_name, s.first_name";
         Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -69,7 +78,10 @@ public class SupervisorStudentDAO {
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
-                students.add(mapResultSetToStudent(rs));
+                Student student = mapResultSetToStudent(rs);
+                student.setAssignedYear(rs.getString("assigned_year"));
+                student.setAssignedSemester(rs.getString("assigned_semester"));
+                students.add(student);
             }
         } catch (SQLException e) {
             System.err.println("Error getting assigned students: " + e.getMessage());
@@ -82,12 +94,28 @@ public class SupervisorStudentDAO {
      * Get the supervisor(s) assigned to a student
      */
     public List<Teacher> getSupervisorsForStudent(int studentId) {
+        return getSupervisorsForStudent(studentId, null, null);
+    }
+    
+    /**
+     * Get the supervisor(s) assigned to a student for a specific year/semester
+     */
+    public List<Teacher> getSupervisorsForStudent(int studentId, String year, String semester) {
         List<Teacher> teachers = new ArrayList<>();
-        String sql = "SELECT t.* FROM teacher t JOIN supervisor_student ss ON t.id = ss.supervisor_id WHERE ss.student_id = ? ORDER BY t.last_name";
+        String sql;
+        if (year != null && semester != null) {
+            sql = "SELECT t.* FROM teacher t JOIN supervisor_student ss ON t.id = ss.supervisor_id WHERE ss.student_id = ? AND ss.year = ? AND ss.semester = ? ORDER BY t.last_name";
+        } else {
+            sql = "SELECT t.* FROM teacher t JOIN supervisor_student ss ON t.id = ss.supervisor_id WHERE ss.student_id = ? ORDER BY t.last_name";
+        }
         Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, studentId);
+            if (year != null && semester != null) {
+                stmt.setString(2, year);
+                stmt.setString(3, semester);
+            }
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
@@ -122,15 +150,15 @@ public class SupervisorStudentDAO {
     }
     
     /**
-     * Get all students NOT yet assigned to a supervisor (available for assignment)
+     * Get all students available for assignment (includes already-assigned students
+     * since assignments are year/semester-specific)
      */
     public List<Student> getUnassignedStudents(int supervisorId) {
         List<Student> students = new ArrayList<>();
-        String sql = "SELECT s.* FROM student s WHERE s.id NOT IN (SELECT student_id FROM supervisor_student WHERE supervisor_id = ?) ORDER BY s.last_name, s.first_name";
+        String sql = "SELECT s.* FROM student s ORDER BY s.last_name, s.first_name";
         Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, supervisorId);
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
