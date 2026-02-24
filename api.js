@@ -12,20 +12,19 @@ const TPRSApi = {
     // =====================================================
     
     /**
-     * Login user (student or teacher)
+     * Login user (auto-detects role by email)
      * @param {string} email - User email
      * @param {string} password - User password
-     * @param {string} userType - 'student' or 'teacher'
-     * @returns {Promise} - API response
+     * @returns {Promise} - API response with userType and redirect
      */
-    async login(email, password, userType = 'student') {
+    async login(email, password) {
         try {
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ email, password, userType })
+                body: JSON.stringify({ email, password })
             });
             return await response.json();
         } catch (error) {
@@ -320,6 +319,166 @@ const TPRSApi = {
         } catch (error) {
             console.error('Get department stats error:', error);
             return { success: false, message: 'Failed to fetch department statistics.' };
+        }
+    },
+    
+    // =====================================================
+    // NOTIFICATION APIs
+    // =====================================================
+    
+    /**
+     * Get notifications for a user
+     * @param {number} userId - User ID
+     * @param {string} userType - 'student' or 'teacher'
+     * @returns {Promise} - API response with notifications
+     */
+    async getNotifications(userId, userType) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/notifications?userId=${userId}&userType=${userType}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get notifications error:', error);
+            return { success: false, message: 'Failed to fetch notifications.' };
+        }
+    },
+    
+    /**
+     * Get unread notification count
+     * @param {number} userId - User ID
+     * @param {string} userType - 'student' or 'teacher'
+     * @returns {Promise} - API response with count
+     */
+    async getUnreadNotificationCount(userId, userType) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/notifications/unread-count?userId=${userId}&userType=${userType}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get unread count error:', error);
+            return { success: false, message: 'Failed to fetch unread count.' };
+        }
+    },
+    
+    /**
+     * Mark a notification as read
+     * @param {number} notificationId - Notification ID
+     * @returns {Promise} - API response
+     */
+    async markNotificationRead(notificationId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
+                method: 'PUT'
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Mark notification read error:', error);
+            return { success: false, message: 'Failed to mark notification as read.' };
+        }
+    },
+    
+    /**
+     * Mark all notifications as read
+     * @param {number} userId - User ID
+     * @param {string} userType - 'student' or 'teacher'
+     * @returns {Promise} - API response
+     */
+    async markAllNotificationsRead(userId, userType) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, userType })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Mark all read error:', error);
+            return { success: false, message: 'Failed to mark all notifications as read.' };
+        }
+    },
+    
+    // =====================================================
+    // SUPERVISOR ASSIGNMENT APIs
+    // =====================================================
+    
+    /**
+     * Get students assigned to a supervisor
+     * @param {number} supervisorId - Teacher/Supervisor ID
+     * @returns {Promise} - API response with assigned students
+     */
+    async getAssignedStudents(supervisorId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/assignments/by-supervisor?supervisorId=${supervisorId}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get assigned students error:', error);
+            return { success: false, message: 'Failed to fetch assigned students.' };
+        }
+    },
+    
+    /**
+     * Get unassigned students (not assigned to this supervisor)
+     * @param {number} supervisorId - Teacher/Supervisor ID
+     * @returns {Promise} - API response with unassigned students
+     */
+    async getUnassignedStudents(supervisorId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/assignments/unassigned?supervisorId=${supervisorId}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get unassigned students error:', error);
+            return { success: false, message: 'Failed to fetch unassigned students.' };
+        }
+    },
+    
+    /**
+     * Assign a student to the supervisor
+     * @param {number} supervisorId - Teacher/Supervisor ID
+     * @param {number} studentId - Student ID
+     * @returns {Promise} - API response
+     */
+    async assignStudent(supervisorId, studentId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/assignments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ supervisorId, studentId })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Assign student error:', error);
+            return { success: false, message: 'Failed to assign student.' };
+        }
+    },
+    
+    /**
+     * Unassign a student from the supervisor
+     * @param {number} supervisorId - Teacher/Supervisor ID
+     * @param {number} studentId - Student ID
+     * @returns {Promise} - API response
+     */
+    async unassignStudent(supervisorId, studentId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/assignments?supervisorId=${supervisorId}&studentId=${studentId}`, {
+                method: 'DELETE'
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Unassign student error:', error);
+            return { success: false, message: 'Failed to unassign student.' };
+        }
+    },
+    
+    /**
+     * Get supervisors assigned to a student
+     * @param {number} studentId - Student ID
+     * @returns {Promise} - API response with supervisors
+     */
+    async getSupervisorsForStudent(studentId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/assignments/by-student?studentId=${studentId}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get supervisors error:', error);
+            return { success: false, message: 'Failed to fetch supervisors.' };
         }
     },
     

@@ -103,11 +103,11 @@
             loginBtn.disabled = true;
             
             try {
-                // Call backend API for authentication
-                const result = await TPRSApi.login(email, password, 'student');
+                // Call backend API - auto-detects role by email
+                const result = await TPRSApi.login(email, password);
                 
                 if (result.success) {
-                    // Successful login - save session
+                    // Successful login - save session with detected role
                     TPRSApi.saveSession(result.user, result.userType);
                     
                     // Handle remember me
@@ -117,8 +117,9 @@
                         localStorage.removeItem('rememberedEmail');
                     }
                     
-                    // Redirect to home page
-                    window.location.href = 'home.html';
+                    // Redirect based on role (use backend redirect or fallback)
+                    const redirectPage = result.redirect || (result.userType === 'teacher' ? 'supervisor-dashboard.html' : 'home.html');
+                    window.location.href = redirectPage;
                 } else {
                     // Login failed
                     showError(result.message || 'Invalid email or password');
@@ -140,11 +141,10 @@
                         localStorage.removeItem('rememberedEmail');
                     }
                     
-                    sessionStorage.setItem('isLoggedIn', 'true');
-                    sessionStorage.setItem('userEmail', email);
-                    sessionStorage.setItem('currentUser', JSON.stringify(user));
+                    const userType = user.role === 'teacher' ? 'teacher' : 'student';
+                    TPRSApi.saveSession(user, userType);
                     
-                    window.location.href = 'home.html';
+                    window.location.href = userType === 'teacher' ? 'supervisor-dashboard.html' : 'home.html';
                 } else {
                     showError('Invalid email or password');
                     loginBtn.innerHTML = originalBtnContent;
@@ -171,7 +171,8 @@
 
         // Check if already logged in
         if (TPRSApi.isLoggedIn()) {
-            window.location.href = 'home.html';
+            const userType = TPRSApi.getUserType();
+            window.location.href = userType === 'teacher' ? 'supervisor-dashboard.html' : 'home.html';
         }
     </script>
 </body>

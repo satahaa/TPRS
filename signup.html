@@ -461,6 +461,16 @@
             </div>
 
             <form id="signupForm">
+                <!-- Role Selection -->
+                <div class="form-group">
+                    <label for="role">Register As</label>
+                    <select id="role" name="role" required onchange="toggleRoleFields()">
+                        <option value="">Select Role</option>
+                        <option value="student">Student</option>
+                        <option value="teacher">Supervisor / Teacher</option>
+                    </select>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="firstName">First Name</label>
@@ -483,9 +493,36 @@
                     <input type="email" id="email" name="email" placeholder="Enter your email" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="studentId">Student ID</label>
-                    <input type="text" id="studentId" name="studentId" placeholder="e.g., CE23046" required>
+                <!-- Student-specific fields -->
+                <div id="studentFields">
+                    <div class="form-group">
+                        <label for="studentId">Student ID</label>
+                        <input type="text" id="studentId" name="studentId" placeholder="e.g., CE23046">
+                    </div>
+                </div>
+
+                <!-- Teacher-specific fields -->
+                <div id="teacherFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="teacherId">Teacher ID</label>
+                        <input type="text" id="teacherId" name="teacherId" placeholder="e.g., T001">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="designation">Designation</label>
+                            <select id="designation" name="designation">
+                                <option value="">Select Designation</option>
+                                <option value="Lecturer">Lecturer</option>
+                                <option value="Assistant Professor">Assistant Professor</option>
+                                <option value="Associate Professor">Associate Professor</option>
+                                <option value="Professor">Professor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="specialization">Specialization</label>
+                            <input type="text" id="specialization" name="specialization" placeholder="e.g., Machine Learning">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-row">
@@ -500,9 +537,9 @@
                             <option value="ME">Mechanical Engineering</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="degreeGroup">
                         <label for="degreeType">Degree Type</label>
-                        <select id="degreeType" name="degreeType" required>
+                        <select id="degreeType" name="degreeType">
                             <option value="">Select Degree</option>
                             <option value="Bachelor">Bachelor</option>
                             <option value="Master">Master</option>
@@ -552,6 +589,28 @@
 
     <script src="api.js"></script>
     <script>
+        // Toggle role-specific fields
+        function toggleRoleFields() {
+            const role = document.getElementById('role').value;
+            const studentFields = document.getElementById('studentFields');
+            const teacherFields = document.getElementById('teacherFields');
+            const degreeGroup = document.getElementById('degreeGroup');
+            
+            if (role === 'teacher') {
+                studentFields.style.display = 'none';
+                teacherFields.style.display = 'block';
+                degreeGroup.style.display = 'none';
+                document.getElementById('studentId').removeAttribute('required');
+                document.getElementById('teacherId').setAttribute('required', '');
+            } else {
+                studentFields.style.display = 'block';
+                teacherFields.style.display = 'none';
+                degreeGroup.style.display = 'block';
+                document.getElementById('studentId').setAttribute('required', '');
+                document.getElementById('teacherId').removeAttribute('required');
+            }
+        }
+
         // Toggle password visibility
         function togglePassword(inputId) {
             const passwordInput = document.getElementById(inputId);
@@ -650,15 +709,14 @@
         document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            const role = document.getElementById('role').value;
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
             const username = document.getElementById('username').value.trim();
             const email = document.getElementById('email').value.trim();
-            const studentId = document.getElementById('studentId').value.trim();
-            const department = document.getElementById('department').value;
-            const degreeType = document.getElementById('degreeType').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const department = document.getElementById('department').value;
             const terms = document.getElementById('terms').checked;
             
             // Validation
@@ -694,25 +752,62 @@
             submitBtn.disabled = true;
             
             try {
-                // Call backend API for registration
-                const studentData = {
-                    firstName,
-                    lastName,
-                    username,
-                    email,
-                    password,
-                    studentId,
-                    department,
-                    degreeType
-                };
+                let result;
                 
-                const result = await TPRSApi.registerStudent(studentData);
+                if (role === 'student') {
+                    const studentId = document.getElementById('studentId').value.trim();
+                    const degreeType = document.getElementById('degreeType').value;
+                    
+                    if (!studentId) {
+                        showError('Student ID is required');
+                        submitBtn.textContent = 'Create Account';
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    
+                    const studentData = {
+                        firstName,
+                        lastName,
+                        username,
+                        email,
+                        password,
+                        studentId,
+                        department,
+                        degreeType
+                    };
+                    result = await TPRSApi.registerStudent(studentData);
+                    
+                } else {
+                    // Teacher / Supervisor
+                    const teacherId = document.getElementById('teacherId').value.trim();
+                    const designation = document.getElementById('designation').value;
+                    const specialization = document.getElementById('specialization').value.trim();
+                    
+                    if (!teacherId) {
+                        showError('Teacher ID is required');
+                        submitBtn.textContent = 'Create Account';
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    
+                    const teacherData = {
+                        firstName,
+                        lastName,
+                        username,
+                        email,
+                        password,
+                        teacherId,
+                        department,
+                        designation,
+                        specialization
+                    };
+                    result = await TPRSApi.registerTeacher(teacherData);
+                }
                 
                 if (result.success) {
                     showSuccess('Account created successfully! Redirecting to login...');
                     submitBtn.textContent = 'Account Created!';
                     
-                    // Redirect to login page after 2 seconds
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 2000);
@@ -722,10 +817,8 @@
                     submitBtn.disabled = false;
                 }
             } catch (error) {
-                // Network or server error - fallback to localStorage for demo
                 console.log('API not available, using local storage fallback');
                 
-                // Check if email already exists
                 const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
                 const emailExists = existingUsers.some(user => user.email === email);
                 
@@ -736,18 +829,25 @@
                     return;
                 }
                 
-                // Store user data in localStorage as fallback
                 const userData = {
                     firstName,
                     lastName,
                     username,
                     email,
                     password,
-                    studentId,
+                    role,
                     department,
-                    degreeType,
                     createdAt: new Date().toISOString()
                 };
+                
+                if (role === 'student') {
+                    userData.studentId = document.getElementById('studentId').value.trim();
+                    userData.degreeType = document.getElementById('degreeType').value;
+                } else {
+                    userData.teacherId = document.getElementById('teacherId').value.trim();
+                    userData.designation = document.getElementById('designation').value;
+                    userData.specialization = document.getElementById('specialization').value.trim();
+                }
                 
                 existingUsers.push(userData);
                 localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));

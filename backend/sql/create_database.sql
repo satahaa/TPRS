@@ -81,6 +81,44 @@ CREATE TABLE IF NOT EXISTS project (
 );
 
 -- =====================================================
+-- SUPERVISOR-STUDENT ASSIGNMENT TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS supervisor_student (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    supervisor_id INT NOT NULL,
+    student_id INT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (supervisor_id) REFERENCES teacher(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_assignment (supervisor_id, student_id),
+    INDEX idx_supervisor (supervisor_id),
+    INDEX idx_student (student_id)
+);
+
+-- =====================================================
+-- NOTIFICATION TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS notification (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    recipient_id INT NOT NULL,
+    recipient_type ENUM('student', 'teacher') NOT NULL,
+    sender_id INT,
+    sender_type ENUM('student', 'teacher'),
+    type ENUM('project_submitted', 'project_approved', 'project_rejected', 'assignment', 'general') NOT NULL DEFAULT 'general',
+    title VARCHAR(500) NOT NULL,
+    message TEXT,
+    project_id INT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE SET NULL,
+    INDEX idx_recipient (recipient_id, recipient_type),
+    INDEX idx_read_status (is_read),
+    INDEX idx_created (created_at)
+);
+
+-- =====================================================
 -- INSERT SAMPLE DATA
 -- =====================================================
 
@@ -536,6 +574,126 @@ DELIMITER //
 CREATE PROCEDURE GetRecentProjects(IN p_limit INT)
 BEGIN
     SELECT * FROM project_details ORDER BY created_at DESC LIMIT p_limit;
+END //
+DELIMITER ;
+
+-- =====================================================
+-- SUPERVISOR-STUDENT ASSIGNMENT PROCEDURES
+-- =====================================================
+
+-- Procedure: Assign student to supervisor
+DELIMITER //
+CREATE PROCEDURE AssignStudentToSupervisor(
+    IN p_supervisor_id INT,
+    IN p_student_id INT
+)
+BEGIN
+    INSERT IGNORE INTO supervisor_student (supervisor_id, student_id)
+    VALUES (p_supervisor_id, p_student_id);
+    SELECT ROW_COUNT() AS affected_rows;
+END //
+DELIMITER ;
+
+-- Procedure: Remove student from supervisor
+DELIMITER //
+CREATE PROCEDURE RemoveStudentFromSupervisor(
+    IN p_supervisor_id INT,
+    IN p_student_id INT
+)
+BEGIN
+    DELETE FROM supervisor_student WHERE supervisor_id = p_supervisor_id AND student_id = p_student_id;
+    SELECT ROW_COUNT() AS affected_rows;
+END //
+DELIMITER ;
+
+-- Procedure: Get students assigned to a supervisor
+DELIMITER //
+CREATE PROCEDURE GetAssignedStudents(IN p_supervisor_id INT)
+BEGIN
+    SELECT s.* FROM student s
+    JOIN supervisor_student ss ON s.id = ss.student_id
+    WHERE ss.supervisor_id = p_supervisor_id
+    ORDER BY s.last_name, s.first_name;
+END //
+DELIMITER ;
+
+-- Procedure: Get supervisor for a student
+DELIMITER //
+CREATE PROCEDURE GetSupervisorForStudent(IN p_student_id INT)
+BEGIN
+    SELECT t.* FROM teacher t
+    JOIN supervisor_student ss ON t.id = ss.supervisor_id
+    WHERE ss.student_id = p_student_id;
+END //
+DELIMITER ;
+
+-- =====================================================
+-- NOTIFICATION PROCEDURES
+-- =====================================================
+
+-- Procedure: Create notification
+DELIMITER //
+CREATE PROCEDURE CreateNotification(
+    IN p_recipient_id INT,
+    IN p_recipient_type VARCHAR(10),
+    IN p_sender_id INT,
+    IN p_sender_type VARCHAR(10),
+    IN p_type VARCHAR(30),
+    IN p_title VARCHAR(500),
+    IN p_message TEXT,
+    IN p_project_id INT
+)
+BEGIN
+    INSERT INTO notification (recipient_id, recipient_type, sender_id, sender_type, type, title, message, project_id)
+    VALUES (p_recipient_id, p_recipient_type, p_sender_id, p_sender_type, p_type, p_title, p_message, p_project_id);
+    SELECT LAST_INSERT_ID() AS id;
+END //
+DELIMITER ;
+
+-- Procedure: Get notifications for a user
+DELIMITER //
+CREATE PROCEDURE GetNotifications(
+    IN p_recipient_id INT,
+    IN p_recipient_type VARCHAR(10)
+)
+BEGIN
+    SELECT * FROM notification
+    WHERE recipient_id = p_recipient_id AND recipient_type = p_recipient_type
+    ORDER BY created_at DESC;
+END //
+DELIMITER ;
+
+-- Procedure: Get unread notification count
+DELIMITER //
+CREATE PROCEDURE GetUnreadNotificationCount(
+    IN p_recipient_id INT,
+    IN p_recipient_type VARCHAR(10)
+)
+BEGIN
+    SELECT COUNT(*) AS unread_count FROM notification
+    WHERE recipient_id = p_recipient_id AND recipient_type = p_recipient_type AND is_read = FALSE;
+END //
+DELIMITER ;
+
+-- Procedure: Mark notification as read
+DELIMITER //
+CREATE PROCEDURE MarkNotificationRead(IN p_id INT)
+BEGIN
+    UPDATE notification SET is_read = TRUE WHERE id = p_id;
+    SELECT ROW_COUNT() AS affected_rows;
+END //
+DELIMITER ;
+
+-- Procedure: Mark all notifications as read
+DELIMITER //
+CREATE PROCEDURE MarkAllNotificationsRead(
+    IN p_recipient_id INT,
+    IN p_recipient_type VARCHAR(10)
+)
+BEGIN
+    UPDATE notification SET is_read = TRUE
+    WHERE recipient_id = p_recipient_id AND recipient_type = p_recipient_type AND is_read = FALSE;
+    SELECT ROW_COUNT() AS affected_rows;
 END //
 DELIMITER ;
 

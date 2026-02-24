@@ -47,6 +47,26 @@
         <url-pattern>/api/dashboard/*</url-pattern>
     </servlet-mapping>
     
+    <!-- Notification Servlet -->
+    <servlet>
+        <servlet-name>NotificationServlet</servlet-name>
+        <servlet-class>com.tprs.servlet.NotificationServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NotificationServlet</servlet-name>
+        <url-pattern>/api/notifications/*</url-pattern>
+    </servlet-mapping>
+    
+    <!-- Supervisor Assignment Servlet -->
+    <servlet>
+        <servlet-name>SupervisorAssignmentServlet</servlet-name>
+        <servlet-class>com.tprs.servlet.SupervisorAssignmentServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SupervisorAssignmentServlet</servlet-name>
+        <url-pattern>/api/assignments/*</url-pattern>
+    </servlet-mapping>
+    
     <!-- Welcome file list -->
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

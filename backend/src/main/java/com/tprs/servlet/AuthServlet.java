@@ -76,33 +76,32 @@ public class AuthServlet extends HttpServlet {
     private void handleLogin(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
         String email = data.get("email").getAsString();
         String password = data.get("password").getAsString();
-        String userType = data.has("userType") ? data.get("userType").getAsString() : "student";
         
-        if ("teacher".equals(userType)) {
-            Teacher teacher = teacherService.login(email, password);
-            if (teacher != null) {
-                jsonResponse.addProperty("success", true);
-                jsonResponse.addProperty("message", "Login successful");
-                jsonResponse.addProperty("userType", "teacher");
-                jsonResponse.add("user", gson.toJsonTree(teacher));
-            } else {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Invalid email or password");
-            }
-        } else {
-            Student student = studentService.login(email, password);
-            if (student != null) {
-                jsonResponse.addProperty("success", true);
-                jsonResponse.addProperty("message", "Login successful");
-                jsonResponse.addProperty("userType", "student");
-                jsonResponse.add("user", gson.toJsonTree(student));
-            } else {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Invalid email or password");
-            }
+        // Auto-detect role: try teacher first, then student
+        Teacher teacher = teacherService.login(email, password);
+        if (teacher != null) {
+            jsonResponse.addProperty("success", true);
+            jsonResponse.addProperty("message", "Login successful");
+            jsonResponse.addProperty("userType", "teacher");
+            jsonResponse.addProperty("redirect", "supervisor-dashboard.html");
+            jsonResponse.add("user", gson.toJsonTree(teacher));
+            return;
         }
+        
+        Student student = studentService.login(email, password);
+        if (student != null) {
+            jsonResponse.addProperty("success", true);
+            jsonResponse.addProperty("message", "Login successful");
+            jsonResponse.addProperty("userType", "student");
+            jsonResponse.addProperty("redirect", "home.html");
+            jsonResponse.add("user", gson.toJsonTree(student));
+            return;
+        }
+        
+        // Neither found - invalid credentials
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        jsonResponse.addProperty("success", false);
+        jsonResponse.addProperty("message", "Invalid email or password");
     }
     
     private void handleStudentRegistration(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {

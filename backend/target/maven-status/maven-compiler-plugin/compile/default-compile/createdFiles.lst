@@ -1,4 +1,7 @@
+com\tprs\servlet\SupervisorAssignmentServlet.class
+com\tprs\dao\SupervisorStudentDAO.class
 com\tprs\Main.class
+com\tprs\servlet\NotificationServlet.class
 com\tprs\service\TeacherService.class
 com\tprs\config\DatabaseConfig.class
 com\tprs\dao\ProjectDAO.class
@@ -6,10 +9,14 @@ com\tprs\model\Teacher.class
 com\tprs\servlet\CORSFilter.class
 com\tprs\service\ProjectService.class
 com\tprs\servlet\AuthServlet.class
+com\tprs\dao\NotificationDAO.class
+com\tprs\service\SupervisorStudentService.class
 com\tprs\dao\StudentDAO.class
+com\tprs\model\Notification.class
 com\tprs\model\Project.class
 com\tprs\servlet\DashboardServlet.class
 com\tprs\model\Student.class
+com\tprs\service\NotificationService.class
 com\tprs\servlet\ProjectServlet.class
 com\tprs\service\StudentService.class
 com\tprs\dao\TeacherDAO.class

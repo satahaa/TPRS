@@ -1,7 +1,13 @@
 package com.tprs.servlet;
 
 import com.tprs.service.ProjectService;
+import com.tprs.service.NotificationService;
+import com.tprs.service.SupervisorStudentService;
+import com.tprs.service.StudentService;
+import com.tprs.service.TeacherService;
 import com.tprs.model.Project;
+import com.tprs.model.Student;
+import com.tprs.model.Teacher;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -28,12 +34,20 @@ import java.util.List;
 public class ProjectServlet extends HttpServlet {
     
     private ProjectService projectService;
+    private NotificationService notificationService;
+    private SupervisorStudentService assignmentService;
+    private StudentService studentService;
+    private TeacherService teacherService;
     private Gson gson;
     private static final String UPLOAD_DIR = "uploads";
     
     @Override
     public void init() throws ServletException {
         projectService = new ProjectService();
+        notificationService = new NotificationService();
+        assignmentService = new SupervisorStudentService();
+        studentService = new StudentService();
+        teacherService = new TeacherService();
         gson = new Gson();
     }
     
@@ -194,6 +208,34 @@ public class ProjectServlet extends HttpServlet {
             boolean success = projectService.submitProject(project);
             
             if (success) {
+                // Send notification to the assigned supervisor
+                try {
+                    int studentDbId = project.getStudentId();
+                    Student student = studentService.getById(studentDbId);
+                    String studentName = student != null ? student.getFullName() : "A student";
+                    
+                    // Get assigned supervisors for this student
+                    java.util.List<Teacher> supervisors = assignmentService.getSupervisorsForStudent(studentDbId);
+                    for (Teacher supervisor : supervisors) {
+                        notificationService.notifyProjectSubmission(
+                            supervisor.getId(), studentDbId, studentName,
+                            project.getId(), project.getTitle());
+                    }
+                    
+                    // Also notify the specific supervisor selected in the form if not already assigned
+                    if (project.getSupervisorId() > 0) {
+                        boolean alreadyNotified = supervisors.stream()
+                            .anyMatch(s -> s.getId() == project.getSupervisorId());
+                        if (!alreadyNotified) {
+                            notificationService.notifyProjectSubmission(
+                                project.getSupervisorId(), studentDbId, studentName,
+                                project.getId(), project.getTitle());
+                        }
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Warning: Failed to send notification: " + ex.getMessage());
+                }
+                
                 jsonResponse.addProperty("success", true);
                 jsonResponse.addProperty("message", "Project submitted successfully");
                 jsonResponse.addProperty("projectId", project.getId());
@@ -237,10 +279,41 @@ public class ProjectServlet extends HttpServlet {
                     String action = pathParts[1];
                     boolean success = false;
                     
+                    // Get project details before updating for notification
+                    Project projectForNotify = projectService.getById(projectId);
+                    
                     if ("approve".equals(action)) {
                         success = projectService.approveProject(projectId);
+                        if (success && projectForNotify != null) {
+                            try {
+                                int supervisorId = requestData != null && requestData.has("supervisorId") 
+                                    ? requestData.get("supervisorId").getAsInt() 
+                                    : projectForNotify.getSupervisorId();
+                                Teacher supervisor = teacherService.getById(supervisorId);
+                                String supervisorName = supervisor != null ? supervisor.getFullName() : "Your supervisor";
+                                notificationService.notifyProjectApproved(
+                                    projectForNotify.getStudentId(), supervisorId, supervisorName,
+                                    projectId, projectForNotify.getTitle());
+                            } catch (Exception ex) {
+                                System.err.println("Warning: Failed to send approval notification: " + ex.getMessage());
+                            }
+                        }
                     } else if ("reject".equals(action)) {
                         success = projectService.rejectProject(projectId);
+                        if (success && projectForNotify != null) {
+                            try {
+                                int supervisorId = requestData != null && requestData.has("supervisorId")
+                                    ? requestData.get("supervisorId").getAsInt()
+                                    : projectForNotify.getSupervisorId();
+                                Teacher supervisor = teacherService.getById(supervisorId);
+                                String supervisorName = supervisor != null ? supervisor.getFullName() : "Your supervisor";
+                                notificationService.notifyProjectRejected(
+                                    projectForNotify.getStudentId(), supervisorId, supervisorName,
+                                    projectId, projectForNotify.getTitle());
+                            } catch (Exception ex) {
+                                System.err.println("Warning: Failed to send rejection notification: " + ex.getMessage());
+                            }
+                        }
                     } else if ("status".equals(action)) {
                         String status = requestData.get("status").getAsString();
                         success = projectService.updateStatus(projectId, status);

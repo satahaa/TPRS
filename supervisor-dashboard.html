@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPRS - Supervisor Dashboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ===== Supervisor Dashboard Specific Styles ===== */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .dashboard-full-width {
+            grid-column: 1 / -1;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-title .material-icons {
+            color: #667eea;
+            font-size: 1.4rem;
+        }
+
+        .card-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* ===== Stats Row ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            grid-column: 1 / -1;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon .material-icons {
+            font-size: 1.6rem;
+            color: white;
+        }
+
+        .stat-icon.students { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.pending { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .stat-icon.approved { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-icon.notifications { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+
+        .stat-info h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .stat-info p {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 500;
+        }
+
+        /* ===== Notification Bell ===== */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            padding: 0.5rem;
+            color: white;
+            transition: transform 0.2s;
+        }
+
+        .notification-bell:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-bell .material-icons {
+            font-size: 1.6rem;
+        }
+
+        .bell-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #f5576c;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #667eea;
+        }
+
+        .bell-badge.hidden { display: none; }
+
+        /* ===== Notifications List ===== */
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            background: #f8f9ff;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            background: #eef1ff;
+        }
+
+        .notification-item.unread {
+            background: #e8edff;
+            border-left: 3px solid #667eea;
+        }
+
+        .notif-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .notif-icon .material-icons { font-size: 1.2rem; color: white; }
+        .notif-icon.submit { background: #667eea; }
+        .notif-icon.approve { background: #43e97b; }
+        .notif-icon.reject { background: #f5576c; }
+        .notif-icon.assign { background: #4facfe; }
+        .notif-icon.general { background: #888; }
+
+        .notif-content { flex: 1; }
+
+        .notif-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+
+        .notif-message {
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .notif-time {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 0.3rem;
+        }
+
+        .mark-all-read {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .mark-all-read:hover { color: #764ba2; }
+
+        /* ===== Student Assignment ===== */
+        .student-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            background: #f8f9ff;
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .student-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .student-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .student-detail {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .btn-assign, .btn-unassign {
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-assign {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-assign:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .btn-unassign {
+            background: #fff;
+            color: #f5576c;
+            border: 1px solid #f5576c;
+        }
+
+        .btn-unassign:hover { background: #fff5f5; }
+
+        /* ===== Project Approval ===== */
+        .project-item {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+            background: #f8f9ff;
+            border-left: 3px solid #667eea;
+        }
+
+        .project-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.6rem;
+        }
+
+        .project-title-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .project-meta {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 0.6rem;
+        }
+
+        .project-meta span {
+            margin-right: 1rem;
+        }
+
+        .project-status {
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fff3e0; color: #e65100; }
+        .status-approved { background: #e8f5e9; color: #2e7d32; }
+        .status-rejected { background: #fce4ec; color: #c62828; }
+
+        .project-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-approve, .btn-reject {
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: all 0.2s;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: #1a5c2e;
+        }
+
+        .btn-approve:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .btn-reject {
+            background: #fff;
+            color: #f5576c;
+            border: 1px solid #f5576c;
+        }
+
+        .btn-reject:hover { background: #fff5f5; }
+
+        /* ===== Assign Modal ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            width: 500px;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 1.5rem;
+        }
+
+        .modal-close:hover { color: #333; }
+
+        .modal-search {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .modal-search:focus { border-color: #667eea; }
+
+        /* ===== Empty State ===== */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+        }
+
+        .empty-state .material-icons {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+        }
+
+        /* ===== Scrollable sections ===== */
+        .scrollable-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .scrollable-list::-webkit-scrollbar { width: 5px; }
+        .scrollable-list::-webkit-scrollbar-track { background: transparent; }
+        .scrollable-list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 900px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== HEADER ===== -->
+    <header>
+        <div class="header-left">
+            <span class="material-icons logo-icon">school</span>
+            <div class="logo-text">Thesis & Project Repository System</div>
+        </div>
+        <div class="header-right">
+            <nav>
+                <a href="supervisor-dashboard.html">Dashboard</a>
+                <a href="home.html">Browse Projects</a>
+            </nav>
+            <!-- Notification Bell -->
+            <div class="notification-bell" id="notifBell" onclick="toggleNotifDropdown()">
+                <span class="material-icons">notifications</span>
+                <span class="bell-badge hidden" id="bellBadge">0</span>
+            </div>
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar" id="userAvatar">SV</div>
+                <span class="user-name" id="userName">Supervisor</span>
+                <span class="material-icons dropdown-arrow">expand_more</span>
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="dropdown-header">
+                        <div class="dropdown-avatar" id="dropdownAvatar">SV</div>
+                        <div class="dropdown-info">
+                            <div class="dropdown-name" id="dropdownName">Supervisor</div>
+                            <div class="dropdown-email" id="dropdownEmail">supervisor@mbstu.ac.bd</div>
+                            <div class="dropdown-details">
+                                <span class="dropdown-detail-item">
+                                    <span class="material-icons">business</span>
+                                    <span id="dropdownDept">Department</span>
+                                </span>
+                                <span class="dropdown-detail-item">
+                                    <span class="material-icons">badge</span>
+                                    <span id="dropdownDesignation">Designation</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-menu">
+                        <a href="#profile" class="dropdown-item">
+                            <span class="material-icons">person</span>
+                            Profile
+                        </a>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item logout-btn" onclick="handleLogout()">
+                        <span class="material-icons">logout</span>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== DASHBOARD CONTENT ===== -->
+    <div class="dashboard-container">
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon students">
+                    <span class="material-icons">people</span>
+                </div>
+                <div class="stat-info">
+                    <h3 id="statStudents">0</h3>
+                    <p>Assigned Students</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pending">
+                    <span class="material-icons">hourglass_top</span>
+                </div>
+                <div class="stat-info">
+                    <h3 id="statPending">0</h3>
+                    <p>Pending Approvals</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon approved">
+                    <span class="material-icons">check_circle</span>
+                </div>
+                <div class="stat-info">
+                    <h3 id="statApproved">0</h3>
+                    <p>Approved Projects</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon notifications">
+                    <span class="material-icons">notifications_active</span>
+                </div>
+                <div class="stat-info">
+                    <h3 id="statNotifications">0</h3>
+                    <p>Unread Notifications</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Panel -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <span class="material-icons">notifications</span>
+                    Notifications
+                </div>
+                <button class="mark-all-read" onclick="markAllRead()">Mark all as read</button>
+            </div>
+            <div class="scrollable-list" id="notificationsList">
+                <div class="empty-state">
+                    <span class="material-icons">notifications_none</span>
+                    <p>No notifications yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Projects -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <span class="material-icons">pending_actions</span>
+                    Pending Approvals
+                </div>
+                <span class="card-badge" id="pendingBadge">0</span>
+            </div>
+            <div class="scrollable-list" id="pendingProjectsList">
+                <div class="empty-state">
+                    <span class="material-icons">check_circle_outline</span>
+                    <p>No pending projects</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Students -->
+        <div class="dashboard-card dashboard-full-width">
+            <div class="card-header">
+                <div class="card-title">
+                    <span class="material-icons">group</span>
+                    My Assigned Students
+                </div>
+                <button class="btn-assign" onclick="openAssignModal()">
+                    <span class="material-icons" style="font-size:1rem">person_add</span>
+                    Assign Student
+                </button>
+            </div>
+            <div class="scrollable-list" id="assignedStudentsList">
+                <div class="empty-state">
+                    <span class="material-icons">person_add</span>
+                    <p>No students assigned yet. Click "Assign Student" to add.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Assign Student Modal ===== -->
+    <div class="modal-overlay" id="assignModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Assign Student</h2>
+                <button class="modal-close" onclick="closeAssignModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <input type="text" class="modal-search" id="studentSearch" placeholder="Search by name or ID..." oninput="filterStudents()">
+            <div class="scrollable-list" id="unassignedStudentsList">
+                <div class="empty-state">
+                    <span class="material-icons">search_off</span>
+                    <p>Loading students...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="api.js"></script>
+    <script>
+        // ===== Global State =====
+        let currentUser = null;
+        let allUnassignedStudents = [];
+
+        // ===== Initialization =====
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Auth check
+            if (!TPRSApi.isLoggedIn() || TPRSApi.getUserType() !== 'teacher') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            currentUser = TPRSApi.getCurrentUser();
+            if (!currentUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            setupUserProfile();
+            await Promise.all([
+                loadNotifications(),
+                loadAssignedStudents(),
+                loadPendingProjects()
+            ]);
+        });
+
+        // ===== User Profile Setup =====
+        function setupUserProfile() {
+            const name = (currentUser.firstName || '') + ' ' + (currentUser.lastName || '');
+            const initials = ((currentUser.firstName || 'S')[0] + (currentUser.lastName || 'V')[0]).toUpperCase();
+
+            document.getElementById('userName').textContent = name.trim() || 'Supervisor';
+            document.getElementById('userAvatar').textContent = initials;
+            document.getElementById('dropdownName').textContent = name.trim() || 'Supervisor';
+            document.getElementById('dropdownAvatar').textContent = initials;
+            document.getElementById('dropdownEmail').textContent = currentUser.email || '';
+            document.getElementById('dropdownDept').textContent = (currentUser.department || 'N/A') + ' Department';
+            document.getElementById('dropdownDesignation').textContent = currentUser.designation || '';
+
+            // Profile dropdown toggle
+            document.getElementById('userProfile').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('profileDropdown').classList.toggle('show');
+            });
+            document.addEventListener('click', function() {
+                document.getElementById('profileDropdown').classList.remove('show');
+            });
+        }
+
+        // ===== Notifications =====
+        async function loadNotifications() {
+            const userId = currentUser.id;
+            const result = await TPRSApi.getNotifications(userId, 'teacher');
+            const countResult = await TPRSApi.getUnreadNotificationCount(userId, 'teacher');
+
+            const unreadCount = countResult.success ? countResult.count : 0;
+            document.getElementById('statNotifications').textContent = unreadCount;
+
+            const bellBadge = document.getElementById('bellBadge');
+            if (unreadCount > 0) {
+                bellBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                bellBadge.classList.remove('hidden');
+            } else {
+                bellBadge.classList.add('hidden');
+            }
+
+            const container = document.getElementById('notificationsList');
+            if (!result.success || !result.notifications || result.notifications.length === 0) {
+                container.innerHTML = `<div class="empty-state">
+                    <span class="material-icons">notifications_none</span>
+                    <p>No notifications yet</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = result.notifications.map(n => {
+                const iconClass = getNotifIconClass(n.type);
+                const iconName = getNotifIconName(n.type);
+                const timeAgo = formatTimeAgo(n.createdAt);
+                return `
+                    <div class="notification-item ${n.isRead ? '' : 'unread'}" onclick="markRead(${n.id})">
+                        <div class="notif-icon ${iconClass}">
+                            <span class="material-icons">${iconName}</span>
+                        </div>
+                        <div class="notif-content">
+                            <div class="notif-title">${escapeHtml(n.title)}</div>
+                            <div class="notif-message">${escapeHtml(n.message)}</div>
+                            <div class="notif-time">${timeAgo}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getNotifIconClass(type) {
+            switch(type) {
+                case 'project_submitted': return 'submit';
+                case 'project_approved': return 'approve';
+                case 'project_rejected': return 'reject';
+                case 'assignment': return 'assign';
+                default: return 'general';
+            }
+        }
+
+        function getNotifIconName(type) {
+            switch(type) {
+                case 'project_submitted': return 'upload_file';
+                case 'project_approved': return 'check_circle';
+                case 'project_rejected': return 'cancel';
+                case 'assignment': return 'person_add';
+                default: return 'info';
+            }
+        }
+
+        async function markRead(notifId) {
+            await TPRSApi.markNotificationRead(notifId);
+            await loadNotifications();
+        }
+
+        async function markAllRead() {
+            await TPRSApi.markAllNotificationsRead(currentUser.id, 'teacher');
+            await loadNotifications();
+        }
+
+        // ===== Assigned Students =====
+        async function loadAssignedStudents() {
+            const result = await TPRSApi.getAssignedStudents(currentUser.id);
+            const container = document.getElementById('assignedStudentsList');
+
+            if (!result.success || !result.students || result.students.length === 0) {
+                container.innerHTML = `<div class="empty-state">
+                    <span class="material-icons">person_add</span>
+                    <p>No students assigned yet. Click "Assign Student" to add.</p>
+                </div>`;
+                document.getElementById('statStudents').textContent = '0';
+                return;
+            }
+
+            document.getElementById('statStudents').textContent = result.students.length;
+
+            container.innerHTML = result.students.map(s => {
+                const initials = ((s.firstName || 'S')[0] + (s.lastName || '')[0]).toUpperCase();
+                return `
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">${initials}</div>
+                            <div>
+                                <div class="student-name">${escapeHtml(s.firstName + ' ' + s.lastName)}</div>
+                                <div class="student-detail">${escapeHtml(s.studentId || '')} · ${escapeHtml(s.department || '')}</div>
+                            </div>
+                        </div>
+                        <button class="btn-unassign" onclick="unassignStudent(${s.id})">
+                            <span class="material-icons" style="font-size:1rem">person_remove</span>
+                            Remove
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function unassignStudent(studentId) {
+            if (!confirm('Are you sure you want to remove this student?')) return;
+            const result = await TPRSApi.unassignStudent(currentUser.id, studentId);
+            if (result.success) {
+                await loadAssignedStudents();
+            } else {
+                alert(result.message || 'Failed to unassign student.');
+            }
+        }
+
+        // ===== Pending Projects =====
+        async function loadPendingProjects() {
+            const result = await TPRSApi.getProjects({ status: 'pending' });
+            const container = document.getElementById('pendingProjectsList');
+
+            // Filter projects to only those from assigned students
+            const assignedResult = await TPRSApi.getAssignedStudents(currentUser.id);
+            const assignedIds = new Set();
+            if (assignedResult.success && assignedResult.students) {
+                assignedResult.students.forEach(s => assignedIds.add(s.id));
+            }
+
+            let projects = [];
+            if (result.success && result.projects) {
+                projects = result.projects.filter(p => assignedIds.has(p.studentId));
+            }
+
+            document.getElementById('statPending').textContent = projects.length;
+            document.getElementById('pendingBadge').textContent = projects.length;
+
+            // Count approved for stat
+            const approvedResult = await TPRSApi.getProjects({ status: 'approved' });
+            let approvedCount = 0;
+            if (approvedResult.success && approvedResult.projects) {
+                approvedCount = approvedResult.projects.filter(p => assignedIds.has(p.studentId)).length;
+            }
+            document.getElementById('statApproved').textContent = approvedCount;
+
+            if (projects.length === 0) {
+                container.innerHTML = `<div class="empty-state">
+                    <span class="material-icons">check_circle_outline</span>
+                    <p>No pending projects from your students</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = projects.map(p => `
+                <div class="project-item">
+                    <div class="project-top">
+                        <div class="project-title-text">${escapeHtml(p.title)}</div>
+                        <span class="project-status status-pending">Pending</span>
+                    </div>
+                    <div class="project-meta">
+                        <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">person</span> ${escapeHtml(p.studentName || 'Unknown')}</span>
+                        <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">business</span> ${escapeHtml(p.department || '')}</span>
+                        <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">calendar_today</span> ${formatDate(p.submissionDate || p.createdAt)}</span>
+                    </div>
+                    <div class="project-actions">
+                        <button class="btn-approve" onclick="approveProject(${p.id})">
+                            <span class="material-icons" style="font-size:1rem">check</span>
+                            Approve
+                        </button>
+                        <button class="btn-reject" onclick="rejectProject(${p.id})">
+                            <span class="material-icons" style="font-size:1rem">close</span>
+                            Reject
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function approveProject(projectId) {
+            if (!confirm('Approve this project/thesis?')) return;
+            const result = await TPRSApi.approveProject(projectId);
+            if (result.success) {
+                await Promise.all([loadPendingProjects(), loadNotifications()]);
+            } else {
+                alert(result.message || 'Failed to approve project.');
+            }
+        }
+
+        async function rejectProject(projectId) {
+            if (!confirm('Reject this project/thesis?')) return;
+            const result = await TPRSApi.rejectProject(projectId);
+            if (result.success) {
+                await Promise.all([loadPendingProjects(), loadNotifications()]);
+            } else {
+                alert(result.message || 'Failed to reject project.');
+            }
+        }
+
+        // ===== Assign Modal =====
+        async function openAssignModal() {
+            document.getElementById('assignModal').classList.add('active');
+            document.getElementById('studentSearch').value = '';
+
+            const result = await TPRSApi.getUnassignedStudents(currentUser.id);
+            if (result.success && result.students) {
+                allUnassignedStudents = result.students;
+            } else {
+                allUnassignedStudents = [];
+            }
+            renderUnassignedStudents(allUnassignedStudents);
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assignModal').classList.remove('active');
+        }
+
+        function filterStudents() {
+            const query = document.getElementById('studentSearch').value.toLowerCase();
+            const filtered = allUnassignedStudents.filter(s =>
+                (s.firstName + ' ' + s.lastName).toLowerCase().includes(query) ||
+                (s.studentId || '').toLowerCase().includes(query) ||
+                (s.email || '').toLowerCase().includes(query)
+            );
+            renderUnassignedStudents(filtered);
+        }
+
+        function renderUnassignedStudents(students) {
+            const container = document.getElementById('unassignedStudentsList');
+            if (students.length === 0) {
+                container.innerHTML = `<div class="empty-state">
+                    <span class="material-icons">search_off</span>
+                    <p>No unassigned students found</p>
+                </div>`;
+                return;
+            }
+            container.innerHTML = students.map(s => {
+                const initials = ((s.firstName || 'S')[0] + (s.lastName || '')[0]).toUpperCase();
+                return `
+                    <div class="student-item">
+                        <div class="student-info">
+                            <div class="student-avatar">${initials}</div>
+                            <div>
+                                <div class="student-name">${escapeHtml(s.firstName + ' ' + s.lastName)}</div>
+                                <div class="student-detail">${escapeHtml(s.studentId || '')} · ${escapeHtml(s.email || '')}</div>
+                            </div>
+                        </div>
+                        <button class="btn-assign" onclick="assignStudentFromModal(${s.id})">
+                            <span class="material-icons" style="font-size:1rem">person_add</span>
+                            Assign
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function assignStudentFromModal(studentId) {
+            const result = await TPRSApi.assignStudent(currentUser.id, studentId);
+            if (result.success) {
+                closeAssignModal();
+                await Promise.all([loadAssignedStudents(), loadPendingProjects()]);
+            } else {
+                alert(result.message || 'Failed to assign student.');
+            }
+        }
+
+        // ===== Utilities =====
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatTimeAgo(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return diffMins + 'm ago';
+            const diffHrs = Math.floor(diffMins / 60);
+            if (diffHrs < 24) return diffHrs + 'h ago';
+            const diffDays = Math.floor(diffHrs / 24);
+            if (diffDays < 7) return diffDays + 'd ago';
+            return date.toLocaleDateString();
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function handleLogout() {
+            TPRSApi.logout();
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

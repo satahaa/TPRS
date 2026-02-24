@@ -28,8 +28,12 @@
             <nav>
                 <a href="home.html">Dashboard</a>
                 <a href="upload.html">Upload Thesis</a>
-                <a href="#admin">Admin</a>
             </nav>
+            <!-- Student Notification Bell -->
+            <div class="notification-bell" id="notifBell" style="position:relative;cursor:pointer;padding:0.5rem;color:white;">
+                <span class="material-icons" style="font-size:1.5rem;">notifications</span>
+                <span id="bellBadge" style="display:none;position:absolute;top:0;right:0;background:#f5576c;color:white;font-size:0.6rem;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #667eea;">0</span>
+            </div>
             <div class="user-profile" id="userProfile">
                 <div class="user-avatar">SA</div>
                 <span class="user-name">Sumayea Akter</span>
@@ -214,5 +218,27 @@
     <!-- External JavaScript -->
     <script src="api.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Redirect teachers to supervisor dashboard
+        if (TPRSApi.isLoggedIn() && TPRSApi.getUserType() === 'teacher') {
+            window.location.href = 'supervisor-dashboard.html';
+        }
+
+        // Load student notifications badge
+        (async function loadStudentNotifBadge() {
+            const user = TPRSApi.getCurrentUser();
+            if (!user) return;
+            try {
+                const result = await TPRSApi.getUnreadNotificationCount(user.id, 'student');
+                const badge = document.getElementById('bellBadge');
+                if (result.success && result.count > 0) {
+                    badge.textContent = result.count > 9 ? '9+' : result.count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch(e) { /* ignore */ }
+        })();
+    </script>
 </body>
 </html>
