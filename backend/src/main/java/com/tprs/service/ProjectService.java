@@ -150,4 +150,13 @@ public class ProjectService {
     public List<Project> getApprovedProjects() {
         return projectDAO.getByStatus("approved");
     }
+    
+    /**
+     * Get file data for download
+     * @param projectId Project ID
+     * @return Project with file data and file name
+     */
+    public Project getFileData(int projectId) {
+        return projectDAO.getFileDataById(projectId);
+    }
 }

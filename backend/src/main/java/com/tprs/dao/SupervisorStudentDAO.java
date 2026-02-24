@@ -48,7 +48,7 @@ public class SupervisorStudentDAO {
     }
     
     /**
-     * Remove a student from a supervisor
+     * Remove a student from a supervisor (all entries)
      */
     public boolean unassign(int supervisorId, int studentId) {
         String sql = "DELETE FROM supervisor_student WHERE supervisor_id = ? AND student_id = ?";
@@ -57,6 +57,26 @@ public class SupervisorStudentDAO {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, supervisorId);
             stmt.setInt(2, studentId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error removing student from supervisor: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
+     * Remove a student from a supervisor for a specific year/semester
+     */
+    public boolean unassign(int supervisorId, int studentId, String year, String semester) {
+        String sql = "DELETE FROM supervisor_student WHERE supervisor_id = ? AND student_id = ? AND year = ? AND semester = ?";
+        Connection connection = getConnection();
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, supervisorId);
+            stmt.setInt(2, studentId);
+            stmt.setString(3, year);
+            stmt.setString(4, semester);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error removing student from supervisor: " + e.getMessage());

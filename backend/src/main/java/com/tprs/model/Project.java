@@ -15,6 +15,8 @@ public class Project {
     private int supervisorId;
     private String status; // pending, in_progress, completed, approved, rejected
     private String filePath;
+    private String fileName;
+    private transient byte[] fileData; // transient: excluded from Gson serialization
     private String keywords;
     private String year;
     private String semester;
@@ -110,6 +112,22 @@ public class Project {
     
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+    
+    public String getFileName() {
+        return fileName;
+    }
+    
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+    
+    public byte[] getFileData() {
+        return fileData;
+    }
+    
+    public void setFileData(byte[] fileData) {
+        this.fileData = fileData;
     }
     
     public String getKeywords() {

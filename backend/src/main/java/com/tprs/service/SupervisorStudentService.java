@@ -39,6 +39,13 @@ public class SupervisorStudentService {
     }
     
     /**
+     * Remove a student from a supervisor for specific year/semester
+     */
+    public boolean unassignStudent(int supervisorId, int studentId, String year, String semester) {
+        return supervisorStudentDAO.unassign(supervisorId, studentId, year, semester);
+    }
+    
+    /**
      * Get all students assigned to a supervisor
      */
     public List<Student> getAssignedStudents(int supervisorId) {

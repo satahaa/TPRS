@@ -74,11 +74,11 @@
                     </div>
                     <div class="dropdown-divider"></div>
                     <div class="dropdown-menu">
-                        <a href="#profile" class="dropdown-item">
+                        <a href="#" class="dropdown-item" onclick="openStudentProfileModal(event)">
                             <span class="material-icons">person</span>
                             Profile
                         </a>
-                        <a href="#bookmarks" class="dropdown-item">
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="enterBookmarkView()">
                             <span class="material-icons">bookmark</span>
                             Bookmarks
                         </a>
@@ -266,6 +266,210 @@
     <!-- External JavaScript -->
     <script src="api.js"></script>
     <script src="script.js"></script>
+
+    <!-- Student Profile Modal -->
+    <style>
+        .student-profile-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        .student-profile-overlay.active { display: flex; }
+        .student-profile-box {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            max-width: 480px;
+            width: 95%;
+            overflow: hidden;
+            animation: spModalIn 0.25s ease;
+        }
+        @keyframes spModalIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .student-profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid #f0f2f7;
+        }
+        .student-profile-header h2 { font-size: 1.1rem; font-weight: 700; color: #333; margin: 0; }
+        .student-profile-close {
+            background: none; border: none; cursor: pointer; color: #888; padding: 4px;
+            border-radius: 50%; transition: background 0.2s;
+        }
+        .student-profile-close:hover { background: #f0f0f0; color: #333; }
+        .student-profile-body {
+            display: flex; flex-direction: column; align-items: center; padding: 1.5rem 1.5rem 1rem;
+        }
+        .student-profile-avatar {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 2rem; font-weight: 700; margin-bottom: 0.8rem;
+        }
+        .student-profile-name { font-size: 1.3rem; font-weight: 700; color: #333; }
+        .student-profile-role { font-size: 0.85rem; color: #888; margin-bottom: 1.5rem; }
+        .student-profile-details { width: 100%; border-top: 1px solid #f0f2f7; }
+        .sp-detail-row {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.9rem 0.5rem; border-bottom: 1px solid #f0f2f7;
+        }
+        .sp-detail-row .material-icons { color: #667eea; font-size: 1.3rem; width: 30px; text-align: center; }
+        .sp-detail-label { font-size: 0.7rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .sp-detail-value { font-size: 0.95rem; color: #333; font-weight: 500; }
+    </style>
+
+    <div class="student-profile-overlay" id="studentProfileModal">
+        <div class="student-profile-box">
+            <div class="student-profile-header">
+                <h2>My Profile</h2>
+                <button class="student-profile-close" onclick="closeStudentProfileModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="student-profile-body">
+                <div class="student-profile-avatar" id="spAvatar">...</div>
+                <div class="student-profile-name" id="spName">Loading...</div>
+                <div class="student-profile-role">Student</div>
+                <div class="student-profile-details">
+                    <div class="sp-detail-row">
+                        <span class="material-icons">email</span>
+                        <div>
+                            <div class="sp-detail-label">Email</div>
+                            <div class="sp-detail-value" id="spEmail">—</div>
+                        </div>
+                    </div>
+                    <div class="sp-detail-row">
+                        <span class="material-icons">badge</span>
+                        <div>
+                            <div class="sp-detail-label">Student ID</div>
+                            <div class="sp-detail-value" id="spStudentId">—</div>
+                        </div>
+                    </div>
+                    <div class="sp-detail-row">
+                        <span class="material-icons">business</span>
+                        <div>
+                            <div class="sp-detail-label">Department</div>
+                            <div class="sp-detail-value" id="spDept">—</div>
+                        </div>
+                    </div>
+                    <div class="sp-detail-row">
+                        <span class="material-icons">phone</span>
+                        <div style="flex:1;">
+                            <div class="sp-detail-label">Phone</div>
+                            <div id="spPhoneDisplay">
+                                <span class="sp-detail-value" id="spPhone">—</span>
+                                <span class="material-icons" onclick="editStudentPhone()" style="font-size:1rem;color:#667eea;cursor:pointer;vertical-align:middle;margin-left:0.5rem;">edit</span>
+                            </div>
+                            <div id="spPhoneEdit" style="display:none;margin-top:0.3rem;">
+                                <div style="display:flex;gap:0.4rem;align-items:center;">
+                                    <input type="tel" id="spPhoneInput" style="flex:1;padding:0.4rem 0.6rem;border:1px solid #ddd;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.85rem;" placeholder="Enter phone number">
+                                    <button onclick="saveStudentPhone()" style="background:#667eea;color:white;border:none;padding:0.4rem 0.8rem;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">Save</button>
+                                    <button onclick="cancelStudentPhoneEdit()" style="background:#eee;color:#666;border:none;padding:0.4rem 0.6rem;border-radius:8px;cursor:pointer;font-size:0.8rem;">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Detail Modal -->
+    <style>
+        .project-detail-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 10001;
+            align-items: center;
+            justify-content: center;
+        }
+        .project-detail-overlay.active { display: flex; }
+        .project-detail-box {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            max-width: 600px;
+            width: 95%;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: spModalIn 0.25s ease;
+        }
+        .project-detail-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.2rem 1.5rem; border-bottom: 1px solid #f0f2f7;
+        }
+        .project-detail-header h2 { font-size: 1.1rem; font-weight: 700; color: #333; margin: 0; }
+        .project-detail-close {
+            background: none; border: none; cursor: pointer; color: #888; padding: 4px;
+            border-radius: 50%; transition: background 0.2s;
+        }
+        .project-detail-close:hover { background: #f0f0f0; color: #333; }
+        .project-detail-body { padding: 1.5rem; }
+        .project-detail-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
+        .project-detail-desc { color: #555; font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.2rem; }
+        .pd-row {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.7rem 0.3rem; border-bottom: 1px solid #f0f2f7;
+        }
+        .pd-row .material-icons { color: #667eea; font-size: 1.2rem; width: 28px; text-align: center; }
+        .pd-label { font-size: 0.7rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .pd-value { font-size: 0.92rem; color: #333; font-weight: 500; }
+    </style>
+
+    <div class="project-detail-overlay" id="projectDetailModal">
+        <div class="project-detail-box">
+            <div class="project-detail-header">
+                <h2>Project Details</h2>
+                <button class="project-detail-close" onclick="closeProjectDetail()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="project-detail-body">
+                <div class="project-detail-title" id="pdmTitle"></div>
+                <div class="project-detail-desc" id="pdmDesc"></div>
+                <div class="pd-row">
+                    <span class="material-icons">category</span>
+                    <div><div class="pd-label">Type</div><div class="pd-value" id="pdmType">—</div></div>
+                </div>
+                <div class="pd-row">
+                    <span class="material-icons">person</span>
+                    <div><div class="pd-label">Author</div><div class="pd-value" id="pdmAuthor">—</div></div>
+                </div>
+                <div class="pd-row">
+                    <span class="material-icons">supervisor_account</span>
+                    <div><div class="pd-label">Supervisor</div><div class="pd-value" id="pdmSupervisor">—</div></div>
+                </div>
+                <div class="pd-row">
+                    <span class="material-icons">business</span>
+                    <div><div class="pd-label">Department</div><div class="pd-value" id="pdmDept">—</div></div>
+                </div>
+                <div class="pd-row">
+                    <span class="material-icons">label</span>
+                    <div><div class="pd-label">Keywords</div><div class="pd-value" id="pdmKeywords">—</div></div>
+                </div>
+                <div class="pd-row">
+                    <span class="material-icons">school</span>
+                    <div><div class="pd-label">Year / Semester</div><div class="pd-value" id="pdmYearSem">—</div></div>
+                </div>
+                <div class="pd-row">
+                    <span class="material-icons">event_note</span>
+                    <div><div class="pd-label">Session</div><div class="pd-value" id="pdmSession">—</div></div>
+                </div>
+                <div class="pd-row" id="pdmFileRow" style="display:none;">
+                    <span class="material-icons">description</span>
+                    <div><div class="pd-label">Document</div><div class="pd-value" id="pdmFile">—</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Adjust nav and visibility for supervisor (teacher) users
         (function() {
@@ -304,8 +508,8 @@
                 try {
                     const result = await TPRSApi.getUnreadNotificationCount(user.id, 'student');
                     const badge = document.getElementById('bellBadge');
-                    if (result.success && result.count > 0) {
-                        badge.textContent = result.count > 9 ? '9+' : result.count;
+                    if (result.success && result.unreadCount > 0) {
+                        badge.textContent = result.unreadCount > 9 ? '9+' : result.unreadCount;
                         badge.style.display = 'flex';
                     } else {
                         badge.style.display = 'none';
@@ -370,8 +574,8 @@
             // Refresh badge and list
             const result = await TPRSApi.getUnreadNotificationCount(user.id, 'student');
             const badge = document.getElementById('bellBadge');
-            if (result.success && result.count > 0) {
-                badge.textContent = result.count > 9 ? '9+' : result.count;
+            if (result.success && result.unreadCount > 0) {
+                badge.textContent = result.unreadCount > 9 ? '9+' : result.unreadCount;
                 badge.style.display = 'flex';
             } else {
                 badge.style.display = 'none';
@@ -414,6 +618,101 @@
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
+        }
+
+        // ===== Student Profile Modal =====
+        function openStudentProfileModal(e) {
+            if (e) e.preventDefault();
+            const user = TPRSApi.getCurrentUser();
+            if (user) {
+                const fullName = (user.firstName || '') + ' ' + (user.lastName || '');
+                const initials = fullName.trim().split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase() || '?';
+                document.getElementById('spAvatar').textContent = initials;
+                document.getElementById('spName').textContent = fullName.trim() || 'Student';
+                document.getElementById('spEmail').textContent = user.email || '—';
+                document.getElementById('spStudentId').textContent = user.studentId || user.id || '—';
+                document.getElementById('spDept').textContent = user.department ? user.department + ' Department' : '—';
+                document.getElementById('spPhone').textContent = user.phone || '—';
+            }
+            document.getElementById('studentProfileModal').classList.add('active');
+            // Close the dropdown
+            const userProfile = document.getElementById('userProfile');
+            if (userProfile) userProfile.classList.remove('active');
+        }
+        function closeStudentProfileModal() {
+            document.getElementById('studentProfileModal').classList.remove('active');
+            cancelStudentPhoneEdit();
+        }
+
+        function editStudentPhone() {
+            const user = TPRSApi.getCurrentUser();
+            document.getElementById('spPhoneInput').value = user && user.phone ? user.phone : '';
+            document.getElementById('spPhoneDisplay').style.display = 'none';
+            document.getElementById('spPhoneEdit').style.display = 'block';
+        }
+
+        function cancelStudentPhoneEdit() {
+            document.getElementById('spPhoneDisplay').style.display = '';
+            document.getElementById('spPhoneEdit').style.display = 'none';
+        }
+
+        async function saveStudentPhone() {
+            const user = TPRSApi.getCurrentUser();
+            if (!user) return;
+            const phone = document.getElementById('spPhoneInput').value.trim();
+            const result = await TPRSApi.updatePhone(user.id, 'student', phone);
+            if (result.success) {
+                user.phone = phone;
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                document.getElementById('spPhone').textContent = phone || '—';
+                cancelStudentPhoneEdit();
+            } else {
+                alert(result.message || 'Failed to update phone.');
+            }
+        }
+        // Close modal on overlay click
+        document.getElementById('studentProfileModal').addEventListener('click', function(e) {
+            if (e.target === this) closeStudentProfileModal();
+        });
+
+        // ===== Project Detail Modal =====
+        async function openProjectDetail(projectId) {
+            const result = await TPRSApi.getProject(projectId);
+            if (!result.success || !result.project) return;
+            const p = result.project;
+            document.getElementById('pdmTitle').textContent = p.title || 'Untitled';
+            document.getElementById('pdmDesc').textContent = p.description || 'No description provided.';
+            document.getElementById('pdmType').textContent = p.type || p.projectType || '—';
+            document.getElementById('pdmAuthor').textContent = p.studentName || p.authorName || '—';
+            document.getElementById('pdmSupervisor').textContent = p.supervisorName || p.supervisor || '—';
+            document.getElementById('pdmDept').textContent = p.department || '—';
+            document.getElementById('pdmKeywords').textContent = p.keywords || '—';
+            const yearSem = ((p.year || '') + (p.year && p.semester ? ' Year, ' : '') + (p.semester || '') + (p.semester ? ' Semester' : '')) || '—';
+            document.getElementById('pdmYearSem').textContent = yearSem;
+            document.getElementById('pdmSession').textContent = p.session || '—';
+            const fileRow = document.getElementById('pdmFileRow');
+            if (p.fileName) {
+                fileRow.style.display = '';
+                document.getElementById('pdmFile').innerHTML = '<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectFile(' + p.id + ')" style="color:#667eea;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">download</span>' + escapeHtmlStr(p.fileName) + '</a>';
+            } else {
+                fileRow.style.display = 'none';
+            }
+            document.getElementById('projectDetailModal').classList.add('active');
+        }
+
+        function closeProjectDetail() {
+            document.getElementById('projectDetailModal').classList.remove('active');
+        }
+
+        document.getElementById('projectDetailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProjectDetail();
+        });
+
+        function escapeHtmlStr(str) {
+            if (!str) return '';
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
         }
     </script>
 </body>

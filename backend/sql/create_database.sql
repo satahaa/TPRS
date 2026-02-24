@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS project (
     supervisor_id INT NOT NULL,
     status ENUM('pending', 'in_progress', 'completed', 'approved', 'rejected') DEFAULT 'pending',
     file_path VARCHAR(500),
+    file_name VARCHAR(500),
+    file_data LONGBLOB,
     keywords VARCHAR(500),
     year INT,
     semester VARCHAR(20),

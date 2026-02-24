@@ -950,13 +950,6 @@
                         </div>
                     </div>
                     <div class="profile-detail-row">
-                        <span class="material-icons">badge</span>
-                        <div>
-                            <div class="profile-detail-label">Teacher ID</div>
-                            <div class="profile-detail-value" id="profileTeacherId">—</div>
-                        </div>
-                    </div>
-                    <div class="profile-detail-row">
                         <span class="material-icons">business</span>
                         <div>
                             <div class="profile-detail-label">Department</div>
@@ -979,9 +972,19 @@
                     </div>
                     <div class="profile-detail-row">
                         <span class="material-icons">phone</span>
-                        <div>
+                        <div style="flex:1;">
                             <div class="profile-detail-label">Phone</div>
-                            <div class="profile-detail-value" id="profilePhone">—</div>
+                            <div id="profilePhoneDisplay">
+                                <span class="profile-detail-value" id="profilePhone">—</span>
+                                <span class="material-icons" onclick="editSupervisorPhone()" style="font-size:1rem;color:#667eea;cursor:pointer;vertical-align:middle;margin-left:0.5rem;">edit</span>
+                            </div>
+                            <div id="profilePhoneEdit" style="display:none;margin-top:0.3rem;">
+                                <div style="display:flex;gap:0.4rem;align-items:center;">
+                                    <input type="tel" id="profilePhoneInput" style="flex:1;padding:0.4rem 0.6rem;border:1px solid #ddd;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.85rem;" placeholder="Enter phone number">
+                                    <button onclick="saveSupervisorPhone()" style="background:#667eea;color:white;border:none;padding:0.4rem 0.8rem;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">Save</button>
+                                    <button onclick="cancelSupervisorPhoneEdit()" style="background:#eee;color:#666;border:none;padding:0.4rem 0.6rem;border-radius:8px;cursor:pointer;font-size:0.8rem;">Cancel</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -989,6 +992,59 @@
                     <span class="material-icons">logout</span>
                     Logout
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Project Detail Modal ===== -->
+    <div class="modal-overlay" id="projectDetailModal">
+        <div class="modal-box" style="max-width:600px;">
+            <div class="modal-header">
+                <h2>Project Details</h2>
+                <button class="modal-close" onclick="closeProjectDetailModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="profile-modal-body" style="padding:1.2rem 1.5rem;">
+                <div style="width:100%;">
+                    <h3 id="pdTitle" style="margin:0 0 0.5rem;font-size:1.2rem;color:#1e293b;"></h3>
+                    <span id="pdStatusBadge" class="project-status status-pending" style="margin-bottom:1rem;display:inline-block;">Pending</span>
+                    <div style="margin-top:1rem;" id="pdDescription"></div>
+                    <div class="profile-modal-details" style="margin-top:1.2rem;">
+                        <div class="profile-detail-row">
+                            <span class="material-icons">category</span>
+                            <div><div class="profile-detail-label">Type</div><div class="profile-detail-value" id="pdType">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">person</span>
+                            <div><div class="profile-detail-label">Student</div><div class="profile-detail-value" id="pdStudent">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">business</span>
+                            <div><div class="profile-detail-label">Department</div><div class="profile-detail-value" id="pdDept">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">label</span>
+                            <div><div class="profile-detail-label">Keywords</div><div class="profile-detail-value" id="pdKeywords">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">school</span>
+                            <div><div class="profile-detail-label">Year / Semester</div><div class="profile-detail-value" id="pdYearSem">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">event_note</span>
+                            <div><div class="profile-detail-label">Session</div><div class="profile-detail-value" id="pdSession">—</div></div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="material-icons">calendar_today</span>
+                            <div><div class="profile-detail-label">Submitted</div><div class="profile-detail-value" id="pdDate">—</div></div>
+                        </div>
+                        <div class="profile-detail-row" id="pdFileRow" style="display:none;">
+                            <span class="material-icons">description</span>
+                            <div><div class="profile-detail-label">Document</div><div class="profile-detail-value" id="pdFile">—</div></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1223,7 +1279,7 @@
                                 <div class="student-detail">${escapeHtml(s.studentId || '')} · ${escapeHtml(s.department || '')}${yearSem ? ' · ' + yearSem : ''}</div>
                             </div>
                         </div>
-                        <button class="btn-unassign" onclick="unassignStudent(${s.id})">
+                        <button class="btn-unassign" onclick="unassignStudent(${s.id}, '${s.assignedYear || ''}', '${s.assignedSemester || ''}')">
                             <span class="material-icons" style="font-size:1rem">person_remove</span>
                             Remove
                         </button>
@@ -1233,22 +1289,30 @@
         }
 
         let pendingRemoveStudentId = null;
+        let pendingRemoveYear = null;
+        let pendingRemoveSemester = null;
 
-        async function unassignStudent(studentId) {
+        async function unassignStudent(studentId, year, semester) {
             pendingRemoveStudentId = studentId;
+            pendingRemoveYear = year || null;
+            pendingRemoveSemester = semester || null;
             document.getElementById('removeStudentModal').classList.add('active');
         }
 
         function closeRemoveStudentModal() {
             document.getElementById('removeStudentModal').classList.remove('active');
             pendingRemoveStudentId = null;
+            pendingRemoveYear = null;
+            pendingRemoveSemester = null;
         }
 
         document.getElementById('confirmRemoveStudentBtn').addEventListener('click', async function() {
             if (!pendingRemoveStudentId) return;
             const studentId = pendingRemoveStudentId;
+            const year = pendingRemoveYear;
+            const semester = pendingRemoveSemester;
             closeRemoveStudentModal();
-            const result = await TPRSApi.unassignStudent(currentUser.id, studentId);
+            const result = await TPRSApi.unassignStudent(currentUser.id, studentId, year, semester);
             if (result.success) {
                 showToast('Student removed successfully.', 'success');
                 await loadAssignedStudents();
@@ -1298,7 +1362,7 @@
             }
 
             container.innerHTML = projects.map(p => `
-                <div class="project-item">
+                <div class="project-item" onclick="openProjectDetailModal(${p.id})" style="cursor:pointer;">
                     <div class="project-top">
                         <div class="project-title-text">${escapeHtml(p.title)}</div>
                         <span class="project-status status-pending">Pending</span>
@@ -1307,8 +1371,13 @@
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">person</span> ${escapeHtml(p.studentName || 'Unknown')}</span>
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">business</span> ${escapeHtml(p.department || '')}</span>
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">calendar_today</span> ${formatDate(p.submissionDate || p.createdAt)}</span>
+                        ${p.year || p.semester ? `<span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">school</span> ${escapeHtml((p.year || '') + (p.year && p.semester ? ' Year, ' : '') + (p.semester || '') + (p.semester ? ' Sem' : ''))}</span>` : ''}
                     </div>
-                    <div class="project-actions">
+                    <div class="project-actions" onclick="event.stopPropagation()">
+                        ${p.fileName ? `<button class="btn-download" onclick="TPRSApi.downloadProjectFile(${p.id})" style="background:#e3f2fd;color:#1976d2;border:none;padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;gap:0.3rem;">
+                            <span class="material-icons" style="font-size:1rem">download</span>
+                            ${escapeHtml(p.fileName)}
+                        </button>` : ''}
                         <button class="btn-approve" onclick="approveProject(${p.id})">
                             <span class="material-icons" style="font-size:1rem">check</span>
                             Approve
@@ -1473,7 +1542,6 @@
             document.getElementById('profileAvatar').textContent = initials;
             document.getElementById('profileName').textContent = name.trim() || 'Supervisor';
             document.getElementById('profileEmail').textContent = currentUser.email || '—';
-            document.getElementById('profileTeacherId').textContent = currentUser.teacherId || '—';
             document.getElementById('profileDept').textContent = currentUser.department || '—';
             document.getElementById('profileDesignation').textContent = currentUser.designation || '—';
             document.getElementById('profileSpecialization').textContent = currentUser.specialization || '—';
@@ -1484,11 +1552,76 @@
 
         function closeProfileModal() {
             document.getElementById('profileModal').classList.remove('active');
+            cancelSupervisorPhoneEdit();
+        }
+
+        function editSupervisorPhone() {
+            document.getElementById('profilePhoneInput').value = currentUser && currentUser.phone ? currentUser.phone : '';
+            document.getElementById('profilePhoneDisplay').style.display = 'none';
+            document.getElementById('profilePhoneEdit').style.display = 'block';
+        }
+
+        function cancelSupervisorPhoneEdit() {
+            document.getElementById('profilePhoneDisplay').style.display = '';
+            document.getElementById('profilePhoneEdit').style.display = 'none';
+        }
+
+        async function saveSupervisorPhone() {
+            if (!currentUser) return;
+            const phone = document.getElementById('profilePhoneInput').value.trim();
+            const result = await TPRSApi.updatePhone(currentUser.id, 'teacher', phone);
+            if (result.success) {
+                currentUser.phone = phone;
+                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+                document.getElementById('profilePhone').textContent = phone || '—';
+                cancelSupervisorPhoneEdit();
+            } else {
+                alert(result.message || 'Failed to update phone.');
+            }
         }
 
         // Close profile modal when clicking outside
         document.getElementById('profileModal').addEventListener('click', function(e) {
             if (e.target === this) closeProfileModal();
+        });
+
+        // ===== Project Detail Modal =====
+        async function openProjectDetailModal(projectId) {
+            const result = await TPRSApi.getProject(projectId);
+            if (!result.success || !result.project) {
+                showToast('Failed to load project details', 'error');
+                return;
+            }
+            const p = result.project;
+            document.getElementById('pdTitle').textContent = p.title || 'Untitled';
+            const statusBadge = document.getElementById('pdStatusBadge');
+            statusBadge.textContent = (p.status || 'pending').charAt(0).toUpperCase() + (p.status || 'pending').slice(1);
+            statusBadge.className = 'project-status status-' + (p.status || 'pending');
+            document.getElementById('pdDescription').textContent = p.description || 'No description provided.';
+            document.getElementById('pdType').textContent = p.projectType || p.field || '—';
+            document.getElementById('pdStudent').textContent = p.studentName || '—';
+            document.getElementById('pdDept').textContent = p.department || '—';
+            document.getElementById('pdKeywords').textContent = p.keywords || '—';
+            const yearSem = ((p.year || '') + (p.year && p.semester ? ' Year, ' : '') + (p.semester || '') + (p.semester ? ' Semester' : '')) || '—';
+            document.getElementById('pdYearSem').textContent = yearSem;
+            document.getElementById('pdSession').textContent = p.session || '—';
+            document.getElementById('pdDate').textContent = formatDate(p.submissionDate || p.createdAt);
+            const fileRow = document.getElementById('pdFileRow');
+            if (p.fileName) {
+                fileRow.style.display = '';
+                document.getElementById('pdFile').innerHTML = `<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectFile(${p.id})" style="color:#667eea;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">download</span>${escapeHtml(p.fileName)}</a>`;
+            } else {
+                fileRow.style.display = 'none';
+            }
+            document.getElementById('projectDetailModal').classList.add('active');
+        }
+
+        function closeProjectDetailModal() {
+            document.getElementById('projectDetailModal').classList.remove('active');
+        }
+
+        document.getElementById('projectDetailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProjectDetailModal();
         });
 
         // ===== Utilities =====

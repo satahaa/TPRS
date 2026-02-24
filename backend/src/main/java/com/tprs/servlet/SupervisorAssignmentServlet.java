@@ -128,7 +128,7 @@ public class SupervisorAssignmentServlet extends HttpServlet {
                 // Send notification to the student
                 Teacher supervisor = teacherService.getById(supId);
                 if (supervisor != null) {
-                    notificationService.notifyAssignment(stuId, supId, supervisor.getFullName());
+                    notificationService.notifyAssignment(stuId, supId, supervisor.getFullName(), year, semester);
                 }
                 
                 jsonResponse.addProperty("success", true);
@@ -161,10 +161,18 @@ public class SupervisorAssignmentServlet extends HttpServlet {
         try {
             String supervisorId = request.getParameter("supervisorId");
             String studentId = request.getParameter("studentId");
+            String year = request.getParameter("year");
+            String semester = request.getParameter("semester");
             
             if (supervisorId != null && studentId != null) {
-                boolean success = assignmentService.unassignStudent(
-                        Integer.parseInt(supervisorId), Integer.parseInt(studentId));
+                boolean success;
+                if (year != null && !year.isEmpty() && semester != null && !semester.isEmpty()) {
+                    success = assignmentService.unassignStudent(
+                            Integer.parseInt(supervisorId), Integer.parseInt(studentId), year, semester);
+                } else {
+                    success = assignmentService.unassignStudent(
+                            Integer.parseInt(supervisorId), Integer.parseInt(studentId));
+                }
                 
                 jsonResponse.addProperty("success", success);
                 jsonResponse.addProperty("message", success ? "Student removed successfully" : "Failed to remove student");

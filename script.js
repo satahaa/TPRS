@@ -137,6 +137,7 @@ function getInitials(name) {
 let displayedTheses = [...thesesData];
 let currentPage = 1;
 const ITEMS_PER_PAGE = 10;
+let isBookmarkView = false;
 let filters = {
     sessions: [],
     degrees: [],
@@ -171,8 +172,25 @@ const totalAuthorsEl = document.getElementById("totalAuthors");
  * Render the thesis list based on current filters and search
  */
 function renderThesisList() {
-    if (displayedTheses.length === 0) {
-        if (thesesData.length === 0) {
+    // Update section title based on bookmark view state
+    const sectionTitle = document.querySelector('.section-title');
+    if (sectionTitle) {
+        if (isBookmarkView) {
+            sectionTitle.innerHTML = '<span class="material-icons" style="cursor:pointer;margin-right:0.4rem;vertical-align:middle;color:#667eea;" onclick="exitBookmarkView()">arrow_back</span> Bookmarks';
+        } else {
+            sectionTitle.textContent = 'Recent Thesis & Projects';
+        }
+    }
+
+    // In bookmark view, filter to only bookmarked items
+    let listToRender = isBookmarkView 
+        ? displayedTheses.filter(t => t.bookmarked)
+        : displayedTheses;
+
+    if (listToRender.length === 0) {
+        if (isBookmarkView) {
+            thesisListEl.innerHTML = '<div class="no-results"><span class="material-icons" style="font-size:2.5rem;display:block;margin-bottom:0.5rem;opacity:0.3;">bookmark_border</span>No bookmarked projects yet. Click the bookmark icon on a project to save it here.</div>';
+        } else if (thesesData.length === 0) {
             thesisListEl.innerHTML = '<div class="no-results"><span class="material-icons" style="font-size:2.5rem;display:block;margin-bottom:0.5rem;opacity:0.3;">folder_open</span>No approved projects yet. Projects will appear here once they are approved by a supervisor.</div>';
         } else {
             thesisListEl.innerHTML = '<div class="no-results">No projects found matching your search criteria.</div>';
@@ -180,17 +198,22 @@ function renderThesisList() {
         return;
     }
 
+    // Sort bookmarked items first (only in non-bookmark view)
+    if (!isBookmarkView) {
+        listToRender.sort((a, b) => (b.bookmarked ? 1 : 0) - (a.bookmarked ? 1 : 0));
+    }
+
     // Pagination
-    const totalPages = Math.ceil(displayedTheses.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(listToRender.length / ITEMS_PER_PAGE);
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
     const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-    const pageTheses = displayedTheses.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+    const pageTheses = listToRender.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
     let html = pageTheses.map(thesis => {
         const firstKeyword = thesis.keywords ? thesis.keywords.split(',')[0].trim() : '';
         return `
-        <div class="thesis-card" data-thesis-id="${thesis.id}">
+        <div class="thesis-card" data-thesis-id="${thesis.id}" onclick="openProjectDetail(${thesis.id})" style="cursor:pointer;">
             <span class="material-icons thesis-icon">description</span>
             <div class="thesis-content">
                 <div class="thesis-title">${thesis.title}</div>
@@ -241,9 +264,6 @@ function renderThesisList() {
     document.querySelectorAll(".bookmark-btn").forEach(btn => {
         btn.addEventListener("click", handleBookmarkClick);
     });
-
-    // Update stats
-    updateStats();
 }
 
 /**
@@ -321,7 +341,7 @@ function applyFilters() {
         }
 
         // Keyword filter
-        if (filters.keyword && thesis.field !== filters.keyword) {
+        if (filters.keyword && !(thesis.keywords && thesis.keywords.split(',').map(k => k.trim()).includes(filters.keyword))) {
             return false;
         }
 
@@ -440,6 +460,24 @@ function handleBookmarkClick(e) {
         thesis.bookmarked = !thesis.bookmarked;
         renderThesisList();
     }
+}
+
+/**
+ * Enter bookmark view - show only bookmarked projects
+ */
+function enterBookmarkView() {
+    isBookmarkView = true;
+    currentPage = 1;
+    renderThesisList();
+}
+
+/**
+ * Exit bookmark view - return to normal view
+ */
+function exitBookmarkView() {
+    isBookmarkView = false;
+    currentPage = 1;
+    renderThesisList();
 }
 
 /**
@@ -900,7 +938,6 @@ async function init() {
     // Render UI components
     renderThesisList();
     renderKeywords();
-    updateStats();
     setupAutocompletSearch();
 
     // Add smooth scroll behavior

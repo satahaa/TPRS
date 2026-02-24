@@ -55,11 +55,38 @@ public class ProjectServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
+        String pathInfo = request.getPathInfo();
+        
+        // Handle download BEFORE getting PrintWriter (can't mix getWriter and getOutputStream)
+        if (pathInfo != null && pathInfo.matches("/\\d+/download")) {
+            String[] parts = pathInfo.substring(1).split("/");
+            int projectId = Integer.parseInt(parts[0]);
+            try {
+                Project fileProject = projectService.getFileData(projectId);
+                if (fileProject != null && fileProject.getFileData() != null) {
+                    String fileName = fileProject.getFileName() != null ? fileProject.getFileName() : "document";
+                    response.setContentType("application/octet-stream");
+                    response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+                    response.setContentLength(fileProject.getFileData().length);
+                    response.getOutputStream().write(fileProject.getFileData());
+                    response.getOutputStream().flush();
+                } else {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    response.setContentType("application/json");
+                    response.getWriter().print("{\"success\":false,\"message\":\"File not found for this project\"}");
+                }
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.setContentType("application/json");
+                response.getWriter().print("{\"success\":false,\"message\":\"Server error: " + e.getMessage() + "\"}");
+            }
+            return;
+        }
+        
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
         
-        String pathInfo = request.getPathInfo();
         JsonObject jsonResponse = new JsonObject();
         
         try {
@@ -102,10 +129,12 @@ public class ProjectServlet extends HttpServlet {
                 jsonResponse.addProperty("count", projects.size());
                 
             } else {
-                // Get specific project by ID
-                String projectId = pathInfo.substring(1);
+                // Get specific project by ID or handle sub-paths
+                String pathStr = pathInfo.substring(1);
+                String[] pathParts = pathStr.split("/");
                 
-                if ("recent".equals(projectId)) {
+                // Download is handled above before getWriter()
+                if ("recent".equals(pathParts[0])) {
                     // Get recent projects (last 10)
                     List<Project> projects = projectService.getAllProjects();
                     if (projects.size() > 10) {
@@ -114,18 +143,18 @@ public class ProjectServlet extends HttpServlet {
                     enrichProjects(projects);
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("projects", gson.toJsonTree(projects));
-                } else if ("pending".equals(projectId)) {
+                } else if ("pending".equals(pathParts[0])) {
                     List<Project> projects = projectService.getPendingProjects();
                     enrichProjects(projects);
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("projects", gson.toJsonTree(projects));
-                } else if ("approved".equals(projectId)) {
+                } else if ("approved".equals(pathParts[0])) {
                     List<Project> projects = projectService.getApprovedProjects();
                     enrichProjects(projects);
                     jsonResponse.addProperty("success", true);
                     jsonResponse.add("projects", gson.toJsonTree(projects));
                 } else {
-                    Project project = projectService.getById(Integer.parseInt(projectId));
+                    Project project = projectService.getById(Integer.parseInt(pathParts[0]));
                     if (project != null) {
                         enrichProject(project);
                         jsonResponse.addProperty("success", true);
@@ -180,6 +209,16 @@ public class ProjectServlet extends HttpServlet {
                 Part filePart = request.getPart("file");
                 if (filePart != null && filePart.getSize() > 0) {
                     String fileName = getFileName(filePart);
+                    
+                    // Read file data for DB storage first
+                    byte[] fileBytes;
+                    try (java.io.InputStream is = filePart.getInputStream()) {
+                        fileBytes = is.readAllBytes();
+                    }
+                    project.setFileName(fileName);
+                    project.setFileData(fileBytes);
+                    
+                    // Also save to filesystem
                     String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
                     
                     // Create upload directory if it doesn't exist
@@ -191,7 +230,11 @@ public class ProjectServlet extends HttpServlet {
                     // Generate unique filename
                     String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
                     filePath = uploadPath + File.separator + uniqueFileName;
-                    filePart.write(filePath);
+                    
+                    // Write bytes to file
+                    try (java.io.FileOutputStream fos = new java.io.FileOutputStream(filePath)) {
+                        fos.write(fileBytes);
+                    }
                     
                     project.setFilePath(UPLOAD_DIR + "/" + uniqueFileName);
                 }
@@ -221,23 +264,24 @@ public class ProjectServlet extends HttpServlet {
                     Student student = studentService.getById(studentDbId);
                     String studentName = student != null ? student.getFullName() : "A student";
                     
-                    // Get assigned supervisors for this student
+                    // Get assigned supervisors for this student and de-duplicate by ID
                     java.util.List<Teacher> supervisors = assignmentService.getSupervisorsForStudent(studentDbId);
+                    java.util.Set<Integer> notifiedSupervisorIds = new java.util.HashSet<>();
                     for (Teacher supervisor : supervisors) {
-                        notificationService.notifyProjectSubmission(
-                            supervisor.getId(), studentDbId, studentName,
-                            project.getId(), project.getTitle());
+                        if (notifiedSupervisorIds.add(supervisor.getId())) {
+                            notificationService.notifyProjectSubmission(
+                                supervisor.getId(), studentDbId, studentName,
+                                project.getId(), project.getTitle(),
+                                project.getYear(), project.getSemester());
+                        }
                     }
                     
-                    // Also notify the specific supervisor selected in the form if not already assigned
-                    if (project.getSupervisorId() > 0) {
-                        boolean alreadyNotified = supervisors.stream()
-                            .anyMatch(s -> s.getId() == project.getSupervisorId());
-                        if (!alreadyNotified) {
-                            notificationService.notifyProjectSubmission(
-                                project.getSupervisorId(), studentDbId, studentName,
-                                project.getId(), project.getTitle());
-                        }
+                    // Also notify the specific supervisor selected in the form if not already notified
+                    if (project.getSupervisorId() > 0 && !notifiedSupervisorIds.contains(project.getSupervisorId())) {
+                        notificationService.notifyProjectSubmission(
+                            project.getSupervisorId(), studentDbId, studentName,
+                            project.getId(), project.getTitle(),
+                            project.getYear(), project.getSemester());
                     }
                 } catch (Exception ex) {
                     System.err.println("Warning: Failed to send notification: " + ex.getMessage());
@@ -300,7 +344,8 @@ public class ProjectServlet extends HttpServlet {
                                 String supervisorName = supervisor != null ? supervisor.getFullName() : "Your supervisor";
                                 notificationService.notifyProjectApproved(
                                     projectForNotify.getStudentId(), supervisorId, supervisorName,
-                                    projectId, projectForNotify.getTitle());
+                                    projectId, projectForNotify.getTitle(),
+                                    projectForNotify.getYear(), projectForNotify.getSemester());
                             } catch (Exception ex) {
                                 System.err.println("Warning: Failed to send approval notification: " + ex.getMessage());
                             }
@@ -318,7 +363,8 @@ public class ProjectServlet extends HttpServlet {
                                     ? requestData.get("reason").getAsString() : null;
                                 notificationService.notifyProjectRejected(
                                     projectForNotify.getStudentId(), supervisorId, supervisorName,
-                                    projectId, projectForNotify.getTitle(), reason);
+                                    projectId, projectForNotify.getTitle(), reason,
+                                    projectForNotify.getYear(), projectForNotify.getSemester());
                             } catch (Exception ex) {
                                 System.err.println("Warning: Failed to send rejection notification: " + ex.getMessage());
                             }

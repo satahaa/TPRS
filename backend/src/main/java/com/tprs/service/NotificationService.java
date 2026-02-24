@@ -24,9 +24,28 @@ public class NotificationService {
     }
     
     /**
+     * Helper to build year/semester context string
+     */
+    private String yearSemContext(String year, String semester) {
+        if ((year == null || year.isEmpty()) && (semester == null || semester.isEmpty())) return "";
+        StringBuilder sb = new StringBuilder(" (");
+        if (year != null && !year.isEmpty()) sb.append(year).append(" Year");
+        if (semester != null && !semester.isEmpty()) {
+            if (year != null && !year.isEmpty()) sb.append(", ");
+            sb.append(semester).append(" Semester");
+        }
+        sb.append(")");
+        return sb.toString();
+    }
+    
+    /**
      * Send notification to a supervisor when a student submits a project
      */
     public boolean notifyProjectSubmission(int supervisorId, int studentId, String studentName, int projectId, String projectTitle) {
+        return notifyProjectSubmission(supervisorId, studentId, studentName, projectId, projectTitle, null, null);
+    }
+
+    public boolean notifyProjectSubmission(int supervisorId, int studentId, String studentName, int projectId, String projectTitle, String year, String semester) {
         Notification notification = new Notification();
         notification.setRecipientId(supervisorId);
         notification.setRecipientType("teacher");
@@ -34,7 +53,7 @@ public class NotificationService {
         notification.setSenderType("student");
         notification.setType("project_submitted");
         notification.setTitle("New Project Submission");
-        notification.setMessage(studentName + " has submitted a new project: \"" + projectTitle + "\". Please review and take action.");
+        notification.setMessage(studentName + " has submitted a new project: \"" + projectTitle + "\"" + yearSemContext(year, semester) + ". Please review and take action.");
         notification.setProjectId(projectId);
         return notificationDAO.create(notification);
     }
@@ -43,6 +62,10 @@ public class NotificationService {
      * Send notification to student when project is approved
      */
     public boolean notifyProjectApproved(int studentId, int supervisorId, String supervisorName, int projectId, String projectTitle) {
+        return notifyProjectApproved(studentId, supervisorId, supervisorName, projectId, projectTitle, null, null);
+    }
+
+    public boolean notifyProjectApproved(int studentId, int supervisorId, String supervisorName, int projectId, String projectTitle, String year, String semester) {
         Notification notification = new Notification();
         notification.setRecipientId(studentId);
         notification.setRecipientType("student");
@@ -50,7 +73,7 @@ public class NotificationService {
         notification.setSenderType("teacher");
         notification.setType("project_approved");
         notification.setTitle("Project Approved!");
-        notification.setMessage("Your project \"" + projectTitle + "\" has been approved by " + supervisorName + ".");
+        notification.setMessage("Your project \"" + projectTitle + "\" has been approved by " + supervisorName + yearSemContext(year, semester) + ".");
         notification.setProjectId(projectId);
         return notificationDAO.create(notification);
     }
@@ -66,6 +89,10 @@ public class NotificationService {
      * Send notification to student when project is rejected (with reason)
      */
     public boolean notifyProjectRejected(int studentId, int supervisorId, String supervisorName, int projectId, String projectTitle, String reason) {
+        return notifyProjectRejected(studentId, supervisorId, supervisorName, projectId, projectTitle, reason, null, null);
+    }
+
+    public boolean notifyProjectRejected(int studentId, int supervisorId, String supervisorName, int projectId, String projectTitle, String reason, String year, String semester) {
         Notification notification = new Notification();
         notification.setRecipientId(studentId);
         notification.setRecipientType("student");
@@ -73,7 +100,7 @@ public class NotificationService {
         notification.setSenderType("teacher");
         notification.setType("project_rejected");
         notification.setTitle("Project Rejected");
-        String msg = "Your project \"" + projectTitle + "\" has been rejected by " + supervisorName + ".";
+        String msg = "Your project \"" + projectTitle + "\" has been rejected by " + supervisorName + yearSemContext(year, semester) + ".";
         if (reason != null && !reason.trim().isEmpty()) {
             msg += " Reason: " + reason.trim();
         } else {
@@ -88,6 +115,10 @@ public class NotificationService {
      * Notify student about supervisor assignment
      */
     public boolean notifyAssignment(int studentId, int supervisorId, String supervisorName) {
+        return notifyAssignment(studentId, supervisorId, supervisorName, null, null);
+    }
+
+    public boolean notifyAssignment(int studentId, int supervisorId, String supervisorName, String year, String semester) {
         Notification notification = new Notification();
         notification.setRecipientId(studentId);
         notification.setRecipientType("student");
@@ -95,7 +126,7 @@ public class NotificationService {
         notification.setSenderType("teacher");
         notification.setType("assignment");
         notification.setTitle("Supervisor Assigned");
-        notification.setMessage("You have been assigned to supervisor: " + supervisorName + ".");
+        notification.setMessage("You have been assigned to supervisor: " + supervisorName + yearSemContext(year, semester) + ".");
         notification.setProjectId(null);
         return notificationDAO.create(notification);
     }

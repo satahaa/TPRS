@@ -262,6 +262,14 @@ const TPRSApi = {
             return { success: false, message: 'Failed to delete project.' };
         }
     },
+
+    /**
+     * Download project file
+     * @param {number} projectId - Project ID
+     */
+    downloadProjectFile(projectId) {
+        window.open(`${API_BASE_URL}/projects/${projectId}/download`, '_blank');
+    },
     
     /**
      * Search projects
@@ -458,9 +466,12 @@ const TPRSApi = {
      * @param {number} studentId - Student ID
      * @returns {Promise} - API response
      */
-    async unassignStudent(supervisorId, studentId) {
+    async unassignStudent(supervisorId, studentId, year, semester) {
         try {
-            const response = await fetch(`${API_BASE_URL}/assignments?supervisorId=${supervisorId}&studentId=${studentId}`, {
+            let url = `${API_BASE_URL}/assignments?supervisorId=${supervisorId}&studentId=${studentId}`;
+            if (year) url += `&year=${encodeURIComponent(year)}`;
+            if (semester) url += `&semester=${encodeURIComponent(semester)}`;
+            const response = await fetch(url, {
                 method: 'DELETE'
             });
             return await response.json();
@@ -540,6 +551,27 @@ const TPRSApi = {
         sessionStorage.removeItem('userEmail');
     },
     
+    /**
+     * Update user phone number
+     * @param {number} userId - User ID
+     * @param {string} userType - 'student' or 'teacher'
+     * @param {string} phone - Phone number
+     * @returns {Promise} - API response
+     */
+    async updatePhone(userId, userType, phone) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, userType, phone })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Update phone error:', error);
+            return { success: false, message: 'Failed to update phone.' };
+        }
+    },
+
     /**
      * Require authentication - redirect to login if not logged in
      */
