@@ -13,10 +13,15 @@ import java.util.List;
  */
 public class StudentDAO {
     
-    private Connection connection;
-    
     public StudentDAO() {
-        this.connection = DatabaseConfig.getConnection();
+        // Connection is now obtained fresh from DatabaseConfig.getConnection() for each operation
+    }
+    
+    /**
+     * Get a valid database connection
+     */
+    private Connection getConnection() {
+        return DatabaseConfig.getConnection();
     }
     
     /**
@@ -26,6 +31,12 @@ public class StudentDAO {
      */
     public boolean create(Student student) {
         String sql = "INSERT INTO student (student_id, first_name, last_name, email, password, department, semester, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = getConnection();
+        
+        if (connection == null) {
+            System.err.println("Error: Database connection is null");
+            return false;
+        }
         
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, student.getStudentId());
@@ -60,6 +71,7 @@ public class StudentDAO {
      */
     public Student getById(int id) {
         String sql = "SELECT * FROM student WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -82,6 +94,7 @@ public class StudentDAO {
      */
     public Student getByEmail(String email) {
         String sql = "SELECT * FROM student WHERE email = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);
@@ -104,6 +117,7 @@ public class StudentDAO {
     public List<Student> getAll() {
         List<Student> students = new ArrayList<>();
         String sql = "SELECT * FROM student ORDER BY created_at DESC";
+        Connection connection = getConnection();
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -125,6 +139,7 @@ public class StudentDAO {
      */
     public boolean update(Student student) {
         String sql = "UPDATE student SET first_name = ?, last_name = ?, email = ?, department = ?, semester = ?, phone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, student.getFirstName());
@@ -150,6 +165,7 @@ public class StudentDAO {
      */
     public boolean delete(int id) {
         String sql = "DELETE FROM student WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -169,6 +185,7 @@ public class StudentDAO {
      */
     public Student authenticate(String email, String password) {
         String sql = "SELECT * FROM student WHERE email = ? AND password = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);

@@ -7,7 +7,6 @@ import com.google.gson.JsonObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,7 +20,6 @@ import java.util.List;
 /**
  * Project Servlet - Handles project CRUD operations
  */
-@WebServlet(urlPatterns = {"/api/projects", "/api/projects/*"})
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024,      // 1 MB
     maxFileSize = 50 * 1024 * 1024,        // 50 MB

@@ -13,10 +13,15 @@ import java.util.List;
  */
 public class ProjectDAO {
     
-    private Connection connection;
-    
     public ProjectDAO() {
-        this.connection = DatabaseConfig.getConnection();
+        // Connection is now obtained fresh from DatabaseConfig.getConnection() for each operation
+    }
+    
+    /**
+     * Get a valid database connection
+     */
+    private Connection getConnection() {
+        return DatabaseConfig.getConnection();
     }
     
     /**
@@ -26,6 +31,12 @@ public class ProjectDAO {
      */
     public boolean create(Project project) {
         String sql = "INSERT INTO project (title, description, type, student_id, supervisor_id, status, file_path, keywords, year, semester, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = getConnection();
+        
+        if (connection == null) {
+            System.err.println("Error: Database connection is null");
+            return false;
+        }
         
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, project.getTitle());
@@ -63,6 +74,7 @@ public class ProjectDAO {
      */
     public Project getById(int id) {
         String sql = "SELECT * FROM project WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -85,6 +97,7 @@ public class ProjectDAO {
     public List<Project> getAll() {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM project ORDER BY created_at DESC";
+        Connection connection = getConnection();
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -107,6 +120,7 @@ public class ProjectDAO {
     public List<Project> getByStudentId(int studentId) {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM project WHERE student_id = ? ORDER BY created_at DESC";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, studentId);
@@ -130,6 +144,7 @@ public class ProjectDAO {
     public List<Project> getBySupervisorId(int supervisorId) {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM project WHERE supervisor_id = ? ORDER BY created_at DESC";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, supervisorId);
@@ -153,6 +168,7 @@ public class ProjectDAO {
     public List<Project> getByDepartment(String department) {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM project WHERE department = ? ORDER BY created_at DESC";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, department);
@@ -176,6 +192,7 @@ public class ProjectDAO {
     public List<Project> getByStatus(String status) {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM project WHERE status = ? ORDER BY created_at DESC";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, status);
@@ -199,6 +216,7 @@ public class ProjectDAO {
     public List<Project> searchByKeyword(String keyword) {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT * FROM project WHERE title LIKE ? OR description LIKE ? OR keywords LIKE ? ORDER BY created_at DESC";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             String searchPattern = "%" + keyword + "%";
@@ -224,6 +242,7 @@ public class ProjectDAO {
      */
     public boolean update(Project project) {
         String sql = "UPDATE project SET title = ?, description = ?, type = ?, status = ?, file_path = ?, keywords = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, project.getTitle());
@@ -250,6 +269,7 @@ public class ProjectDAO {
      */
     public boolean updateStatus(int id, String status) {
         String sql = "UPDATE project SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, status);
@@ -269,6 +289,7 @@ public class ProjectDAO {
      */
     public boolean approve(int id) {
         String sql = "UPDATE project SET status = 'approved', approval_date = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -287,6 +308,7 @@ public class ProjectDAO {
      */
     public boolean delete(int id) {
         String sql = "DELETE FROM project WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);

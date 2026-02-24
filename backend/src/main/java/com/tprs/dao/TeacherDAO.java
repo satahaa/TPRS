@@ -13,10 +13,15 @@ import java.util.List;
  */
 public class TeacherDAO {
     
-    private Connection connection;
-    
     public TeacherDAO() {
-        this.connection = DatabaseConfig.getConnection();
+        // Connection is now obtained fresh from DatabaseConfig.getConnection() for each operation
+    }
+    
+    /**
+     * Get a valid database connection
+     */
+    private Connection getConnection() {
+        return DatabaseConfig.getConnection();
     }
     
     /**
@@ -26,6 +31,12 @@ public class TeacherDAO {
      */
     public boolean create(Teacher teacher) {
         String sql = "INSERT INTO teacher (teacher_id, first_name, last_name, email, password, department, designation, specialization, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = getConnection();
+        
+        if (connection == null) {
+            System.err.println("Error: Database connection is null");
+            return false;
+        }
         
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, teacher.getTeacherId());
@@ -61,6 +72,7 @@ public class TeacherDAO {
      */
     public Teacher getById(int id) {
         String sql = "SELECT * FROM teacher WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -83,6 +95,7 @@ public class TeacherDAO {
      */
     public Teacher getByEmail(String email) {
         String sql = "SELECT * FROM teacher WHERE email = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);
@@ -105,6 +118,7 @@ public class TeacherDAO {
     public List<Teacher> getAll() {
         List<Teacher> teachers = new ArrayList<>();
         String sql = "SELECT * FROM teacher ORDER BY created_at DESC";
+        Connection connection = getConnection();
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -127,6 +141,7 @@ public class TeacherDAO {
     public List<Teacher> getByDepartment(String department) {
         List<Teacher> teachers = new ArrayList<>();
         String sql = "SELECT * FROM teacher WHERE department = ? ORDER BY last_name";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, department);
@@ -149,6 +164,7 @@ public class TeacherDAO {
      */
     public boolean update(Teacher teacher) {
         String sql = "UPDATE teacher SET first_name = ?, last_name = ?, email = ?, department = ?, designation = ?, specialization = ?, phone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, teacher.getFirstName());
@@ -175,6 +191,7 @@ public class TeacherDAO {
      */
     public boolean delete(int id) {
         String sql = "DELETE FROM teacher WHERE id = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
@@ -194,6 +211,7 @@ public class TeacherDAO {
      */
     public Teacher authenticate(String email, String password) {
         String sql = "SELECT * FROM teacher WHERE email = ? AND password = ?";
+        Connection connection = getConnection();
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);

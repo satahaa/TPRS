@@ -8,7 +8,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +18,6 @@ import java.io.PrintWriter;
 /**
  * Authentication Servlet - Handles login and registration
  */
-@WebServlet(urlPatterns = {"/api/auth/login", "/api/auth/register", "/api/auth/register-teacher"})
 public class AuthServlet extends HttpServlet {
     
     private StudentService studentService;
@@ -41,7 +39,8 @@ public class AuthServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
         
-        String path = request.getServletPath();
+        // Get the path info after /api/auth
+        String pathInfo = request.getPathInfo();
         JsonObject jsonResponse = new JsonObject();
         
         try {
@@ -49,18 +48,25 @@ public class AuthServlet extends HttpServlet {
             BufferedReader reader = request.getReader();
             JsonObject requestData = gson.fromJson(reader, JsonObject.class);
             
-            if ("/api/auth/login".equals(path)) {
+            System.out.println("PathInfo: " + pathInfo);
+            
+            if ("/login".equals(pathInfo)) {
                 handleLogin(requestData, jsonResponse, response);
-            } else if ("/api/auth/register".equals(path)) {
+            } else if ("/register".equals(pathInfo)) {
                 handleStudentRegistration(requestData, jsonResponse, response);
-            } else if ("/api/auth/register-teacher".equals(path)) {
+            } else if ("/register-teacher".equals(pathInfo)) {
                 handleTeacherRegistration(requestData, jsonResponse, response);
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Unknown endpoint: " + pathInfo);
             }
             
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             jsonResponse.addProperty("success", false);
             jsonResponse.addProperty("message", "Server error: " + e.getMessage());
+            e.printStackTrace();
         }
         
         out.print(gson.toJson(jsonResponse));
@@ -100,51 +106,77 @@ public class AuthServlet extends HttpServlet {
     }
     
     private void handleStudentRegistration(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
-        Student student = new Student();
-        student.setStudentId(data.get("studentId").getAsString());
-        student.setFirstName(data.get("firstName").getAsString());
-        student.setLastName(data.get("lastName").getAsString());
-        student.setEmail(data.get("email").getAsString());
-        student.setPassword(data.get("password").getAsString());
-        student.setDepartment(data.get("department").getAsString());
-        student.setSemester(data.has("semester") ? data.get("semester").getAsString() : "");
-        student.setPhone(data.has("phone") ? data.get("phone").getAsString() : "");
-        
-        boolean success = studentService.register(student);
-        
-        if (success) {
-            jsonResponse.addProperty("success", true);
-            jsonResponse.addProperty("message", "Registration successful");
-            jsonResponse.addProperty("userId", student.getId());
-        } else {
+        try {
+            Student student = new Student();
+            student.setStudentId(getJsonString(data, "studentId", ""));
+            student.setFirstName(getJsonString(data, "firstName", ""));
+            student.setLastName(getJsonString(data, "lastName", ""));
+            student.setEmail(getJsonString(data, "email", ""));
+            student.setPassword(getJsonString(data, "password", ""));
+            student.setDepartment(getJsonString(data, "department", ""));
+            // Handle both "semester" and "degreeType" from frontend
+            String semester = getJsonString(data, "semester", "");
+            if (semester.isEmpty()) {
+                semester = getJsonString(data, "degreeType", "");
+            }
+            student.setSemester(semester);
+            student.setPhone(getJsonString(data, "phone", ""));
+            
+            boolean success = studentService.register(student);
+            
+            if (success) {
+                jsonResponse.addProperty("success", true);
+                jsonResponse.addProperty("message", "Registration successful");
+                jsonResponse.addProperty("userId", student.getId());
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Email already registered or registration failed");
+            }
+        } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             jsonResponse.addProperty("success", false);
-            jsonResponse.addProperty("message", "Email already registered or registration failed");
+            jsonResponse.addProperty("message", "Invalid registration data: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
+    private String getJsonString(JsonObject data, String key, String defaultValue) {
+        if (data.has(key) && !data.get(key).isJsonNull()) {
+            return data.get(key).getAsString();
+        }
+        return defaultValue;
+    }
+    
     private void handleTeacherRegistration(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
-        Teacher teacher = new Teacher();
-        teacher.setTeacherId(data.get("teacherId").getAsString());
-        teacher.setFirstName(data.get("firstName").getAsString());
-        teacher.setLastName(data.get("lastName").getAsString());
-        teacher.setEmail(data.get("email").getAsString());
-        teacher.setPassword(data.get("password").getAsString());
-        teacher.setDepartment(data.get("department").getAsString());
-        teacher.setDesignation(data.has("designation") ? data.get("designation").getAsString() : "");
-        teacher.setSpecialization(data.has("specialization") ? data.get("specialization").getAsString() : "");
-        teacher.setPhone(data.has("phone") ? data.get("phone").getAsString() : "");
-        
-        boolean success = teacherService.register(teacher);
-        
-        if (success) {
-            jsonResponse.addProperty("success", true);
-            jsonResponse.addProperty("message", "Registration successful");
-            jsonResponse.addProperty("userId", teacher.getId());
-        } else {
+        try {
+            Teacher teacher = new Teacher();
+            teacher.setTeacherId(getJsonString(data, "teacherId", ""));
+            teacher.setFirstName(getJsonString(data, "firstName", ""));
+            teacher.setLastName(getJsonString(data, "lastName", ""));
+            teacher.setEmail(getJsonString(data, "email", ""));
+            teacher.setPassword(getJsonString(data, "password", ""));
+            teacher.setDepartment(getJsonString(data, "department", ""));
+            teacher.setDesignation(getJsonString(data, "designation", ""));
+            teacher.setSpecialization(getJsonString(data, "specialization", ""));
+            teacher.setPhone(getJsonString(data, "phone", ""));
+            
+            boolean success = teacherService.register(teacher);
+            
+            if (success) {
+                jsonResponse.addProperty("success", true);
+                jsonResponse.addProperty("message", "Registration successful");
+                jsonResponse.addProperty("userId", teacher.getId());
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Email already registered or registration failed");
+            }
+        } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             jsonResponse.addProperty("success", false);
-            jsonResponse.addProperty("message", "Email already registered or registration failed");
+            jsonResponse.addProperty("message", "Invalid registration data: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

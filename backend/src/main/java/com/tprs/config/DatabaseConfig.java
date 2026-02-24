@@ -11,33 +11,33 @@ import java.sql.SQLException;
 public class DatabaseConfig {
     
     // Database connection parameters
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/tprs_db";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/tprs_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "1457"; // Change this to your MySQL password
     
     private static Connection connection = null;
     
     /**
-     * Get database connection (Singleton pattern)
+     * Get database connection (Singleton pattern with validation)
      * @return Connection object
      */
-    public static Connection getConnection() {
-        if (connection == null) {
-            try {
+    public static synchronized Connection getConnection() {
+        try {
+            // Check if connection is null or closed/invalid
+            if (connection == null || connection.isClosed() || !connection.isValid(2)) {
                 // Load MySQL JDBC Driver
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 
                 // Establish connection
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 System.out.println("✓ Database connected successfully!");
-                
-            } catch (ClassNotFoundException e) {
-                System.err.println("✗ MySQL JDBC Driver not found!");
-                e.printStackTrace();
-            } catch (SQLException e) {
-                System.err.println("✗ Database connection failed!");
-                e.printStackTrace();
             }
+        } catch (ClassNotFoundException e) {
+            System.err.println("✗ MySQL JDBC Driver not found!");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.err.println("✗ Database connection failed: " + e.getMessage());
+            e.printStackTrace();
         }
         return connection;
     }

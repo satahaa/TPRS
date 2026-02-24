@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +15,6 @@ import java.sql.*;
 /**
  * Dashboard Servlet - Provides dashboard statistics and recent data
  */
-@WebServlet(urlPatterns = {"/api/dashboard", "/api/dashboard/*"})
 public class DashboardServlet extends HttpServlet {
     
     private Gson gson;
