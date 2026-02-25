@@ -63,9 +63,10 @@ CREATE TABLE IF NOT EXISTS project (
     file_name VARCHAR(500),
     file_data LONGBLOB,
     keywords VARCHAR(500),
-    year INT,
+    year VARCHAR(20),
     semester VARCHAR(20),
     department VARCHAR(100),
+    session VARCHAR(50),
     submission_date TIMESTAMP NULL,
     approval_date TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -89,6 +90,8 @@ CREATE TABLE IF NOT EXISTS supervisor_student (
     id INT PRIMARY KEY AUTO_INCREMENT,
     supervisor_id INT NOT NULL,
     student_id INT NOT NULL,
+    year VARCHAR(20) DEFAULT NULL,
+    semester VARCHAR(20) DEFAULT NULL,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     FOREIGN KEY (supervisor_id) REFERENCES teacher(id) ON DELETE CASCADE,
@@ -141,6 +144,7 @@ SELECT
     p.year,
     p.semester,
     p.department,
+    p.session,
     p.file_path,
     p.submission_date,
     p.approval_date,
@@ -379,13 +383,14 @@ CREATE PROCEDURE SubmitProject(
     IN p_student_id INT,
     IN p_supervisor_id INT,
     IN p_keywords VARCHAR(500),
-    IN p_year INT,
+    IN p_year VARCHAR(20),
     IN p_semester VARCHAR(20),
-    IN p_department VARCHAR(100)
+    IN p_department VARCHAR(100),
+    IN p_session VARCHAR(50)
 )
 BEGIN
-    INSERT INTO project (title, description, type, student_id, supervisor_id, status, keywords, year, semester, department, submission_date)
-    VALUES (p_title, p_description, p_type, p_student_id, p_supervisor_id, 'pending', p_keywords, p_year, p_semester, p_department, CURRENT_TIMESTAMP);
+    INSERT INTO project (title, description, type, student_id, supervisor_id, status, keywords, year, semester, department, session, submission_date)
+    VALUES (p_title, p_description, p_type, p_student_id, p_supervisor_id, 'pending', p_keywords, p_year, p_semester, p_department, p_session, CURRENT_TIMESTAMP);
     SELECT LAST_INSERT_ID() AS id;
 END //
 DELIMITER ;
@@ -440,7 +445,7 @@ DELIMITER ;
 
 -- Procedure: Get projects by year
 DELIMITER //
-CREATE PROCEDURE GetProjectsByYear(IN p_year INT)
+CREATE PROCEDURE GetProjectsByYear(IN p_year VARCHAR(20))
 BEGIN
     SELECT * FROM project_details WHERE year = p_year ORDER BY created_at DESC;
 END //
