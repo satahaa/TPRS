@@ -1,0 +1,21 @@
+# Compiled class files
+*.class
+
+# Build output
+backend/target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Database credentials (keep out of version control)
+backend/src/main/resources/db.properties
+
+# Uploaded files
+backend/WEB-INF/uploads/
