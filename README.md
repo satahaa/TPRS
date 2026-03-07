@@ -120,8 +120,6 @@ db.user=your_username
 db.password=your_password
 ```
 
-> ⚠️ This file is git-ignored. Never commit real credentials.
-
 ### 3. Run the Project
 
 **Option A — One command:**

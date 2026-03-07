@@ -99,15 +99,20 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.4rem;
-            padding: 0.5rem;
-            border: 2px solid #e0e0e0;
+            padding: 0.5rem 1rem;
+            border: 2px solid #e1e5eb;
             border-radius: 10px;
-            min-height: 42px;
+            min-height: 46px;
             cursor: text;
-            transition: border-color 0.3s;
+            background: #f9fafb;
+            transition: all 0.3s ease;
             align-items: center;
         }
-        .spec-tags-container:focus-within { border-color: #667eea; }
+        .spec-tags-container:focus-within {
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
         .spec-tag {
             display: flex;
             align-items: center;
@@ -140,6 +145,10 @@
             font-size: 0.75rem;
             color: #999;
             margin-top: 0.3rem;
+        }
+
+        #teacherFields .form-group {
+            margin-bottom: 0.4rem;
         }
 
         .signup-header .material-icons {

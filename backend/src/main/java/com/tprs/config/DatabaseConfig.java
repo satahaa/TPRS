@@ -48,13 +48,13 @@ public class DatabaseConfig {
                 
                 // Establish connection
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-                System.out.println("✓ Database connected successfully!");
+                System.out.println("Database connected successfully!");
             }
         } catch (ClassNotFoundException e) {
-            System.err.println("✗ MySQL JDBC Driver not found!");
+            System.err.println("MySQL JDBC Driver not found!");
             e.printStackTrace();
         } catch (SQLException e) {
-            System.err.println("✗ Database connection failed: " + e.getMessage());
+            System.err.println("Database connection failed: " + e.getMessage());
             e.printStackTrace();
         }
         return connection;
@@ -68,9 +68,9 @@ public class DatabaseConfig {
             try {
                 connection.close();
                 connection = null;
-                System.out.println("✓ Database connection closed.");
+                System.out.println("Database connection closed.");
             } catch (SQLException e) {
-                System.err.println("✗ Error closing database connection!");
+                System.err.println("Error closing database connection!");
                 e.printStackTrace();
             }
         }
@@ -84,11 +84,11 @@ public class DatabaseConfig {
         try {
             Connection conn = getConnection();
             if (conn != null && !conn.isClosed()) {
-                System.out.println("✓ Database connection test passed!");
+                System.out.println("Database connection test passed!");
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("✗ Database connection test failed!");
+            System.err.println("Database connection test failed!");
             e.printStackTrace();
         }
         return false;

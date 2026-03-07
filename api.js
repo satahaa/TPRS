@@ -75,10 +75,6 @@ const TPRSApi = {
         }
     },
     
-    // =====================================================
-    // PROJECT APIs
-    // =====================================================
-    
     /**
      * Get all projects
      * @param {Object} filters - Optional filters (status, department, search, limit)
