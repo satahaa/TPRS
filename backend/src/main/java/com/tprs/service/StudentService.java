@@ -108,4 +108,12 @@ public class StudentService {
         }
         return false;
     }
+    
+    public List<Student> searchStudents(String keyword) {
+        return studentDAO.search(keyword);
+    }
+    
+    public boolean adminUpdateStudent(Student student) {
+        return studentDAO.adminUpdate(student);
+    }
 }

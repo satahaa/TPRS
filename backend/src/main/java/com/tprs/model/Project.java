@@ -34,6 +34,7 @@ public class Project {
     // Non-DB fields (populated at runtime for API responses)
     private String studentName;
     private String supervisorName;
+    private int views;
     
     // Default constructor
     public Project() {}
@@ -252,6 +253,14 @@ public class Project {
     
     public void setSupervisorName(String supervisorName) {
         this.supervisorName = supervisorName;
+    }
+    
+    public int getViews() {
+        return views;
+    }
+    
+    public void setViews(int views) {
+        this.views = views;
     }
     
     @Override

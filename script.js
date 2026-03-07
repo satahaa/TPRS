@@ -214,7 +214,7 @@ function renderThesisList() {
     let html = pageTheses.map(thesis => {
         const firstKeyword = thesis.keywords ? thesis.keywords.split(',')[0].trim() : '';
         return `
-        <div class="thesis-card" data-thesis-id="${thesis.id}" onclick="openProjectDetail(${thesis.id})" style="cursor:pointer;">
+        <div class="thesis-card" data-thesis-id="${thesis.id}" onclick="openProjectDetail(${thesis.id})" style="cursor:pointer;margin-bottom:1rem;">
             <span class="material-icons thesis-icon">description</span>
             <div class="thesis-content">
                 <div class="thesis-title">${thesis.title}</div>

@@ -217,6 +217,32 @@ public class ProjectServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
+        // Handle view recording: POST /api/projects/{id}/view
+        String pathInfo = request.getPathInfo();
+        if (pathInfo != null && pathInfo.matches("/\\d+/view")) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            PrintWriter vOut = response.getWriter();
+            JsonObject vResp = new JsonObject();
+            try {
+                int projectId = Integer.parseInt(pathInfo.substring(1).split("/")[0]);
+                BufferedReader reader = request.getReader();
+                JsonObject body = gson.fromJson(reader, JsonObject.class);
+                int viewerId = body.get("viewerId").getAsInt();
+                String viewerType = body.get("viewerType").getAsString();
+                projectService.recordView(projectId, viewerId, viewerType);
+                int count = projectService.getViewCount(projectId);
+                vResp.addProperty("success", true);
+                vResp.addProperty("views", count);
+            } catch (Exception e) {
+                vResp.addProperty("success", false);
+                vResp.addProperty("message", "Error recording view: " + e.getMessage());
+            }
+            vOut.print(gson.toJson(vResp));
+            vOut.flush();
+            return;
+        }
+        
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
@@ -503,7 +529,8 @@ public class ProjectServlet extends HttpServlet {
         try {
             if (pathInfo != null && pathInfo.length() > 1) {
                 int projectId = Integer.parseInt(pathInfo.substring(1));
-                boolean success = projectService.deleteProject(projectId);
+                String basePath = getServletContext().getRealPath("");
+                boolean success = projectService.deleteProject(projectId, basePath);
                 
                 if (success) {
                     jsonResponse.addProperty("success", true);
@@ -536,16 +563,17 @@ public class ProjectServlet extends HttpServlet {
     }
     
     /**
-     * Enrich a list of projects with student and supervisor names
+     * Enrich a list of projects with student and supervisor names and view counts
      */
     private void enrichProjects(List<Project> projects) {
         for (Project project : projects) {
             enrichProject(project);
         }
+        projectService.populateViewCounts(projects);
     }
     
     /**
-     * Enrich a single project with student and supervisor names
+     * Enrich a single project with student and supervisor names and view count
      */
     private void enrichProject(Project project) {
         try {
@@ -557,6 +585,7 @@ public class ProjectServlet extends HttpServlet {
             if (teacher != null) {
                 project.setSupervisorName(teacher.getFullName());
             }
+            project.setViews(projectService.getViewCount(project.getId()));
         } catch (Exception e) {
             // Ignore enrichment errors
         }

@@ -17,6 +17,7 @@ public class Teacher {
     private String designation;
     private String specialization;
     private String phone;
+    private boolean isAuthorized;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     
@@ -117,6 +118,14 @@ public class Teacher {
     
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+    
+    public boolean isAuthorized() {
+        return isAuthorized;
+    }
+    
+    public void setAuthorized(boolean authorized) {
+        isAuthorized = authorized;
     }
     
     public Timestamp getCreatedAt() {

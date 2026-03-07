@@ -36,6 +36,17 @@ public class TeacherService {
     }
     
     /**
+     * Login teacher (returns teacher even if not authorized, for auth check)
+     */
+    public Teacher loginCheck(String email, String password) {
+        Teacher teacher = teacherDAO.getByEmail(email);
+        if (teacher != null && PasswordUtil.checkPassword(password, teacher.getPassword())) {
+            return teacher;
+        }
+        return null;
+    }
+    
+    /**
      * Login teacher
      * @param email Teacher email
      * @param password Teacher password
@@ -116,5 +127,17 @@ public class TeacherService {
             return teacherDAO.updatePassword(teacherId, hashedPassword);
         }
         return false;
+    }
+    
+    public boolean updateAuthorization(int teacherId, boolean authorized) {
+        return teacherDAO.updateAuthorization(teacherId, authorized);
+    }
+    
+    public List<Teacher> searchTeachers(String keyword) {
+        return teacherDAO.search(keyword);
+    }
+    
+    public boolean adminUpdateTeacher(Teacher teacher) {
+        return teacherDAO.adminUpdate(teacher);
     }
 }

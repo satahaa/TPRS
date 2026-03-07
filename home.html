@@ -9,7 +9,7 @@
     <!-- Google Fonts - Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- External CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
     <!-- =========================================================
@@ -82,6 +82,10 @@
                             <span class="material-icons">bookmark</span>
                             Bookmarks
                         </a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="openChangePasswordModal(event)">
+                            <span class="material-icons">lock</span>
+                            Change Password
+                        </a>
                     </div>
                     <div class="dropdown-divider"></div>
                     <button class="dropdown-item logout-btn">
@@ -111,6 +115,26 @@
                 <label class="filter-label">Session</label>
                 <div class="checkbox-group" id="sessionFilter">
                     <div class="checkbox-item">
+                        <input type="checkbox" id="session2029" value="2029-2030">
+                        <label for="session2029">2029-2030</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session2028" value="2028-2029">
+                        <label for="session2028">2028-2029</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session2027" value="2027-2028">
+                        <label for="session2027">2027-2028</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session2026" value="2026-2027">
+                        <label for="session2026">2026-2027</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session2025" value="2025-2026">
+                        <label for="session2025">2025-2026</label>
+                    </div>
+                    <div class="checkbox-item">
                         <input type="checkbox" id="session2024" value="2024-2025">
                         <label for="session2024">2024-2025</label>
                     </div>
@@ -125,6 +149,10 @@
                     <div class="checkbox-item">
                         <input type="checkbox" id="session2021" value="2021-2022">
                         <label for="session2021">2021-2022</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="session2020" value="2020-2021">
+                        <label for="session2020">2020-2021</label>
                     </div>
                     <div class="checkbox-item">
                         <input type="checkbox" id="sessionOlder" value="Older">
@@ -144,10 +172,6 @@
                     <div class="checkbox-item">
                         <input type="checkbox" id="master" value="Master">
                         <label for="master">Master</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="doctoral" value="Doctoral">
-                        <label for="doctoral">Doctoral</label>
                     </div>
                 </div>
             </div>
@@ -265,7 +289,7 @@
 
     <!-- External JavaScript -->
     <script src="api.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=2"></script>
 
     <!-- Student Profile Modal -->
     <style>
@@ -688,9 +712,18 @@
             const result = await TPRSApi.getProject(projectId);
             if (!result.success || !result.project) return;
             const p = result.project;
+
+            // Record unique view
+            const viewer = TPRSApi.getCurrentUser();
+            const vType = TPRSApi.getUserType();
+            if (viewer && viewer.id && vType) {
+                TPRSApi.recordView(projectId, viewer.id, vType);
+            }
+
             document.getElementById('pdmTitle').textContent = p.title || 'Untitled';
             document.getElementById('pdmDesc').textContent = p.description || 'No description provided.';
-            document.getElementById('pdmType').textContent = p.type || p.projectType || '—';
+            const typeVal = p.type || p.projectType || '—';
+            document.getElementById('pdmType').textContent = typeVal !== '—' ? typeVal.charAt(0).toUpperCase() + typeVal.slice(1) : '—';
             document.getElementById('pdmAuthor').textContent = p.studentName || p.authorName || '—';
             document.getElementById('pdmSupervisor').textContent = p.supervisorName || p.supervisor || '—';
             document.getElementById('pdmDept').textContent = p.department || '—';
@@ -708,7 +741,7 @@
             const zipRow = document.getElementById('pdmZipRow');
             if (p.zipFileName) {
                 zipRow.style.display = '';
-                document.getElementById('pdmZipFile').innerHTML = '<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectZip(' + p.id + ')" style="color:#e65100;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">folder_zip</span>' + escapeHtmlStr(p.zipFileName) + '</a>';
+                document.getElementById('pdmZipFile').innerHTML = '<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectZip(' + p.id + ')" style="color:#667eea;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">folder_zip</span>' + escapeHtmlStr(p.zipFileName) + '</a>';
             } else {
                 zipRow.style.display = 'none';
             }
@@ -736,6 +769,197 @@
             const d = document.createElement('div');
             d.textContent = str;
             return d.innerHTML;
+        }
+    </script>
+
+    <!-- Change Password Modal -->
+    <style>
+        .cpw-overlay {
+            display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+            background:rgba(0,0,0,0.45); z-index:10002; align-items:center; justify-content:center;
+        }
+        .cpw-overlay.active { display:flex; }
+        .cpw-box {
+            background:#fff; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.15);
+            max-width:440px; width:95%; overflow:hidden; animation:spModalIn 0.25s ease;
+        }
+        .cpw-header {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:1.2rem 1.5rem; border-bottom:1px solid #f0f2f7;
+        }
+        .cpw-header h2 { font-size:1.1rem; font-weight:700; color:#333; margin:0; }
+        .cpw-close {
+            background:none; border:none; cursor:pointer; color:#888; padding:4px;
+            border-radius:50%; transition:background 0.2s;
+        }
+        .cpw-close:hover { background:#f0f0f0; color:#333; }
+        .cpw-body { padding:1.5rem; }
+        .cpw-group { margin-bottom:1.2rem; }
+        .cpw-group label {
+            display:block; font-size:0.85rem; font-weight:600; color:#555;
+            margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;
+        }
+        .cpw-input-wrap { position:relative; }
+        .cpw-input-wrap input {
+            width:100%; padding:0.8rem 2.8rem 0.8rem 1rem; border:2px solid #e1e5eb; border-radius:10px;
+            font-size:0.95rem; font-family:'Poppins',sans-serif; background:#f9fafb; transition:all 0.3s ease;
+        }
+        .cpw-input-wrap input:focus { outline:none; border-color:#667eea; background:#fff; box-shadow:0 0 0 4px rgba(102,126,234,0.1); }
+        .cpw-toggle {
+            position:absolute; right:0.8rem; top:50%; transform:translateY(-50%);
+            cursor:pointer; color:#888; font-size:1.2rem; transition:color 0.3s;
+        }
+        .cpw-toggle:hover { color:#667eea; }
+        .cpw-strength { display:flex; gap:0.3rem; margin-top:0.5rem; }
+        .cpw-str-bar { flex:1; height:4px; background:#e1e5eb; border-radius:2px; transition:background 0.3s; }
+        .cpw-str-bar.weak { background:#e74c3c; }
+        .cpw-str-bar.medium { background:#f39c12; }
+        .cpw-str-bar.strong { background:#27ae60; }
+        .cpw-str-text { font-size:0.75rem; margin-top:0.3rem; color:#888; }
+        .cpw-str-text.weak { color:#e74c3c; }
+        .cpw-str-text.medium { color:#f39c12; }
+        .cpw-str-text.strong { color:#27ae60; }
+        .cpw-error { background:#ffeaea; color:#e74c3c; padding:0.6rem 0.8rem; border-radius:8px; font-size:0.85rem; display:none; margin-bottom:1rem; align-items:center; gap:0.4rem; }
+        .cpw-error.show { display:flex; }
+        .cpw-success { background:#e8f8f0; color:#27ae60; padding:0.6rem 0.8rem; border-radius:8px; font-size:0.85rem; display:none; margin-bottom:1rem; align-items:center; gap:0.4rem; }
+        .cpw-success.show { display:flex; }
+        .cpw-submit {
+            width:100%; padding:0.9rem; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            color:white; border:none; border-radius:10px; font-size:0.95rem; font-weight:600;
+            font-family:'Poppins',sans-serif; cursor:pointer; transition:all 0.3s; text-transform:uppercase; letter-spacing:0.5px;
+        }
+        .cpw-submit:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(102,126,234,0.4); }
+        .cpw-submit:disabled { background:#ccc; cursor:not-allowed; transform:none; box-shadow:none; }
+    </style>
+
+    <div class="cpw-overlay" id="changePasswordModal">
+        <div class="cpw-box">
+            <div class="cpw-header">
+                <h2>Change Password</h2>
+                <button class="cpw-close" onclick="closeChangePasswordModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="cpw-body">
+                <div class="cpw-error" id="cpwError"><span class="material-icons" style="font-size:1rem;">error</span><span id="cpwErrorText"></span></div>
+                <div class="cpw-success" id="cpwSuccess"><span class="material-icons" style="font-size:1rem;">check_circle</span><span id="cpwSuccessText"></span></div>
+                <div class="cpw-group">
+                    <label>Old Password</label>
+                    <div class="cpw-input-wrap">
+                        <input type="password" id="cpwOldPassword" placeholder="Enter current password">
+                        <span class="material-icons cpw-toggle" onclick="toggleCpwVisibility('cpwOldPassword', this)">visibility</span>
+                    </div>
+                </div>
+                <div class="cpw-group">
+                    <label>New Password</label>
+                    <div class="cpw-input-wrap">
+                        <input type="password" id="cpwNewPassword" placeholder="Enter new password" oninput="checkCpwStrength()">
+                        <span class="material-icons cpw-toggle" onclick="toggleCpwVisibility('cpwNewPassword', this)">visibility</span>
+                    </div>
+                    <div class="cpw-strength" id="cpwStrength">
+                        <div class="cpw-str-bar" id="cpwBar1"></div>
+                        <div class="cpw-str-bar" id="cpwBar2"></div>
+                        <div class="cpw-str-bar" id="cpwBar3"></div>
+                        <div class="cpw-str-bar" id="cpwBar4"></div>
+                    </div>
+                    <div class="cpw-str-text" id="cpwStrText">Password strength</div>
+                </div>
+                <div class="cpw-group">
+                    <label>Retype New Password</label>
+                    <div class="cpw-input-wrap">
+                        <input type="password" id="cpwConfirmPassword" placeholder="Retype new password">
+                        <span class="material-icons cpw-toggle" onclick="toggleCpwVisibility('cpwConfirmPassword', this)">visibility</span>
+                    </div>
+                </div>
+                <button class="cpw-submit" id="cpwSubmitBtn" onclick="submitChangePassword()">Change Password</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openChangePasswordModal(e) {
+            if (e) e.preventDefault();
+            document.getElementById('cpwOldPassword').value = '';
+            document.getElementById('cpwNewPassword').value = '';
+            document.getElementById('cpwConfirmPassword').value = '';
+            document.getElementById('cpwError').classList.remove('show');
+            document.getElementById('cpwSuccess').classList.remove('show');
+            resetCpwStrength();
+            document.getElementById('cpwSubmitBtn').disabled = false;
+            document.getElementById('cpwSubmitBtn').textContent = 'Change Password';
+            document.getElementById('changePasswordModal').classList.add('active');
+            const userProfile = document.getElementById('userProfile');
+            if (userProfile) userProfile.classList.remove('active');
+        }
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('active');
+        }
+        document.getElementById('changePasswordModal').addEventListener('click', function(e) {
+            if (e.target === this) closeChangePasswordModal();
+        });
+
+        function toggleCpwVisibility(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') { input.type = 'text'; icon.textContent = 'visibility_off'; }
+            else { input.type = 'password'; icon.textContent = 'visibility'; }
+        }
+
+        function resetCpwStrength() {
+            ['cpwBar1','cpwBar2','cpwBar3','cpwBar4'].forEach(id => document.getElementById(id).className = 'cpw-str-bar');
+            const t = document.getElementById('cpwStrText'); t.className = 'cpw-str-text'; t.textContent = 'Password strength';
+        }
+
+        function checkCpwStrength() {
+            const password = document.getElementById('cpwNewPassword').value;
+            const bars = ['cpwBar1','cpwBar2','cpwBar3','cpwBar4'].map(id => document.getElementById(id));
+            const text = document.getElementById('cpwStrText');
+            bars.forEach(b => b.className = 'cpw-str-bar');
+            text.className = 'cpw-str-text';
+            if (!password) { text.textContent = 'Password strength'; return; }
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.length >= 10) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (strength <= 2) {
+                bars[0].classList.add('weak'); text.textContent = 'Weak password'; text.classList.add('weak');
+            } else if (strength <= 3) {
+                bars[0].classList.add('medium'); bars[1].classList.add('medium'); text.textContent = 'Medium password'; text.classList.add('medium');
+            } else if (strength <= 4) {
+                bars[0].classList.add('strong'); bars[1].classList.add('strong'); bars[2].classList.add('strong'); text.textContent = 'Strong password'; text.classList.add('strong');
+            } else {
+                bars.forEach(b => b.classList.add('strong')); text.textContent = 'Very strong password'; text.classList.add('strong');
+            }
+        }
+
+        async function submitChangePassword() {
+            const oldPw = document.getElementById('cpwOldPassword').value;
+            const newPw = document.getElementById('cpwNewPassword').value;
+            const confirmPw = document.getElementById('cpwConfirmPassword').value;
+            const errEl = document.getElementById('cpwError'), errText = document.getElementById('cpwErrorText');
+            const succEl = document.getElementById('cpwSuccess'), succText = document.getElementById('cpwSuccessText');
+            errEl.classList.remove('show'); succEl.classList.remove('show');
+
+            if (!oldPw) { errText.textContent = 'Please enter your current password'; errEl.classList.add('show'); return; }
+            if (newPw.length < 6) { errText.textContent = 'New password must be at least 6 characters'; errEl.classList.add('show'); return; }
+            if (newPw !== confirmPw) { errText.textContent = 'New passwords do not match'; errEl.classList.add('show'); return; }
+
+            const btn = document.getElementById('cpwSubmitBtn');
+            btn.disabled = true; btn.textContent = 'Changing...';
+
+            const user = TPRSApi.getCurrentUser();
+            const userType = TPRSApi.getUserType();
+            const result = await TPRSApi.changePassword(user.id, userType, oldPw, newPw);
+
+            if (result.success) {
+                succText.textContent = 'Password changed successfully!'; succEl.classList.add('show');
+                btn.textContent = 'Done!';
+                setTimeout(() => closeChangePasswordModal(), 1500);
+            } else {
+                errText.textContent = result.message || 'Failed to change password'; errEl.classList.add('show');
+                btn.disabled = false; btn.textContent = 'Change Password';
+            }
         }
     </script>
 </body>

@@ -1,9 +1,12 @@
 package com.tprs.service;
 
 import com.tprs.dao.ProjectDAO;
+import com.tprs.dao.ProjectViewDAO;
 import com.tprs.model.Project;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Project Service Layer
@@ -12,9 +15,11 @@ import java.util.List;
 public class ProjectService {
     
     private ProjectDAO projectDAO;
+    private ProjectViewDAO projectViewDAO;
     
     public ProjectService() {
         this.projectDAO = new ProjectDAO();
+        this.projectViewDAO = new ProjectViewDAO();
     }
     
     /**
@@ -127,12 +132,42 @@ public class ProjectService {
     }
     
     /**
-     * Delete project
+     * Delete project and its associated files from disk
      * @param id Project ID
+     * @param uploadBasePath Absolute base path for resolving stored file paths (e.g. servlet context real path)
      * @return true if successful, false otherwise
      */
+    public boolean deleteProject(int id, String uploadBasePath) {
+        // Fetch project to get file paths before deleting from DB
+        Project project = projectDAO.getById(id);
+        if (project == null) return false;
+
+        // Delete DB row first
+        boolean deleted = projectDAO.delete(id);
+        if (deleted && uploadBasePath != null) {
+            deleteFileIfExists(uploadBasePath, project.getFilePath());
+            deleteFileIfExists(uploadBasePath, project.getZipFilePath());
+        }
+        return deleted;
+    }
+
+    /**
+     * Delete project (DB only, no file cleanup — prefer the overload with uploadBasePath)
+     */
     public boolean deleteProject(int id) {
-        return projectDAO.delete(id);
+        return deleteProject(id, null);
+    }
+
+    private void deleteFileIfExists(String basePath, String relativePath) {
+        if (relativePath == null || relativePath.isEmpty()) return;
+        try {
+            java.io.File file = new java.io.File(basePath, relativePath);
+            if (file.exists()) {
+                file.delete();
+            }
+        } catch (Exception e) {
+            System.err.println("Error deleting file " + relativePath + ": " + e.getMessage());
+        }
     }
     
     /**
@@ -167,5 +202,31 @@ public class ProjectService {
      */
     public Project getZipFileInfo(int projectId) {
         return projectDAO.getZipFileInfoById(projectId);
+    }
+    
+    /**
+     * Record a unique view for a project
+     */
+    public boolean recordView(int projectId, int viewerId, String viewerType) {
+        return projectViewDAO.recordView(projectId, viewerId, viewerType);
+    }
+    
+    /**
+     * Get view count for a single project
+     */
+    public int getViewCount(int projectId) {
+        return projectViewDAO.getViewCount(projectId);
+    }
+    
+    /**
+     * Populate view counts on a list of projects (batch for efficiency)
+     */
+    public void populateViewCounts(List<Project> projects) {
+        if (projects == null || projects.isEmpty()) return;
+        List<Integer> ids = projects.stream().map(Project::getId).collect(Collectors.toList());
+        Map<Integer, Integer> counts = projectViewDAO.getViewCounts(ids);
+        for (Project p : projects) {
+            p.setViews(counts.getOrDefault(p.getId(), 0));
+        }
     }
 }

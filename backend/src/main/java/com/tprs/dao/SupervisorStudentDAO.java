@@ -190,6 +190,62 @@ public class SupervisorStudentDAO {
         }
         return students;
     }
+
+    /**
+     * Get all assignments with student and supervisor info
+     */
+    public List<java.util.Map<String, Object>> getAllAssignments() {
+        List<java.util.Map<String, Object>> results = new ArrayList<>();
+        String sql = "SELECT ss.id AS assignment_id, ss.year AS assigned_year, ss.semester AS assigned_semester, " +
+                "ss.assigned_at, s.id AS student_id, s.student_id AS student_code, s.first_name AS stu_first, " +
+                "s.last_name AS stu_last, s.email AS stu_email, s.department AS stu_dept, s.session AS stu_session, " +
+                "t.id AS teacher_id, t.first_name AS sup_first, t.last_name AS sup_last, t.department AS sup_dept " +
+                "FROM supervisor_student ss " +
+                "JOIN student s ON s.id = ss.student_id " +
+                "JOIN teacher t ON t.id = ss.supervisor_id " +
+                "ORDER BY t.last_name, t.first_name, s.last_name, s.first_name";
+        Connection connection = getConnection();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                java.util.Map<String, Object> row = new java.util.HashMap<>();
+                row.put("assignmentId", rs.getInt("assignment_id"));
+                row.put("assignedYear", rs.getString("assigned_year"));
+                row.put("assignedSemester", rs.getString("assigned_semester"));
+                row.put("assignedAt", rs.getTimestamp("assigned_at") != null ? rs.getTimestamp("assigned_at").toString() : null);
+                row.put("studentId", rs.getInt("student_id"));
+                row.put("studentCode", rs.getString("student_code"));
+                row.put("studentName", rs.getString("stu_first") + " " + rs.getString("stu_last"));
+                row.put("studentEmail", rs.getString("stu_email"));
+                row.put("studentDepartment", rs.getString("stu_dept"));
+                row.put("studentSession", rs.getString("stu_session"));
+                row.put("supervisorId", rs.getInt("teacher_id"));
+                row.put("supervisorName", rs.getString("sup_first") + " " + rs.getString("sup_last"));
+                row.put("supervisorDepartment", rs.getString("sup_dept"));
+                results.add(row);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting all assignments: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return results;
+    }
+
+    /**
+     * Delete an assignment by its primary key ID
+     */
+    public boolean deleteAssignment(int assignmentId) {
+        String sql = "DELETE FROM supervisor_student WHERE id = ?";
+        Connection connection = getConnection();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, assignmentId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deleting assignment: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
     
     private Student mapResultSetToStudent(ResultSet rs) throws SQLException {
         Student student = new Student();

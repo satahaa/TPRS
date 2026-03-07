@@ -13,7 +13,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.Properties;
 
 /**
  * Authentication Servlet - Handles login and registration
@@ -23,12 +25,28 @@ public class AuthServlet extends HttpServlet {
     private StudentService studentService;
     private TeacherService teacherService;
     private Gson gson;
+    private String adminUsername;
+    private String adminPassword;
     
     @Override
     public void init() throws ServletException {
         studentService = new StudentService();
         teacherService = new TeacherService();
         gson = new Gson();
+        
+        // Load admin credentials from db.properties
+        Properties props = new Properties();
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("db.properties")) {
+            if (in != null) {
+                props.load(in);
+                adminUsername = props.getProperty("admin.username", "admin@tprs.com");
+                adminPassword = props.getProperty("admin.password", "admin");
+            }
+        } catch (IOException e) {
+            System.err.println("Warning: Could not load admin credentials: " + e.getMessage());
+            adminUsername = "admin@tprs.com";
+            adminPassword = "admin";
+        }
     }
     
     @Override
@@ -106,6 +124,8 @@ public class AuthServlet extends HttpServlet {
                 handleStudentRegistration(requestData, jsonResponse, response);
             } else if ("/register-teacher".equals(pathInfo)) {
                 handleTeacherRegistration(requestData, jsonResponse, response);
+            } else if ("/change-password".equals(pathInfo)) {
+                handleChangePassword(requestData, jsonResponse, response);
             } else {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 jsonResponse.addProperty("success", false);
@@ -127,9 +147,30 @@ public class AuthServlet extends HttpServlet {
         String email = data.get("email").getAsString();
         String password = data.get("password").getAsString();
         
+        // Check admin credentials first
+        if (email.equals(adminUsername) && password.equals(adminPassword)) {
+            JsonObject adminUser = new JsonObject();
+            adminUser.addProperty("id", 0);
+            adminUser.addProperty("username", adminUsername);
+            adminUser.addProperty("firstName", "System");
+            adminUser.addProperty("lastName", "Admin");
+            jsonResponse.addProperty("success", true);
+            jsonResponse.addProperty("message", "Admin login successful");
+            jsonResponse.addProperty("userType", "admin");
+            jsonResponse.addProperty("redirect", "admin-dashboard.html");
+            jsonResponse.add("user", adminUser);
+            return;
+        }
+        
         // Auto-detect role: try teacher first, then student
-        Teacher teacher = teacherService.login(email, password);
+        Teacher teacher = teacherService.loginCheck(email, password);
         if (teacher != null) {
+            if (!teacher.isAuthorized()) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Your account has not been authorized by the admin yet. Please contact the administrator.");
+                return;
+            }
             jsonResponse.addProperty("success", true);
             jsonResponse.addProperty("message", "Login successful");
             jsonResponse.addProperty("userType", "teacher");
@@ -205,6 +246,50 @@ public class AuthServlet extends HttpServlet {
         return defaultValue;
     }
     
+    private void handleChangePassword(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
+        try {
+            String userType = getJsonString(data, "userType", "");
+            int userId = data.get("userId").getAsInt();
+            String oldPassword = getJsonString(data, "oldPassword", "");
+            String newPassword = getJsonString(data, "newPassword", "");
+
+            if (oldPassword.isEmpty() || newPassword.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Old password and new password are required");
+                return;
+            }
+
+            if (newPassword.length() < 6) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "New password must be at least 6 characters");
+                return;
+            }
+
+            boolean success = false;
+            if ("student".equals(userType)) {
+                success = studentService.changePassword(userId, oldPassword, newPassword);
+            } else if ("teacher".equals(userType)) {
+                success = teacherService.changePassword(userId, oldPassword, newPassword);
+            }
+
+            if (success) {
+                jsonResponse.addProperty("success", true);
+                jsonResponse.addProperty("message", "Password changed successfully");
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Incorrect old password or failed to change password");
+            }
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            jsonResponse.addProperty("success", false);
+            jsonResponse.addProperty("message", "Server error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     private void handleTeacherRegistration(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
         try {
             Teacher teacher = new Teacher();

@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS teacher (
     designation VARCHAR(100),
     specialization VARCHAR(255),
     phone VARCHAR(20),
+    is_authorized BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -126,6 +127,21 @@ CREATE TABLE IF NOT EXISTS notification (
     INDEX idx_recipient (recipient_id, recipient_type),
     INDEX idx_read_status (is_read),
     INDEX idx_created (created_at)
+);
+
+-- =====================================================
+-- PROJECT VIEW TRACKING TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS project_view (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    project_id INT NOT NULL,
+    viewer_id INT NOT NULL,
+    viewer_type ENUM('student', 'teacher') NOT NULL,
+    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_view (project_id, viewer_id, viewer_type),
+    INDEX idx_project_view_project (project_id)
 );
 
 -- =====================================================
