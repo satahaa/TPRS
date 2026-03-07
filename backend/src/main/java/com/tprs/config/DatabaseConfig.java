@@ -1,8 +1,11 @@
 package com.tprs.config;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 /**
  * Database Configuration class for MySQL connection
@@ -10,12 +13,27 @@ import java.sql.SQLException;
  */
 public class DatabaseConfig {
     
-    // Database connection parameters
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/tprs_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "1457"; 
+    private static final String DB_URL;
+    private static final String DB_USER;
+    private static final String DB_PASSWORD;
     
     private static Connection connection = null;
+    
+    static {
+        Properties props = new Properties();
+        try (InputStream in = DatabaseConfig.class.getClassLoader()
+                .getResourceAsStream("db.properties")) {
+            if (in == null) {
+                throw new RuntimeException("db.properties not found on classpath");
+            }
+            props.load(in);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load db.properties", e);
+        }
+        DB_URL = props.getProperty("db.url");
+        DB_USER = props.getProperty("db.user");
+        DB_PASSWORD = props.getProperty("db.password");
+    }
     
     /**
      * Get database connection (Singleton pattern with validation)
@@ -30,13 +48,13 @@ public class DatabaseConfig {
                 
                 // Establish connection
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-                System.out.println("✓ Database connected successfully!");
+                System.out.println("Database connected successfully!");
             }
         } catch (ClassNotFoundException e) {
-            System.err.println("✗ MySQL JDBC Driver not found!");
+            System.err.println("MySQL JDBC Driver not found!");
             e.printStackTrace();
         } catch (SQLException e) {
-            System.err.println("✗ Database connection failed: " + e.getMessage());
+            System.err.println("Database connection failed: " + e.getMessage());
             e.printStackTrace();
         }
         return connection;
@@ -50,9 +68,9 @@ public class DatabaseConfig {
             try {
                 connection.close();
                 connection = null;
-                System.out.println("✓ Database connection closed.");
+                System.out.println("Database connection closed.");
             } catch (SQLException e) {
-                System.err.println("✗ Error closing database connection!");
+                System.err.println("Error closing database connection!");
                 e.printStackTrace();
             }
         }
@@ -66,11 +84,11 @@ public class DatabaseConfig {
         try {
             Connection conn = getConnection();
             if (conn != null && !conn.isClosed()) {
-                System.out.println("✓ Database connection test passed!");
+                System.out.println("Database connection test passed!");
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("✗ Database connection test failed!");
+            System.err.println("Database connection test failed!");
             e.printStackTrace();
         }
         return false;

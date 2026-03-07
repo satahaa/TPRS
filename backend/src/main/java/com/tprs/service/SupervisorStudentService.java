@@ -79,4 +79,18 @@ public class SupervisorStudentService {
     public List<Student> getUnassignedStudents(int supervisorId) {
         return supervisorStudentDAO.getUnassignedStudents(supervisorId);
     }
+
+    /**
+     * Get all assignments with full student/supervisor details
+     */
+    public java.util.List<java.util.Map<String, Object>> getAllAssignments() {
+        return supervisorStudentDAO.getAllAssignments();
+    }
+
+    /**
+     * Delete an assignment by its primary key ID
+     */
+    public boolean deleteAssignment(int assignmentId) {
+        return supervisorStudentDAO.deleteAssignment(assignmentId);
+    }
 }

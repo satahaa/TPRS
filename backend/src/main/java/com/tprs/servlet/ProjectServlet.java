@@ -28,8 +28,8 @@ import java.util.List;
  */
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024,      // 1 MB
-    maxFileSize = 50 * 1024 * 1024,        // 50 MB
-    maxRequestSize = 100 * 1024 * 1024     // 100 MB
+    maxFileSize = 200 * 1024 * 1024,       // 200 MB (for zip files)
+    maxRequestSize = 300 * 1024 * 1024     // 300 MB
 )
 public class ProjectServlet extends HttpServlet {
     
@@ -74,6 +74,42 @@ public class ProjectServlet extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     response.setContentType("application/json");
                     response.getWriter().print("{\"success\":false,\"message\":\"File not found for this project\"}");
+                }
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.setContentType("application/json");
+                response.getWriter().print("{\"success\":false,\"message\":\"Server error: " + e.getMessage() + "\"}");
+            }
+            return;
+        }
+        
+        // Handle zip download
+        if (pathInfo != null && pathInfo.matches("/\\d+/download-zip")) {
+            String[] parts = pathInfo.substring(1).split("/");
+            int projectId = Integer.parseInt(parts[0]);
+            try {
+                Project zipProject = projectService.getZipFileInfo(projectId);
+                if (zipProject != null && zipProject.getZipFilePath() != null) {
+                    String zipPath = getServletContext().getRealPath("") + File.separator + zipProject.getZipFilePath();
+                    File zipFile = new File(zipPath);
+                    if (zipFile.exists()) {
+                        String zipName = zipProject.getZipFileName() != null ? zipProject.getZipFileName() : "project.zip";
+                        response.setContentType("application/zip");
+                        response.setHeader("Content-Disposition", "attachment; filename=\"" + zipName + "\"");
+                        response.setContentLengthLong(zipFile.length());
+                        try (java.io.FileInputStream fis = new java.io.FileInputStream(zipFile)) {
+                            fis.transferTo(response.getOutputStream());
+                        }
+                        response.getOutputStream().flush();
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        response.setContentType("application/json");
+                        response.getWriter().print("{\"success\":false,\"message\":\"Zip file not found on server\"}");
+                    }
+                } else {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    response.setContentType("application/json");
+                    response.getWriter().print("{\"success\":false,\"message\":\"No zip file for this project\"}");
                 }
             } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -181,6 +217,32 @@ public class ProjectServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
+        // Handle view recording: POST /api/projects/{id}/view
+        String pathInfo = request.getPathInfo();
+        if (pathInfo != null && pathInfo.matches("/\\d+/view")) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            PrintWriter vOut = response.getWriter();
+            JsonObject vResp = new JsonObject();
+            try {
+                int projectId = Integer.parseInt(pathInfo.substring(1).split("/")[0]);
+                BufferedReader reader = request.getReader();
+                JsonObject body = gson.fromJson(reader, JsonObject.class);
+                int viewerId = body.get("viewerId").getAsInt();
+                String viewerType = body.get("viewerType").getAsString();
+                projectService.recordView(projectId, viewerId, viewerType);
+                int count = projectService.getViewCount(projectId);
+                vResp.addProperty("success", true);
+                vResp.addProperty("views", count);
+            } catch (Exception e) {
+                vResp.addProperty("success", false);
+                vResp.addProperty("message", "Error recording view: " + e.getMessage());
+            }
+            vOut.print(gson.toJson(vResp));
+            vOut.flush();
+            return;
+        }
+        
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         PrintWriter out = response.getWriter();
@@ -205,7 +267,13 @@ public class ProjectServlet extends HttpServlet {
                 project.setDepartment(request.getParameter("department"));
                 project.setSession(request.getParameter("session"));
                 
-                // Handle file upload
+                // Handle GitHub link
+                String githubLink = request.getParameter("githubLink");
+                if (githubLink != null && !githubLink.trim().isEmpty()) {
+                    project.setGithubLink(githubLink.trim());
+                }
+                
+                // Handle document file upload
                 Part filePart = request.getPart("file");
                 if (filePart != null && filePart.getSize() > 0) {
                     String fileName = getFileName(filePart);
@@ -238,6 +306,31 @@ public class ProjectServlet extends HttpServlet {
                     
                     project.setFilePath(UPLOAD_DIR + "/" + uniqueFileName);
                 }
+                
+                // Handle zip file upload (stored on filesystem only, not in DB BLOB)
+                Part zipPart = request.getPart("zipFile");
+                if (zipPart != null && zipPart.getSize() > 0) {
+                    String zipOrigName = getFileName(zipPart);
+                    long zipSize = zipPart.getSize();
+                    
+                    String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
+                    File uploadDir = new File(uploadPath);
+                    if (!uploadDir.exists()) {
+                        uploadDir.mkdir();
+                    }
+                    
+                    String uniqueZipName = System.currentTimeMillis() + "_" + zipOrigName;
+                    String zipFullPath = uploadPath + File.separator + uniqueZipName;
+                    
+                    try (java.io.InputStream is = zipPart.getInputStream();
+                         java.io.FileOutputStream fos = new java.io.FileOutputStream(zipFullPath)) {
+                        is.transferTo(fos);
+                    }
+                    
+                    project.setZipFilePath(UPLOAD_DIR + "/" + uniqueZipName);
+                    project.setZipFileName(zipOrigName);
+                    project.setZipFileSize(zipSize);
+                }
             } else {
                 // Handle JSON request
                 BufferedReader reader = request.getReader();
@@ -253,6 +346,9 @@ public class ProjectServlet extends HttpServlet {
                 project.setSemester(requestData.has("semester") ? requestData.get("semester").getAsString() : "");
                 project.setDepartment(requestData.get("department").getAsString());
                 project.setSession(requestData.has("session") ? requestData.get("session").getAsString() : "");
+                if (requestData.has("githubLink") && !requestData.get("githubLink").getAsString().isEmpty()) {
+                    project.setGithubLink(requestData.get("githubLink").getAsString());
+                }
             }
             
             boolean success = projectService.submitProject(project);
@@ -433,7 +529,8 @@ public class ProjectServlet extends HttpServlet {
         try {
             if (pathInfo != null && pathInfo.length() > 1) {
                 int projectId = Integer.parseInt(pathInfo.substring(1));
-                boolean success = projectService.deleteProject(projectId);
+                String basePath = getServletContext().getRealPath("");
+                boolean success = projectService.deleteProject(projectId, basePath);
                 
                 if (success) {
                     jsonResponse.addProperty("success", true);
@@ -466,16 +563,17 @@ public class ProjectServlet extends HttpServlet {
     }
     
     /**
-     * Enrich a list of projects with student and supervisor names
+     * Enrich a list of projects with student and supervisor names and view counts
      */
     private void enrichProjects(List<Project> projects) {
         for (Project project : projects) {
             enrichProject(project);
         }
+        projectService.populateViewCounts(projects);
     }
     
     /**
-     * Enrich a single project with student and supervisor names
+     * Enrich a single project with student and supervisor names and view count
      */
     private void enrichProject(Project project) {
         try {
@@ -487,6 +585,7 @@ public class ProjectServlet extends HttpServlet {
             if (teacher != null) {
                 project.setSupervisorName(teacher.getFullName());
             }
+            project.setViews(projectService.getViewCount(project.getId()));
         } catch (Exception e) {
             // Ignore enrichment errors
         }

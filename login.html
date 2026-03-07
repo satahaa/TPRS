@@ -19,12 +19,12 @@
                 <h1 class="brand-title">TPRS</h1>
                 <p class="brand-subtitle">Thesis and Project Repository System</p>
             </div>
-            <form id="loginForm">
+            <form id="loginForm" autocomplete="off">
                 <div class="input-group">
                     <label for="email">Email</label>
                     <div class="input-wrapper">
                         <span class="input-icon material-icons">email</span>
-                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required autocomplete="off">
                     </div>
                 </div>
                 <div class="input-group">
@@ -144,7 +144,7 @@
                     const userType = user.role === 'teacher' ? 'teacher' : 'student';
                     TPRSApi.saveSession(user, userType);
                     
-                    window.location.href = userType === 'teacher' ? 'supervisor-dashboard.html' : 'home.html';
+                    window.location.href = userType === 'teacher' ? 'supervisor-dashboard.html' : userType === 'admin' ? 'admin-dashboard.html' : 'home.html';
                 } else {
                     showError('Invalid email or password');
                     loginBtn.innerHTML = originalBtnContent;
@@ -172,7 +172,7 @@
         // Check if already logged in
         if (TPRSApi.isLoggedIn()) {
             const userType = TPRSApi.getUserType();
-            window.location.href = userType === 'teacher' ? 'supervisor-dashboard.html' : 'home.html';
+            window.location.href = userType === 'teacher' ? 'supervisor-dashboard.html' : userType === 'admin' ? 'admin-dashboard.html' : 'home.html';
         }
     </script>
 </body>

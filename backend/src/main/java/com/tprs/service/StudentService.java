@@ -2,6 +2,7 @@ package com.tprs.service;
 
 import com.tprs.dao.StudentDAO;
 import com.tprs.model.Student;
+import com.tprs.util.PasswordUtil;
 
 import java.util.List;
 
@@ -29,8 +30,7 @@ public class StudentService {
             return false;
         }
         
-        // TODO: Add password hashing here
-        // student.setPassword(hashPassword(student.getPassword()));
+        student.setPassword(PasswordUtil.hashPassword(student.getPassword()));
         
         return studentDAO.create(student);
     }
@@ -42,8 +42,11 @@ public class StudentService {
      * @return Student object if authenticated, null otherwise
      */
     public Student login(String email, String password) {
-        // TODO: Add password hashing verification here
-        return studentDAO.authenticate(email, password);
+        Student student = studentDAO.getByEmail(email);
+        if (student != null && PasswordUtil.checkPassword(password, student.getPassword())) {
+            return student;
+        }
+        return null;
     }
     
     /**
@@ -99,11 +102,18 @@ public class StudentService {
      */
     public boolean changePassword(int studentId, String oldPassword, String newPassword) {
         Student student = studentDAO.getById(studentId);
-        if (student != null && student.getPassword().equals(oldPassword)) {
-            student.setPassword(newPassword);
-            // TODO: Hash the new password
-            return studentDAO.update(student);
+        if (student != null && PasswordUtil.checkPassword(oldPassword, student.getPassword())) {
+            String hashedPassword = PasswordUtil.hashPassword(newPassword);
+            return studentDAO.updatePassword(studentId, hashedPassword);
         }
         return false;
+    }
+    
+    public List<Student> searchStudents(String keyword) {
+        return studentDAO.search(keyword);
+    }
+    
+    public boolean adminUpdateStudent(Student student) {
+        return studentDAO.adminUpdate(student);
     }
 }

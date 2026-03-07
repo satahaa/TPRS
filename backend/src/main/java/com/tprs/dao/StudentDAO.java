@@ -30,7 +30,7 @@ public class StudentDAO {
      * @return true if successful, false otherwise
      */
     public boolean create(Student student) {
-        String sql = "INSERT INTO student (student_id, first_name, last_name, email, password, department, semester, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO student (student_id, first_name, last_name, email, password, department, semester, session, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection connection = getConnection();
         
         if (connection == null) {
@@ -46,7 +46,8 @@ public class StudentDAO {
             stmt.setString(5, student.getPassword());
             stmt.setString(6, student.getDepartment());
             stmt.setString(7, student.getSemester());
-            stmt.setString(8, student.getPhone());
+            stmt.setString(8, student.getSession());
+            stmt.setString(9, student.getPhone());
             
             int rowsAffected = stmt.executeUpdate();
             
@@ -178,6 +179,76 @@ public class StudentDAO {
     }
     
     /**
+     * Update student password
+     * @param id Student ID
+     * @param hashedPassword New hashed password
+     * @return true if successful, false otherwise
+     */
+    public boolean updatePassword(int id, String hashedPassword) {
+        String sql = "UPDATE student SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        Connection connection = getConnection();
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, hashedPassword);
+            stmt.setInt(2, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating student password: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
+     * Search students by name or email
+     */
+    public List<Student> search(String keyword) {
+        List<Student> students = new ArrayList<>();
+        String sql = "SELECT * FROM student WHERE first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR CONCAT(first_name, ' ', last_name) LIKE ? ORDER BY created_at DESC";
+        Connection connection = getConnection();
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            String pattern = "%" + keyword + "%";
+            stmt.setString(1, pattern);
+            stmt.setString(2, pattern);
+            stmt.setString(3, pattern);
+            stmt.setString(4, pattern);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                students.add(mapResultSetToStudent(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error searching students: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return students;
+    }
+    
+    /**
+     * Admin update student (all fields except email and password)
+     */
+    public boolean adminUpdate(Student student) {
+        String sql = "UPDATE student SET first_name = ?, last_name = ?, department = ?, semester = ?, session = ?, phone = ?, student_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        Connection connection = getConnection();
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, student.getFirstName());
+            stmt.setString(2, student.getLastName());
+            stmt.setString(3, student.getDepartment());
+            stmt.setString(4, student.getSemester());
+            stmt.setString(5, student.getSession());
+            stmt.setString(6, student.getPhone());
+            stmt.setString(7, student.getStudentId());
+            stmt.setInt(8, student.getId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error admin updating student: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
      * Authenticate student
      * @param email Student email
      * @param password Student password
@@ -215,6 +286,7 @@ public class StudentDAO {
         student.setPassword(rs.getString("password"));
         student.setDepartment(rs.getString("department"));
         student.setSemester(rs.getString("semester"));
+        student.setSession(rs.getString("session"));
         student.setPhone(rs.getString("phone"));
         student.setCreatedAt(rs.getTimestamp("created_at"));
         student.setUpdatedAt(rs.getTimestamp("updated_at"));

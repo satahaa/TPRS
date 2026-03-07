@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS student (
     password VARCHAR(255) NOT NULL,
     department VARCHAR(100) NOT NULL,
     semester VARCHAR(20),
+    session VARCHAR(50),
     phone VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS teacher (
     designation VARCHAR(100),
     specialization VARCHAR(255),
     phone VARCHAR(20),
+    is_authorized BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -62,6 +64,10 @@ CREATE TABLE IF NOT EXISTS project (
     file_path VARCHAR(500),
     file_name VARCHAR(500),
     file_data LONGBLOB,
+    zip_file_path VARCHAR(500),
+    zip_file_name VARCHAR(500),
+    zip_file_size BIGINT,
+    github_link VARCHAR(500),
     keywords VARCHAR(500),
     year VARCHAR(20),
     semester VARCHAR(20),
@@ -124,6 +130,21 @@ CREATE TABLE IF NOT EXISTS notification (
 );
 
 -- =====================================================
+-- PROJECT VIEW TRACKING TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS project_view (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    project_id INT NOT NULL,
+    viewer_id INT NOT NULL,
+    viewer_type ENUM('student', 'teacher') NOT NULL,
+    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_view (project_id, viewer_id, viewer_type),
+    INDEX idx_project_view_project (project_id)
+);
+
+-- =====================================================
 -- INSERT SAMPLE DATA
 -- =====================================================
 
@@ -146,6 +167,9 @@ SELECT
     p.department,
     p.session,
     p.file_path,
+    p.zip_file_path,
+    p.zip_file_name,
+    p.github_link,
     p.submission_date,
     p.approval_date,
     p.created_at,

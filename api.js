@@ -75,10 +75,6 @@ const TPRSApi = {
         }
     },
     
-    // =====================================================
-    // PROJECT APIs
-    // =====================================================
-    
     /**
      * Get all projects
      * @param {Object} filters - Optional filters (status, department, search, limit)
@@ -148,17 +144,22 @@ const TPRSApi = {
      * @param {File} file - Optional file to upload
      * @returns {Promise} - API response
      */
-    async submitProject(projectData, file = null) {
+    async submitProject(projectData, file = null, zipFile = null) {
         try {
             let response;
             
-            if (file) {
+            if (file || zipFile) {
                 // Use FormData for file upload
                 const formData = new FormData();
                 Object.keys(projectData).forEach(key => {
                     formData.append(key, projectData[key]);
                 });
-                formData.append('file', file);
+                if (file) {
+                    formData.append('file', file);
+                }
+                if (zipFile) {
+                    formData.append('zipFile', zipFile);
+                }
                 
                 response = await fetch(`${API_BASE_URL}/projects`, {
                     method: 'POST',
@@ -272,6 +273,14 @@ const TPRSApi = {
     },
     
     /**
+     * Download project zip file
+     * @param {number} projectId - Project ID
+     */
+    downloadProjectZip(projectId) {
+        window.open(`${API_BASE_URL}/projects/${projectId}/download-zip`, '_blank');
+    },
+    
+    /**
      * Search projects
      * @param {string} keyword - Search keyword
      * @returns {Promise} - API response with matching projects
@@ -283,6 +292,27 @@ const TPRSApi = {
         } catch (error) {
             console.error('Search projects error:', error);
             return { success: false, message: 'Failed to search projects.' };
+        }
+    },
+    
+    /**
+     * Record a unique view for a project
+     * @param {number} projectId - Project ID
+     * @param {number} viewerId - Viewer's user ID
+     * @param {string} viewerType - 'student' or 'teacher'
+     * @returns {Promise} - API response with updated view count
+     */
+    async recordView(projectId, viewerId, viewerType) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/projects/${projectId}/view`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ viewerId, viewerType })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Record view error:', error);
+            return { success: false };
         }
     },
     
@@ -573,6 +603,28 @@ const TPRSApi = {
     },
 
     /**
+     * Change user password
+     * @param {number} userId - User ID
+     * @param {string} userType - 'student' or 'teacher'
+     * @param {string} oldPassword - Current password
+     * @param {string} newPassword - New password
+     * @returns {Promise} - API response
+     */
+    async changePassword(userId, userType, oldPassword, newPassword) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, userType, oldPassword, newPassword })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Change password error:', error);
+            return { success: false, message: 'Failed to change password.' };
+        }
+    },
+
+    /**
      * Require authentication - redirect to login if not logged in
      */
     requireAuth() {
@@ -581,6 +633,181 @@ const TPRSApi = {
             return false;
         }
         return true;
+    },
+
+    // =====================================================
+    // ADMIN APIs
+    // =====================================================
+
+    async adminGetStats() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/stats`);
+            return await response.json();
+        } catch (error) {
+            console.error('Admin stats error:', error);
+            return { success: false, message: 'Failed to fetch stats.' };
+        }
+    },
+
+    async adminGetStudents(search = '') {
+        try {
+            const url = search ? `${API_BASE_URL}/admin/students?search=${encodeURIComponent(search)}` : `${API_BASE_URL}/admin/students`;
+            const response = await fetch(url);
+            return await response.json();
+        } catch (error) {
+            console.error('Admin get students error:', error);
+            return { success: false, message: 'Failed to fetch students.' };
+        }
+    },
+
+    async adminGetTeachers(search = '') {
+        try {
+            const url = search ? `${API_BASE_URL}/admin/teachers?search=${encodeURIComponent(search)}` : `${API_BASE_URL}/admin/teachers`;
+            const response = await fetch(url);
+            return await response.json();
+        } catch (error) {
+            console.error('Admin get teachers error:', error);
+            return { success: false, message: 'Failed to fetch teachers.' };
+        }
+    },
+
+    async adminGetProjects(search = '') {
+        try {
+            const url = search ? `${API_BASE_URL}/admin/projects?search=${encodeURIComponent(search)}` : `${API_BASE_URL}/admin/projects`;
+            const response = await fetch(url);
+            return await response.json();
+        } catch (error) {
+            console.error('Admin get projects error:', error);
+            return { success: false, message: 'Failed to fetch projects.' };
+        }
+    },
+
+    async adminUpdateStudent(studentId, data) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/students/${studentId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Admin update student error:', error);
+            return { success: false, message: 'Failed to update student.' };
+        }
+    },
+
+    async adminUpdateTeacher(teacherId, data) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/teachers/${teacherId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Admin update teacher error:', error);
+            return { success: false, message: 'Failed to update teacher.' };
+        }
+    },
+
+    async adminAuthorizeTeacher(teacherId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/teachers/${teacherId}/authorize`, {
+                method: 'PUT'
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Admin authorize error:', error);
+            return { success: false, message: 'Failed to authorize.' };
+        }
+    },
+
+    async adminDeauthorizeTeacher(teacherId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/teachers/${teacherId}/deauthorize`, {
+                method: 'PUT'
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Admin deauthorize error:', error);
+            return { success: false, message: 'Failed to revoke authorization.' };
+        }
+    },
+
+    async adminDeleteStudent(studentId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/students/${studentId}`, { method: 'DELETE' });
+            return await response.json();
+        } catch (error) {
+            console.error('Admin delete student error:', error);
+            return { success: false, message: 'Failed to delete student.' };
+        }
+    },
+
+    async adminDeleteTeacher(teacherId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/teachers/${teacherId}`, { method: 'DELETE' });
+            return await response.json();
+        } catch (error) {
+            console.error('Admin delete teacher error:', error);
+            return { success: false, message: 'Failed to delete supervisor.' };
+        }
+    },
+
+    async adminDeleteProject(projectId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/projects/${projectId}`, { method: 'DELETE' });
+            return await response.json();
+        } catch (error) {
+            console.error('Admin delete project error:', error);
+            return { success: false, message: 'Failed to delete project.' };
+        }
+    },
+
+    async adminGetAssignments(supervisorId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/assignments?supervisorId=${supervisorId}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Admin get assignments error:', error);
+            return { success: false, message: 'Failed to fetch assignments.' };
+        }
+    },
+
+    async adminAssignStudent(supervisorId, studentId, year, semester) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/assignments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ supervisorId, studentId, year, semester })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Admin assign student error:', error);
+            return { success: false, message: 'Failed to assign student.' };
+        }
+    },
+
+    async adminGetAllAssignments() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/allAssignments`);
+            return await response.json();
+        } catch (error) {
+            console.error('Admin get all assignments error:', error);
+            return { success: false, message: 'Failed to load assignments.' };
+        }
+    },
+
+    async adminDeleteAssignment(assignmentId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/assignments/${assignmentId}`, {
+                method: 'DELETE'
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Admin delete assignment error:', error);
+            return { success: false, message: 'Failed to delete assignment.' };
+        }
     }
 };
 

@@ -231,7 +231,7 @@ body {
 
 .error-message.show {
     opacity: 1;
-    max-height: 50px;
+    max-height: 100px;
     padding: 10px;
     background-color: #fff0f3;
     border-radius: 10px;

@@ -672,7 +672,7 @@
                 <span id="successText"></span>
             </div>
 
-            <form id="uploadForm">
+            <form id="uploadForm" autocomplete="off">
                 <!-- Basic Information Section -->
                 <div class="form-section">
                     <h2 class="form-section-title">
@@ -682,7 +682,7 @@
 
                     <div class="form-group">
                         <label for="title">Title <span class="required">*</span></label>
-                        <input type="text" id="title" name="title" placeholder="Enter thesis/project title" required>
+                        <input type="text" id="title" name="title" placeholder="Enter thesis or project title" required autocomplete="off">
                     </div>
 
                     <div class="form-row">
@@ -692,8 +692,6 @@
                                 <option value="">Select Type</option>
                                 <option value="Thesis">Thesis</option>
                                 <option value="Project">Project</option>
-                                <option value="Research Paper">Research Paper</option>
-                                <option value="Dissertation">Dissertation</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -707,17 +705,6 @@
                                 <option value="ME">Mechanical Engineering</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="session">Session <span class="required">*</span></label>
-                        <select id="session" name="session" required>
-                            <option value="">Select Session</option>
-                            <option value="2024-2025">2024-2025</option>
-                            <option value="2023-2024">2023-2024</option>
-                            <option value="2022-2023">2022-2023</option>
-                            <option value="2021-2022">2021-2022</option>
-                        </select>
                     </div>
 
                     <div class="form-row">
@@ -739,16 +726,16 @@
                         </div>
                     </div>
 
-                    <!-- GitHub Link (only shown for Projects) -->
-                    <div class="form-group" id="githubLinkGroup" style="display:none;">
-                        <label for="githubLink">GitHub Repository Link <span class="required">*</span></label>
-                        <input type="text" id="githubLink" name="githubLink" placeholder="www.github.com/username/repository">
+                    <!-- GitHub Link -->
+                    <div class="form-group" id="githubLinkGroup">
+                        <label for="githubLink">GitHub Repository Link</label>
+                        <input type="text" id="githubLink" name="githubLink" placeholder="www.github.com/username/repository" autocomplete="off">
                         <small>Provide the GitHub link for your project (e.g. www.github.com/username/repo)</small>
                     </div>
 
                     <div class="form-group">
                         <label for="abstract">Abstract <span class="required">*</span></label>
-                        <textarea id="abstract" name="abstract" placeholder="Write a brief summary of your thesis/project (minimum 100 words)" required></textarea>
+                        <textarea id="abstract" name="abstract" placeholder="Write a brief summary of your thesis or project" required></textarea>
                         <small>Minimum 50 words</small>
                     </div>
                 </div>
@@ -763,17 +750,17 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="authorName">Primary Author Name <span class="required">*</span></label>
-                            <input type="text" id="authorName" name="authorName" placeholder="Your full name" required>
+                            <input type="text" id="authorName" name="authorName" placeholder="Your full name" required autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="authorId">Student ID <span class="required">*</span></label>
-                            <input type="text" id="authorId" name="authorId" placeholder="e.g., CE23046" required>
+                            <input type="text" id="authorId" name="authorId" placeholder="e.g., CE23046" required autocomplete="off">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="authorEmail">Email <span class="required">*</span></label>
-                        <input type="email" id="authorEmail" name="authorEmail" placeholder="Your email address" required>
+                        <input type="email" id="authorEmail" name="authorEmail" placeholder="Your email address" required autocomplete="off">
                     </div>
 
                     <label style="font-size: 0.9rem; font-weight: 600; color: #555; margin-bottom: 0.5rem; display: block;">Co-Authors (Optional)</label>
@@ -814,7 +801,7 @@
                     <div class="form-group">
                         <label>Keywords <span class="required">*</span></label>
                         <div class="keywords-container" id="keywordsContainer">
-                            <input type="text" class="keyword-input" id="keywordInput" placeholder="Type a keyword and press Enter">
+                            <input type="text" class="keyword-input" id="keywordInput" placeholder="Type a keyword and press Enter" autocomplete="off">
                         </div>
                         <small>Press Enter to add keywords. Add at least 1 keyword.</small>
                     </div>
@@ -855,13 +842,42 @@
                     </div>
                 </div>
 
+                <!-- Source Code Upload Section -->
+                <div class="form-section" id="zipUploadSection">
+                    <h2 class="form-section-title">
+                        <span class="material-icons">folder_zip</span>
+                        Project Source Code
+                    </h2>
+                    <small style="display:block;margin-bottom:0.8rem;color:#888;">Either provide a GitHub link or upload a zip file (or both). At least one is required.</small>
+
+                    <div class="file-upload-area" id="zipUploadArea">
+                        <span class="material-icons upload-icon">folder_zip</span>
+                        <h3>Drag & Drop your project zip here</h3>
+                        <p>or click to browse</p>
+                        <span class="browse-btn">Browse Files</span>
+                        <input type="file" class="file-upload-input" id="zipInput" accept=".zip">
+                    </div>
+                    <small>Accepted format: ZIP. Maximum file size: 200MB</small>
+
+                    <div class="selected-file" id="selectedZip">
+                        <span class="material-icons file-icon" style="color:#ff9800;">folder_zip</span>
+                        <div class="file-info">
+                            <div class="file-name" id="zipName"></div>
+                            <div class="file-size" id="zipSize"></div>
+                        </div>
+                        <button type="button" class="remove-file" id="removeZip">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Form Actions -->
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="saveDraftBtn">
                         <span class="material-icons">save</span>
                         Save Draft
                     </button>
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <button type="button" class="btn btn-primary" id="submitBtn" onclick="document.getElementById('uploadForm').requestSubmit();">
                         <span class="material-icons">cloud_upload</span>
                         Submit Thesis
                     </button>
@@ -872,6 +888,10 @@
 
     <script src="api.js"></script>
     <script>
+        // Early variable declarations (needed before onTypeChange)
+        let uploadedFile = null;
+        let uploadedZip = null;
+
         // Check if user is logged in
         if (!TPRSApi.isLoggedIn()) {
             window.location.href = 'login.html';
@@ -911,7 +931,7 @@
                     document.getElementById('supervisorNameText').style.color = '#333';
                     document.getElementById('supervisorId').value = supervisor.id;
                 } else {
-                    document.getElementById('supervisorNameText').textContent = 'No supervisor assigned for this year/semester. Contact your department.';
+                    document.getElementById('supervisorNameText').textContent = 'No supervisor assigned for this year or semester. Contact your department.';
                     document.getElementById('supervisorNameText').style.color = '#e74c3c';
                     document.getElementById('supervisorId').value = '';
                 }
@@ -925,20 +945,23 @@
         document.getElementById('supervisorNameText').textContent = 'Select year and semester to load supervisor';
         document.getElementById('supervisorNameText').style.color = '#999';
 
-        // Toggle GitHub link field based on type
+        // Toggle GitHub link and zip upload based on type
         function onTypeChange() {
             const type = document.getElementById('type').value;
-            const githubGroup = document.getElementById('githubLinkGroup');
-            const githubInput = document.getElementById('githubLink');
-            if (type === 'Project') {
-                githubGroup.style.display = 'block';
-                githubInput.setAttribute('required', '');
-            } else {
-                githubGroup.style.display = 'none';
-                githubInput.removeAttribute('required');
-                githubInput.value = '';
+            const isProject = type === 'Project';
+            document.getElementById('githubLinkGroup').style.display = isProject ? '' : 'none';
+            document.getElementById('zipUploadSection').style.display = isProject ? '' : 'none';
+            if (!isProject) {
+                document.getElementById('githubLink').value = '';
+                // Clear uploaded zip if any
+                if (uploadedZip) {
+                    uploadedZip = null;
+                    document.getElementById('selectedZip').style.display = 'none';
+                }
             }
         }
+        // Hide on initial load
+        onTypeChange();
 
         // Update semester options based on selected year (Bachelor: 1st-4th year, 2 semesters each)
         function updateSemesterOptions() {
@@ -958,23 +981,47 @@
         const keywords = [];
         const keywordsContainer = document.getElementById('keywordsContainer');
         const keywordInput = document.getElementById('keywordInput');
-        let approvedKeywords = []; // Loaded from approved projects
+        const baseKeywords = [
+            'Machine Learning', 'Deep Learning', 'Artificial Intelligence', 'Neural Network',
+            'Natural Language Processing', 'Computer Vision', 'Data Mining', 'Big Data',
+            'Cloud Computing', 'Internet of Things', 'Blockchain', 'Cybersecurity',
+            'Software Engineering', 'Web Development', 'Mobile Application', 'Database',
+            'Algorithm', 'Data Structure', 'Operating System', 'Computer Network',
+            'Image Processing', 'Signal Processing', 'Robotics', 'Embedded System',
+            'Distributed System', 'Parallel Computing', 'Quantum Computing',
+            'Information Security', 'Cryptography', 'Digital Forensics',
+            'Human Computer Interaction', 'User Experience', 'Augmented Reality', 'Virtual Reality',
+            'Bioinformatics', 'Health Informatics', 'E-commerce', 'FinTech',
+            'Renewable Energy', 'Smart Grid', 'Automation', 'Control System',
+            'VLSI', 'Microprocessor', 'FPGA', 'Power System', 'Power Electronics',
+            'Telecommunication', 'Wireless Communication', 'Antenna', '5G',
+            'Environmental Engineering', 'Structural Engineering', 'Geotechnical Engineering',
+            'Water Resources', 'Transportation Engineering', 'Construction Management',
+            'Supply Chain', 'Project Management', 'Quality Control', 'Optimization',
+            'Statistical Analysis', 'Regression', 'Classification', 'Clustering',
+            'Reinforcement Learning', 'Transfer Learning', 'Generative AI', 'LLM',
+            'Sentiment Analysis', 'Speech Recognition', 'Object Detection', 'Segmentation'
+        ];
+        let approvedKeywords = [...baseKeywords];
 
-        // Load approved keywords from backend
+        // Load additional keywords from approved projects
         (async function loadApprovedKeywords() {
             try {
                 const result = await TPRSApi.getProjects({ status: 'approved' });
                 if (result.success && result.projects) {
-                    const kwSet = new Set();
+                    const kwSet = new Set(baseKeywords.map(k => k.toLowerCase()));
                     result.projects.forEach(p => {
                         if (p.keywords) {
                             p.keywords.split(',').forEach(k => {
                                 const trimmed = k.trim();
-                                if (trimmed) kwSet.add(trimmed);
+                                if (trimmed && !kwSet.has(trimmed.toLowerCase())) {
+                                    kwSet.add(trimmed.toLowerCase());
+                                    approvedKeywords.push(trimmed);
+                                }
                             });
                         }
                     });
-                    approvedKeywords = Array.from(kwSet).sort();
+                    approvedKeywords.sort();
                 }
             } catch(e) { /* ignore */ }
         })();
@@ -1056,11 +1103,11 @@
             coAuthorItem.innerHTML = `
                 <div class="form-group">
                     <label>Name</label>
-                    <input type="text" name="coAuthorName${coAuthorCount}" placeholder="Co-author name">
+                    <input type="text" name="coAuthorName${coAuthorCount}" placeholder="Co-author name" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>Student ID</label>
-                    <input type="text" name="coAuthorId${coAuthorCount}" placeholder="Student ID">
+                    <input type="text" name="coAuthorId${coAuthorCount}" placeholder="Student ID" autocomplete="off">
                 </div>
                 <button type="button" class="remove-coauthor" onclick="removeCoAuthor(${coAuthorCount})">
                     <span class="material-icons">remove_circle</span>
@@ -1083,7 +1130,6 @@
         const fileName = document.getElementById('fileName');
         const fileSize = document.getElementById('fileSize');
         const removeFileBtn = document.getElementById('removeFile');
-        let uploadedFile = null;
 
         fileUploadArea.addEventListener('click', () => fileInput.click());
 
@@ -1145,6 +1191,65 @@
             fileUploadArea.style.display = 'block';
         });
 
+        // Zip file upload functionality
+        const zipUploadArea = document.getElementById('zipUploadArea');
+        const zipInput = document.getElementById('zipInput');
+        const selectedZip = document.getElementById('selectedZip');
+        const zipName = document.getElementById('zipName');
+        const zipSize = document.getElementById('zipSize');
+        const removeZipBtn = document.getElementById('removeZip');
+
+        zipUploadArea.addEventListener('click', () => zipInput.click());
+
+        zipUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zipUploadArea.classList.add('dragover');
+        });
+
+        zipUploadArea.addEventListener('dragleave', () => {
+            zipUploadArea.classList.remove('dragover');
+        });
+
+        zipUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zipUploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            handleZipFile(file);
+        });
+
+        zipInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            handleZipFile(file);
+        });
+
+        function handleZipFile(file) {
+            if (!file) return;
+
+            if (file.type !== 'application/zip' && file.type !== 'application/x-zip-compressed' && !file.name.endsWith('.zip')) {
+                showError('Please upload a ZIP file');
+                return;
+            }
+
+            const maxSize = 200 * 1024 * 1024; // 200MB
+            if (file.size > maxSize) {
+                showError('Zip file size must be less than 200MB');
+                return;
+            }
+
+            uploadedZip = file;
+            zipName.textContent = file.name;
+            zipSize.textContent = formatFileSize(file.size);
+            selectedZip.classList.add('show');
+            zipUploadArea.style.display = 'none';
+        }
+
+        removeZipBtn.addEventListener('click', () => {
+            uploadedZip = null;
+            zipInput.value = '';
+            selectedZip.classList.remove('show');
+            zipUploadArea.style.display = 'block';
+        });
+
         // Message functions
         function showError(message) {
             const errorMessage = document.getElementById('errorMessage');
@@ -1171,6 +1276,13 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // Prevent Enter key from submitting the form
+        document.getElementById('uploadForm').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+            }
+        });
+
         // Form submission
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1183,6 +1295,19 @@
 
             if (!uploadedFile) {
                 showError('Please upload a document file');
+                return;
+            }
+
+            // Validate GitHub link or zip file (required only for Project type)
+            const githubLink = document.getElementById('githubLink').value.trim();
+            const selectedType = document.getElementById('type').value;
+            if (selectedType === 'Project' && !githubLink && !uploadedZip) {
+                showError('Please provide either a GitHub repository link or upload a project zip file (or both)');
+                return;
+            }
+
+            if (githubLink && !githubLink.startsWith('www.')) {
+                showError('GitHub link must start with www. (e.g. www.github.com/username/repo)');
                 return;
             }
 
@@ -1207,10 +1332,10 @@
                 title: document.getElementById('title').value,
                 type: document.getElementById('type').value,
                 department: document.getElementById('department').value,
-                session: document.getElementById('session').value,
                 year: document.getElementById('year').value,
                 semester: document.getElementById('semester').value,
-                abstract: abstract,
+                session: currentUser.session || '',
+                description: abstract,
                 authorName: document.getElementById('authorName').value,
                 authorId: document.getElementById('authorId').value,
                 authorEmail: document.getElementById('authorEmail').value,
@@ -1222,17 +1347,8 @@
                 fileSize: uploadedFile.size
             };
 
-            // Add GitHub link if it's a project
-            if (document.getElementById('type').value === 'Project') {
-                const githubLink = document.getElementById('githubLink').value.trim();
-                if (!githubLink) {
-                    showError('Please provide a GitHub repository link for your project');
-                    return;
-                }
-                if (!githubLink.startsWith('www.')) {
-                    showError('GitHub link must start with www. (e.g. www.github.com/username/repo)');
-                    return;
-                }
+            // Add GitHub link if provided
+            if (githubLink) {
                 projectData.githubLink = githubLink;
             }
 
@@ -1262,7 +1378,7 @@
                     }
                 }, 200);
 
-                const result = await TPRSApi.submitProject(projectData, uploadedFile);
+                const result = await TPRSApi.submitProject(projectData, uploadedFile, uploadedZip);
                 
                 clearInterval(progressInterval);
                 progressFill.style.width = '100%';
@@ -1327,7 +1443,6 @@
                 title: document.getElementById('title').value,
                 type: document.getElementById('type').value,
                 department: document.getElementById('department').value,
-                session: document.getElementById('session').value,
                 year: document.getElementById('year').value,
                 semester: document.getElementById('semester').value,
                 githubLink: document.getElementById('githubLink').value,
@@ -1351,7 +1466,6 @@
                     document.getElementById('title').value = draft.title || '';
                     document.getElementById('type').value = draft.type || '';
                     document.getElementById('department').value = draft.department || '';
-                    document.getElementById('session').value = draft.session || '';
                     document.getElementById('year').value = draft.year || '';
                     document.getElementById('semester').value = draft.semester || '';
                     document.getElementById('abstract').value = draft.abstract || '';

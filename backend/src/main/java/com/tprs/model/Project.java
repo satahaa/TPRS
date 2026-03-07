@@ -17,6 +17,10 @@ public class Project {
     private String filePath;
     private String fileName;
     private transient byte[] fileData; // transient: excluded from Gson serialization
+    private String zipFilePath;
+    private String zipFileName;
+    private long zipFileSize;
+    private String githubLink;
     private String keywords;
     private String year;
     private String semester;
@@ -30,6 +34,7 @@ public class Project {
     // Non-DB fields (populated at runtime for API responses)
     private String studentName;
     private String supervisorName;
+    private int views;
     
     // Default constructor
     public Project() {}
@@ -130,6 +135,38 @@ public class Project {
         this.fileData = fileData;
     }
     
+    public String getZipFilePath() {
+        return zipFilePath;
+    }
+    
+    public void setZipFilePath(String zipFilePath) {
+        this.zipFilePath = zipFilePath;
+    }
+    
+    public String getZipFileName() {
+        return zipFileName;
+    }
+    
+    public void setZipFileName(String zipFileName) {
+        this.zipFileName = zipFileName;
+    }
+    
+    public long getZipFileSize() {
+        return zipFileSize;
+    }
+    
+    public void setZipFileSize(long zipFileSize) {
+        this.zipFileSize = zipFileSize;
+    }
+    
+    public String getGithubLink() {
+        return githubLink;
+    }
+    
+    public void setGithubLink(String githubLink) {
+        this.githubLink = githubLink;
+    }
+    
     public String getKeywords() {
         return keywords;
     }
@@ -216,6 +253,14 @@ public class Project {
     
     public void setSupervisorName(String supervisorName) {
         this.supervisorName = supervisorName;
+    }
+    
+    public int getViews() {
+        return views;
+    }
+    
+    public void setViews(int views) {
+        this.views = views;
     }
     
     @Override

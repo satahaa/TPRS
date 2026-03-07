@@ -42,6 +42,7 @@ async function loadDataFromBackend() {
                     year: project.year || '',
                     semester: project.semester || '',
                     session: project.session || '',
+                    description: project.description || '',
                     field: project.type || 'Thesis',
                     keywords: project.keywords || '',
                     views: project.views || 0,
@@ -213,10 +214,11 @@ function renderThesisList() {
     let html = pageTheses.map(thesis => {
         const firstKeyword = thesis.keywords ? thesis.keywords.split(',')[0].trim() : '';
         return `
-        <div class="thesis-card" data-thesis-id="${thesis.id}" onclick="openProjectDetail(${thesis.id})" style="cursor:pointer;">
+        <div class="thesis-card" data-thesis-id="${thesis.id}" onclick="openProjectDetail(${thesis.id})" style="cursor:pointer;margin-bottom:1rem;">
             <span class="material-icons thesis-icon">description</span>
             <div class="thesis-content">
                 <div class="thesis-title">${thesis.title}</div>
+                ${thesis.description ? `<div class="thesis-desc" style="color:#666;font-size:0.85rem;line-height:1.5;margin:0.3rem 0 0.5rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${thesis.description}</div>` : ''}
                 <div class="thesis-meta">
                     <div class="author-info">
                         <div class="author-avatar">${thesis.authorInitials}</div>

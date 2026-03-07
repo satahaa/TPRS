@@ -99,15 +99,20 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.4rem;
-            padding: 0.5rem;
-            border: 2px solid #e0e0e0;
+            padding: 0.9rem 1rem;
+            border: 2px solid #e1e5eb;
             border-radius: 10px;
-            min-height: 42px;
+            min-height: 46px;
             cursor: text;
-            transition: border-color 0.3s;
+            background: #f9fafb;
+            transition: all 0.3s ease;
             align-items: center;
         }
-        .spec-tags-container:focus-within { border-color: #667eea; }
+        .spec-tags-container:focus-within {
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
         .spec-tag {
             display: flex;
             align-items: center;
@@ -128,18 +133,24 @@
         }
         .spec-tag .remove-tag:hover { opacity: 1; }
         .spec-tags-input {
-            border: none;
-            outline: none;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
             font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             flex: 1;
             min-width: 100px;
-            padding: 0.2rem;
+            padding: 0 !important;
+            background: transparent !important;
         }
         .spec-hint {
             font-size: 0.75rem;
             color: #999;
             margin-top: 0.3rem;
+        }
+
+        #teacherFields .form-group {
+            margin-bottom: 0.4rem;
         }
 
         .signup-header .material-icons {
@@ -508,49 +519,55 @@
                 <span id="successText"></span>
             </div>
 
-            <form id="signupForm">
+            <form id="signupForm" autocomplete="off">
                 <!-- Role Selection -->
                 <div class="form-group">
                     <label for="role">Register As</label>
                     <select id="role" name="role" required onchange="toggleRoleFields()">
                         <option value="">Select Role</option>
                         <option value="student">Student</option>
-                        <option value="teacher">Supervisor / Teacher</option>
+                        <option value="teacher">Supervisor</option>
                     </select>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="firstName">First Name</label>
-                        <input type="text" id="firstName" name="firstName" placeholder="Enter first name" required>
+                        <input type="text" id="firstName" name="firstName" placeholder="Enter first name" required autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label for="lastName">Last Name</label>
-                        <input type="text" id="lastName" name="lastName" placeholder="Enter last name" required>
+                        <input type="text" id="lastName" name="lastName" placeholder="Enter last name" required autocomplete="off">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" name="username" placeholder="Choose a username" required>
+                    <input type="text" id="username" name="username" placeholder="Choose a username" required autocomplete="off">
                     <small>Username must be at least 4 characters</small>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    <input type="email" id="email" name="email" placeholder="Enter your email@mbstu.ac.bd" required autocomplete="off">
+                    <small id="emailHint" style="color:red; display:none;">Must end with @mbstu.ac.bd</small>
                 </div>
 
                 <!-- Student-specific fields -->
                 <div id="studentFields">
                     <div class="form-group">
                         <label for="studentId">Student ID</label>
-                        <input type="text" id="studentId" name="studentId" placeholder="e.g., CE23046">
+                        <input type="text" id="studentId" name="studentId" placeholder="e.g., CE23___" autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label for="session">Session</label>
                         <select id="session" name="session">
                             <option value="">Select Session</option>
+                            <option value="2029-2030">2029-2030</option>
+                            <option value="2028-2029">2028-2029</option>
+                            <option value="2027-2028">2027-2028</option>
+                            <option value="2026-2027">2026-2027</option>
+                            <option value="2025-2026">2025-2026</option>
                             <option value="2024-2025">2024-2025</option>
                             <option value="2023-2024">2023-2024</option>
                             <option value="2022-2023">2022-2023</option>
@@ -575,10 +592,11 @@
                         </div>
                         <div class="form-group">
                             <label>Specializations</label>
-                            <div class="spec-tags-container" id="specTagsContainer" onclick="document.getElementById('specInput').focus()">
-                                <input type="text" class="spec-tags-input" id="specInput" placeholder="e.g., Machine Learning" onkeydown="handleSpecKeydown(event)">
+                            <div class="spec-tags-container" id="specTagsContainer" onclick="document.getElementById('specInput').focus()" style="position:relative;">
+                                <input type="text" class="spec-tags-input" id="specInput" placeholder="e.g., Machine Learning" onkeydown="handleSpecKeydown(event)" autocomplete="off">
+                                <div id="specSuggestions" style="display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);max-height:180px;overflow-y:auto;z-index:100;"></div>
                             </div>
-                            <div class="spec-hint">Press Enter or comma to add. Click × to remove.</div>
+                            <small>Press Enter to add multiple specializations</small>
                             <input type="hidden" id="specialization" name="specialization">
                         </div>
                     </div>
@@ -602,7 +620,6 @@
                             <option value="">Select Degree</option>
                             <option value="Bachelor">Bachelor</option>
                             <option value="Master">Master</option>
-                            <option value="Doctoral">Doctoral</option>
                         </select>
                     </div>
                 </div>
@@ -650,6 +667,47 @@
     <script>
         // ===== Multi-tag Specialization =====
         let specTags = [];
+        const specSuggestions = [
+            'Machine Learning', 'Deep Learning', 'Artificial Intelligence', 'Neural Network',
+            'Natural Language Processing', 'Computer Vision', 'Data Mining', 'Big Data',
+            'Cloud Computing', 'Internet of Things', 'Blockchain', 'Cybersecurity',
+            'Software Engineering', 'Web Development', 'Database Systems', 'Algorithm Design',
+            'Computer Network', 'Image Processing', 'Signal Processing', 'Robotics',
+            'Embedded System', 'Distributed System', 'Quantum Computing',
+            'Information Security', 'Cryptography', 'Human Computer Interaction',
+            'Bioinformatics', 'Health Informatics', 'Renewable Energy', 'Smart Grid',
+            'VLSI', 'Power System', 'Power Electronics', 'Telecommunication',
+            'Wireless Communication', 'Control System', 'Microprocessor',
+            'Structural Engineering', 'Environmental Engineering', 'Water Resources',
+            'Transportation Engineering', 'Construction Management', 'Geotechnical Engineering',
+            'Supply Chain Management', 'Project Management', 'Optimization',
+            'Statistical Analysis', 'Reinforcement Learning', 'Generative AI'
+        ];
+        const specSuggestBox = document.getElementById('specSuggestions');
+
+        document.getElementById('specInput').addEventListener('input', function() {
+            const val = this.value.trim().toLowerCase();
+            if (!val) { specSuggestBox.style.display = 'none'; return; }
+            const matches = specSuggestions.filter(s => s.toLowerCase().includes(val) && !specTags.includes(s)).slice(0, 8);
+            if (matches.length === 0) { specSuggestBox.style.display = 'none'; return; }
+            specSuggestBox.innerHTML = matches.map(m =>
+                '<div style="padding:0.5rem 0.8rem;cursor:pointer;font-size:0.85rem;border-bottom:1px solid #f0f0f0;" onmousedown="selectSpecSuggestion(\'' + m.replace(/'/g, "\\'") + '\')">' + m + '</div>'
+            ).join('');
+            specSuggestBox.style.display = 'block';
+        });
+
+        document.getElementById('specInput').addEventListener('blur', function() {
+            setTimeout(() => { specSuggestBox.style.display = 'none'; }, 200);
+        });
+
+        function selectSpecSuggestion(val) {
+            if (val && !specTags.includes(val)) {
+                specTags.push(val);
+                renderSpecTags();
+            }
+            document.getElementById('specInput').value = '';
+            specSuggestBox.style.display = 'none';
+        }
 
         function handleSpecKeydown(e) {
             const input = e.target;
@@ -691,12 +749,15 @@
             input.placeholder = specTags.length > 0 ? '' : 'e.g., Machine Learning';
         }
 
-        // Also add tag when input loses focus
+        // Also add tag when input loses focus (delayed to allow suggestion clicks)
         document.getElementById('specInput').addEventListener('blur', function() {
-            if (this.value.trim()) {
-                addSpecTag(this.value);
-                this.value = '';
-            }
+            const input = this;
+            setTimeout(() => {
+                if (input.value.trim()) {
+                    addSpecTag(input.value);
+                    input.value = '';
+                }
+            }, 250);
         });
 
         // Toggle role-specific fields
@@ -813,6 +874,13 @@
             successMessage.classList.add('show');
         }
 
+        // Show email domain hint when user types a non-matching email
+        document.getElementById('email').addEventListener('input', function() {
+            const hint = document.getElementById('emailHint');
+            const val = this.value.trim();
+            hint.style.display = (val.length > 0 && !val.endsWith('@mbstu.ac.bd')) ? 'block' : 'none';
+        });
+
         // Form submission handler
         document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -836,6 +904,11 @@
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 showError('Please enter a valid email address');
+                return;
+            }
+
+            if (!email.endsWith('@mbstu.ac.bd')) {
+                showError('Email must end with @mbstu.ac.bd');
                 return;
             }
             
