@@ -15,6 +15,7 @@ public class Student {
     private String password;
     private String department;
     private String semester;
+    private String session;
     private String phone;
     private Timestamp createdAt;
     private Timestamp updatedAt;
@@ -28,7 +29,7 @@ public class Student {
     
     // Parameterized constructor
     public Student(String studentId, String firstName, String lastName, String email, 
-                   String password, String department, String semester, String phone) {
+                   String password, String department, String semester, String session, String phone) {
         this.studentId = studentId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -36,6 +37,7 @@ public class Student {
         this.password = password;
         this.department = department;
         this.semester = semester;
+        this.session = session;
         this.phone = phone;
     }
     
@@ -102,6 +104,14 @@ public class Student {
     
     public void setSemester(String semester) {
         this.semester = semester;
+    }
+    
+    public String getSession() {
+        return session;
+    }
+    
+    public void setSession(String session) {
+        this.session = session;
     }
     
     public String getPhone() {

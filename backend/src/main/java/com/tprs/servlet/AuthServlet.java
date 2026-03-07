@@ -160,7 +160,14 @@ public class AuthServlet extends HttpServlet {
             student.setStudentId(getJsonString(data, "studentId", ""));
             student.setFirstName(getJsonString(data, "firstName", ""));
             student.setLastName(getJsonString(data, "lastName", ""));
-            student.setEmail(getJsonString(data, "email", ""));
+            String studentEmail = getJsonString(data, "email", "");
+            if (!studentEmail.endsWith("@mbstu.ac.bd")) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Email must end with @mbstu.ac.bd");
+                return;
+            }
+            student.setEmail(studentEmail);
             student.setPassword(getJsonString(data, "password", ""));
             student.setDepartment(getJsonString(data, "department", ""));
             // Handle both "semester" and "degreeType" from frontend
@@ -169,6 +176,7 @@ public class AuthServlet extends HttpServlet {
                 semester = getJsonString(data, "degreeType", "");
             }
             student.setSemester(semester);
+            student.setSession(getJsonString(data, "session", ""));
             student.setPhone(getJsonString(data, "phone", ""));
             
             boolean success = studentService.register(student);
@@ -208,7 +216,14 @@ public class AuthServlet extends HttpServlet {
             teacher.setTeacherId(teacherIdInput);
             teacher.setFirstName(getJsonString(data, "firstName", ""));
             teacher.setLastName(getJsonString(data, "lastName", ""));
-            teacher.setEmail(getJsonString(data, "email", ""));
+            String teacherEmail = getJsonString(data, "email", "");
+            if (!teacherEmail.endsWith("@mbstu.ac.bd")) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Email must end with @mbstu.ac.bd");
+                return;
+            }
+            teacher.setEmail(teacherEmail);
             teacher.setPassword(getJsonString(data, "password", ""));
             teacher.setDepartment(getJsonString(data, "department", ""));
             teacher.setDesignation(getJsonString(data, "designation", ""));

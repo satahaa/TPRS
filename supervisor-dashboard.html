@@ -940,7 +940,7 @@
             <div class="profile-modal-body">
                 <div class="profile-modal-avatar" id="profileAvatar">...</div>
                 <div class="profile-modal-name" id="profileName">Loading...</div>
-                <div class="profile-modal-role">Supervisor / Teacher</div>
+                <div class="profile-modal-role">Supervisor</div>
                 <div class="profile-modal-details">
                     <div class="profile-detail-row">
                         <span class="material-icons">email</span>
@@ -1029,7 +1029,7 @@
                         </div>
                         <div class="profile-detail-row">
                             <span class="material-icons">school</span>
-                            <div><div class="profile-detail-label">Year / Semester</div><div class="profile-detail-value" id="pdYearSem">—</div></div>
+                            <div><div class="profile-detail-label">Year or Semester</div><div class="profile-detail-value" id="pdYearSem">—</div></div>
                         </div>
                         <div class="profile-detail-row">
                             <span class="material-icons">event_note</span>
@@ -1042,6 +1042,14 @@
                         <div class="profile-detail-row" id="pdFileRow" style="display:none;">
                             <span class="material-icons">description</span>
                             <div><div class="profile-detail-label">Document</div><div class="profile-detail-value" id="pdFile">—</div></div>
+                        </div>
+                        <div class="profile-detail-row" id="pdZipRow" style="display:none;">
+                            <span class="material-icons">folder_zip</span>
+                            <div><div class="profile-detail-label">Source Code</div><div class="profile-detail-value" id="pdZipFile">—</div></div>
+                        </div>
+                        <div class="profile-detail-row" id="pdGithubRow" style="display:none;">
+                            <span class="material-icons">code</span>
+                            <div><div class="profile-detail-label">GitHub</div><div class="profile-detail-value" id="pdGithub">—</div></div>
                         </div>
                     </div>
                 </div>
@@ -1056,7 +1064,7 @@
                 <span class="material-icons">check_circle</span>
             </div>
             <div class="confirm-modal-title">Approve Project</div>
-            <div class="confirm-modal-message">Are you sure you want to approve this project/thesis? The student will be notified.</div>
+            <div class="confirm-modal-message">Are you sure you want to approve this project or thesis? The student will be notified.</div>
             <div class="confirm-modal-actions">
                 <button class="confirm-modal-btn confirm-cancel" onclick="closeApproveModal()">
                     <span class="material-icons" style="font-size:1rem">close</span>
@@ -1077,7 +1085,7 @@
                 <span class="material-icons">cancel</span>
             </div>
             <div class="confirm-modal-title">Reject Project</div>
-            <div class="confirm-modal-message">Are you sure you want to reject this project/thesis? You can optionally provide a reason below.</div>
+            <div class="confirm-modal-message">Are you sure you want to reject this project or thesis? You can optionally provide a reason below.</div>
             <textarea class="confirm-modal-reason" id="rejectReasonInput" placeholder="Enter reason for rejection (optional)..."></textarea>
             <div class="confirm-modal-actions">
                 <button class="confirm-modal-btn confirm-cancel" onclick="closeRejectModal()">
@@ -1367,6 +1375,7 @@
                         <div class="project-title-text">${escapeHtml(p.title)}</div>
                         <span class="project-status status-pending">Pending</span>
                     </div>
+                    ${p.description ? `<div style="color:#666;font-size:0.85rem;line-height:1.5;margin:0.3rem 0 0.5rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(p.description)}</div>` : ''}
                     <div class="project-meta">
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">person</span> ${escapeHtml(p.studentName || 'Unknown')}</span>
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">business</span> ${escapeHtml(p.department || '')}</span>
@@ -1378,6 +1387,14 @@
                             <span class="material-icons" style="font-size:1rem">download</span>
                             ${escapeHtml(p.fileName)}
                         </button>` : ''}
+                        ${p.zipFileName ? `<button class="btn-download" onclick="TPRSApi.downloadProjectZip(${p.id})" style="background:#fff3e0;color:#e65100;border:none;padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;gap:0.3rem;">
+                            <span class="material-icons" style="font-size:1rem">folder_zip</span>
+                            ${escapeHtml(p.zipFileName)}
+                        </button>` : ''}
+                        ${p.githubLink ? `<a href="${p.githubLink.startsWith('http') ? escapeHtml(p.githubLink) : 'https://' + escapeHtml(p.githubLink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="background:#f3e5f5;color:#7b1fa2;border:none;padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;gap:0.3rem;text-decoration:none;">
+                            <span class="material-icons" style="font-size:1rem">code</span>
+                            GitHub
+                        </a>` : ''}
                         <button class="btn-approve" onclick="approveProject(${p.id})">
                             <span class="material-icons" style="font-size:1rem">check</span>
                             Approve
@@ -1612,6 +1629,21 @@
                 document.getElementById('pdFile').innerHTML = `<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectFile(${p.id})" style="color:#667eea;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">download</span>${escapeHtml(p.fileName)}</a>`;
             } else {
                 fileRow.style.display = 'none';
+            }
+            const zipRow = document.getElementById('pdZipRow');
+            if (p.zipFileName) {
+                zipRow.style.display = '';
+                document.getElementById('pdZipFile').innerHTML = `<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectZip(${p.id})" style="color:#e65100;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">folder_zip</span>${escapeHtml(p.zipFileName)}</a>`;
+            } else {
+                zipRow.style.display = 'none';
+            }
+            const githubRow = document.getElementById('pdGithubRow');
+            if (p.githubLink) {
+                githubRow.style.display = '';
+                const ghUrl = p.githubLink.startsWith('http') ? p.githubLink : 'https://' + p.githubLink;
+                document.getElementById('pdGithub').innerHTML = `<a href="${escapeHtml(ghUrl)}" target="_blank" rel="noopener noreferrer" style="color:#7b1fa2;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">open_in_new</span>${escapeHtml(p.githubLink)}</a>`;
+            } else {
+                githubRow.style.display = 'none';
             }
             document.getElementById('projectDetailModal').classList.add('active');
         }

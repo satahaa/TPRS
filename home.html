@@ -456,7 +456,7 @@
                 </div>
                 <div class="pd-row">
                     <span class="material-icons">school</span>
-                    <div><div class="pd-label">Year / Semester</div><div class="pd-value" id="pdmYearSem">—</div></div>
+                    <div><div class="pd-label">Year or Semester</div><div class="pd-value" id="pdmYearSem">—</div></div>
                 </div>
                 <div class="pd-row">
                     <span class="material-icons">event_note</span>
@@ -465,6 +465,14 @@
                 <div class="pd-row" id="pdmFileRow" style="display:none;">
                     <span class="material-icons">description</span>
                     <div><div class="pd-label">Document</div><div class="pd-value" id="pdmFile">—</div></div>
+                </div>
+                <div class="pd-row" id="pdmZipRow" style="display:none;">
+                    <span class="material-icons">folder_zip</span>
+                    <div><div class="pd-label">Source Code</div><div class="pd-value" id="pdmZipFile">—</div></div>
+                </div>
+                <div class="pd-row" id="pdmGithubRow" style="display:none;">
+                    <span class="material-icons">code</span>
+                    <div><div class="pd-label">GitHub</div><div class="pd-value" id="pdmGithub">—</div></div>
                 </div>
             </div>
         </div>
@@ -696,6 +704,21 @@
                 document.getElementById('pdmFile').innerHTML = '<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectFile(' + p.id + ')" style="color:#667eea;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">download</span>' + escapeHtmlStr(p.fileName) + '</a>';
             } else {
                 fileRow.style.display = 'none';
+            }
+            const zipRow = document.getElementById('pdmZipRow');
+            if (p.zipFileName) {
+                zipRow.style.display = '';
+                document.getElementById('pdmZipFile').innerHTML = '<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectZip(' + p.id + ')" style="color:#e65100;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">folder_zip</span>' + escapeHtmlStr(p.zipFileName) + '</a>';
+            } else {
+                zipRow.style.display = 'none';
+            }
+            const githubRow = document.getElementById('pdmGithubRow');
+            if (p.githubLink) {
+                githubRow.style.display = '';
+                var ghUrl = p.githubLink.indexOf('http') === 0 ? p.githubLink : 'https://' + p.githubLink;
+                document.getElementById('pdmGithub').innerHTML = '<a href="' + escapeHtmlStr(ghUrl) + '" target="_blank" rel="noopener noreferrer" style="color:#7b1fa2;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">open_in_new</span>' + escapeHtmlStr(p.githubLink) + '</a>';
+            } else {
+                githubRow.style.display = 'none';
             }
             document.getElementById('projectDetailModal').classList.add('active');
         }

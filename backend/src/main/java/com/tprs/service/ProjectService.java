@@ -159,4 +159,13 @@ public class ProjectService {
     public Project getFileData(int projectId) {
         return projectDAO.getFileDataById(projectId);
     }
+    
+    /**
+     * Get zip file info for download
+     * @param projectId Project ID
+     * @return Project with zip file name and path
+     */
+    public Project getZipFileInfo(int projectId) {
+        return projectDAO.getZipFileInfoById(projectId);
+    }
 }

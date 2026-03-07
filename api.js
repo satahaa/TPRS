@@ -144,17 +144,22 @@ const TPRSApi = {
      * @param {File} file - Optional file to upload
      * @returns {Promise} - API response
      */
-    async submitProject(projectData, file = null) {
+    async submitProject(projectData, file = null, zipFile = null) {
         try {
             let response;
             
-            if (file) {
+            if (file || zipFile) {
                 // Use FormData for file upload
                 const formData = new FormData();
                 Object.keys(projectData).forEach(key => {
                     formData.append(key, projectData[key]);
                 });
-                formData.append('file', file);
+                if (file) {
+                    formData.append('file', file);
+                }
+                if (zipFile) {
+                    formData.append('zipFile', zipFile);
+                }
                 
                 response = await fetch(`${API_BASE_URL}/projects`, {
                     method: 'POST',
@@ -265,6 +270,14 @@ const TPRSApi = {
      */
     downloadProjectFile(projectId) {
         window.open(`${API_BASE_URL}/projects/${projectId}/download`, '_blank');
+    },
+    
+    /**
+     * Download project zip file
+     * @param {number} projectId - Project ID
+     */
+    downloadProjectZip(projectId) {
+        window.open(`${API_BASE_URL}/projects/${projectId}/download-zip`, '_blank');
     },
     
     /**

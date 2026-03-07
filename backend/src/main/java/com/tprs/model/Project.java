@@ -17,6 +17,10 @@ public class Project {
     private String filePath;
     private String fileName;
     private transient byte[] fileData; // transient: excluded from Gson serialization
+    private String zipFilePath;
+    private String zipFileName;
+    private long zipFileSize;
+    private String githubLink;
     private String keywords;
     private String year;
     private String semester;
@@ -128,6 +132,38 @@ public class Project {
     
     public void setFileData(byte[] fileData) {
         this.fileData = fileData;
+    }
+    
+    public String getZipFilePath() {
+        return zipFilePath;
+    }
+    
+    public void setZipFilePath(String zipFilePath) {
+        this.zipFilePath = zipFilePath;
+    }
+    
+    public String getZipFileName() {
+        return zipFileName;
+    }
+    
+    public void setZipFileName(String zipFileName) {
+        this.zipFileName = zipFileName;
+    }
+    
+    public long getZipFileSize() {
+        return zipFileSize;
+    }
+    
+    public void setZipFileSize(long zipFileSize) {
+        this.zipFileSize = zipFileSize;
+    }
+    
+    public String getGithubLink() {
+        return githubLink;
+    }
+    
+    public void setGithubLink(String githubLink) {
+        this.githubLink = githubLink;
     }
     
     public String getKeywords() {

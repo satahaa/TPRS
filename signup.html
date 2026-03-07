@@ -99,7 +99,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.4rem;
-            padding: 0.5rem 1rem;
+            padding: 0.9rem 1rem;
             border: 2px solid #e1e5eb;
             border-radius: 10px;
             min-height: 46px;
@@ -133,13 +133,15 @@
         }
         .spec-tag .remove-tag:hover { opacity: 1; }
         .spec-tags-input {
-            border: none;
-            outline: none;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
             font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             flex: 1;
             min-width: 100px;
-            padding: 0.2rem;
+            padding: 0 !important;
+            background: transparent !important;
         }
         .spec-hint {
             font-size: 0.75rem;
@@ -524,7 +526,7 @@
                     <select id="role" name="role" required onchange="toggleRoleFields()">
                         <option value="">Select Role</option>
                         <option value="student">Student</option>
-                        <option value="teacher">Supervisor / Teacher</option>
+                        <option value="teacher">Supervisor</option>
                     </select>
                 </div>
 
@@ -547,14 +549,15 @@
 
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    <input type="email" id="email" name="email" placeholder="Enter your email@mbstu.ac.bd" required>
+                    <small id="emailHint" style="color:red; display:none;">Must end with @mbstu.ac.bd</small>
                 </div>
 
                 <!-- Student-specific fields -->
                 <div id="studentFields">
                     <div class="form-group">
                         <label for="studentId">Student ID</label>
-                        <input type="text" id="studentId" name="studentId" placeholder="e.g., CE23046">
+                        <input type="text" id="studentId" name="studentId" placeholder="e.g., CE23___">
                     </div>
                     <div class="form-group">
                         <label for="session">Session</label>
@@ -587,7 +590,7 @@
                             <div class="spec-tags-container" id="specTagsContainer" onclick="document.getElementById('specInput').focus()">
                                 <input type="text" class="spec-tags-input" id="specInput" placeholder="e.g., Machine Learning" onkeydown="handleSpecKeydown(event)">
                             </div>
-                            <div class="spec-hint">Press Enter or comma to add. Click × to remove.</div>
+                            <small>Press Enter to add multiple specializations</small>
                             <input type="hidden" id="specialization" name="specialization">
                         </div>
                     </div>
@@ -822,6 +825,13 @@
             successMessage.classList.add('show');
         }
 
+        // Show email domain hint when user types a non-matching email
+        document.getElementById('email').addEventListener('input', function() {
+            const hint = document.getElementById('emailHint');
+            const val = this.value.trim();
+            hint.style.display = (val.length > 0 && !val.endsWith('@mbstu.ac.bd')) ? 'block' : 'none';
+        });
+
         // Form submission handler
         document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -845,6 +855,11 @@
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 showError('Please enter a valid email address');
+                return;
+            }
+
+            if (!email.endsWith('@mbstu.ac.bd')) {
+                showError('Email must end with @mbstu.ac.bd');
                 return;
             }
             

@@ -204,6 +204,27 @@ public class TeacherDAO {
     }
     
     /**
+     * Update teacher password
+     * @param id Teacher ID
+     * @param hashedPassword New hashed password
+     * @return true if successful, false otherwise
+     */
+    public boolean updatePassword(int id, String hashedPassword) {
+        String sql = "UPDATE teacher SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        Connection connection = getConnection();
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, hashedPassword);
+            stmt.setInt(2, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating teacher password: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
      * Authenticate teacher
      * @param email Teacher email
      * @param password Teacher password

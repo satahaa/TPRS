@@ -2,6 +2,7 @@ package com.tprs.service;
 
 import com.tprs.dao.TeacherDAO;
 import com.tprs.model.Teacher;
+import com.tprs.util.PasswordUtil;
 
 import java.util.List;
 
@@ -29,8 +30,7 @@ public class TeacherService {
             return false;
         }
         
-        // TODO: Add password hashing here
-        // teacher.setPassword(hashPassword(teacher.getPassword()));
+        teacher.setPassword(PasswordUtil.hashPassword(teacher.getPassword()));
         
         return teacherDAO.create(teacher);
     }
@@ -42,8 +42,11 @@ public class TeacherService {
      * @return Teacher object if authenticated, null otherwise
      */
     public Teacher login(String email, String password) {
-        // TODO: Add password hashing verification here
-        return teacherDAO.authenticate(email, password);
+        Teacher teacher = teacherDAO.getByEmail(email);
+        if (teacher != null && PasswordUtil.checkPassword(password, teacher.getPassword())) {
+            return teacher;
+        }
+        return null;
     }
     
     /**
@@ -108,10 +111,9 @@ public class TeacherService {
      */
     public boolean changePassword(int teacherId, String oldPassword, String newPassword) {
         Teacher teacher = teacherDAO.getById(teacherId);
-        if (teacher != null && teacher.getPassword().equals(oldPassword)) {
-            teacher.setPassword(newPassword);
-            // TODO: Hash the new password
-            return teacherDAO.update(teacher);
+        if (teacher != null && PasswordUtil.checkPassword(oldPassword, teacher.getPassword())) {
+            String hashedPassword = PasswordUtil.hashPassword(newPassword);
+            return teacherDAO.updatePassword(teacherId, hashedPassword);
         }
         return false;
     }

@@ -682,7 +682,7 @@
 
                     <div class="form-group">
                         <label for="title">Title <span class="required">*</span></label>
-                        <input type="text" id="title" name="title" placeholder="Enter thesis/project title" required>
+                        <input type="text" id="title" name="title" placeholder="Enter thesis or project title" required>
                     </div>
 
                     <div class="form-row">
@@ -709,17 +709,6 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="session">Session <span class="required">*</span></label>
-                        <select id="session" name="session" required>
-                            <option value="">Select Session</option>
-                            <option value="2024-2025">2024-2025</option>
-                            <option value="2023-2024">2023-2024</option>
-                            <option value="2022-2023">2022-2023</option>
-                            <option value="2021-2022">2021-2022</option>
-                        </select>
-                    </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <label for="year">Year <span class="required">*</span></label>
@@ -739,16 +728,16 @@
                         </div>
                     </div>
 
-                    <!-- GitHub Link (only shown for Projects) -->
-                    <div class="form-group" id="githubLinkGroup" style="display:none;">
-                        <label for="githubLink">GitHub Repository Link <span class="required">*</span></label>
+                    <!-- GitHub Link -->
+                    <div class="form-group" id="githubLinkGroup">
+                        <label for="githubLink">GitHub Repository Link</label>
                         <input type="text" id="githubLink" name="githubLink" placeholder="www.github.com/username/repository">
                         <small>Provide the GitHub link for your project (e.g. www.github.com/username/repo)</small>
                     </div>
 
                     <div class="form-group">
                         <label for="abstract">Abstract <span class="required">*</span></label>
-                        <textarea id="abstract" name="abstract" placeholder="Write a brief summary of your thesis/project (minimum 100 words)" required></textarea>
+                        <textarea id="abstract" name="abstract" placeholder="Write a brief summary of your thesis or project" required></textarea>
                         <small>Minimum 50 words</small>
                     </div>
                 </div>
@@ -855,6 +844,35 @@
                     </div>
                 </div>
 
+                <!-- Source Code Upload Section -->
+                <div class="form-section" id="zipUploadSection">
+                    <h2 class="form-section-title">
+                        <span class="material-icons">folder_zip</span>
+                        Project Source Code
+                    </h2>
+                    <small style="display:block;margin-bottom:0.8rem;color:#888;">Either provide a GitHub link or upload a zip file (or both). At least one is required.</small>
+
+                    <div class="file-upload-area" id="zipUploadArea">
+                        <span class="material-icons upload-icon">folder_zip</span>
+                        <h3>Drag & Drop your project zip here</h3>
+                        <p>or click to browse</p>
+                        <span class="browse-btn">Browse Files</span>
+                        <input type="file" class="file-upload-input" id="zipInput" accept=".zip">
+                    </div>
+                    <small>Accepted format: ZIP. Maximum file size: 200MB</small>
+
+                    <div class="selected-file" id="selectedZip">
+                        <span class="material-icons file-icon" style="color:#ff9800;">folder_zip</span>
+                        <div class="file-info">
+                            <div class="file-name" id="zipName"></div>
+                            <div class="file-size" id="zipSize"></div>
+                        </div>
+                        <button type="button" class="remove-file" id="removeZip">
+                            <span class="material-icons">close</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Form Actions -->
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="saveDraftBtn">
@@ -911,7 +929,7 @@
                     document.getElementById('supervisorNameText').style.color = '#333';
                     document.getElementById('supervisorId').value = supervisor.id;
                 } else {
-                    document.getElementById('supervisorNameText').textContent = 'No supervisor assigned for this year/semester. Contact your department.';
+                    document.getElementById('supervisorNameText').textContent = 'No supervisor assigned for this year or semester. Contact your department.';
                     document.getElementById('supervisorNameText').style.color = '#e74c3c';
                     document.getElementById('supervisorId').value = '';
                 }
@@ -925,19 +943,9 @@
         document.getElementById('supervisorNameText').textContent = 'Select year and semester to load supervisor';
         document.getElementById('supervisorNameText').style.color = '#999';
 
-        // Toggle GitHub link field based on type
+        // Toggle GitHub link field based on type (kept for future use)
         function onTypeChange() {
-            const type = document.getElementById('type').value;
-            const githubGroup = document.getElementById('githubLinkGroup');
-            const githubInput = document.getElementById('githubLink');
-            if (type === 'Project') {
-                githubGroup.style.display = 'block';
-                githubInput.setAttribute('required', '');
-            } else {
-                githubGroup.style.display = 'none';
-                githubInput.removeAttribute('required');
-                githubInput.value = '';
-            }
+            // GitHub link is now always visible
         }
 
         // Update semester options based on selected year (Bachelor: 1st-4th year, 2 semesters each)
@@ -1145,6 +1153,66 @@
             fileUploadArea.style.display = 'block';
         });
 
+        // Zip file upload functionality
+        const zipUploadArea = document.getElementById('zipUploadArea');
+        const zipInput = document.getElementById('zipInput');
+        const selectedZip = document.getElementById('selectedZip');
+        const zipName = document.getElementById('zipName');
+        const zipSize = document.getElementById('zipSize');
+        const removeZipBtn = document.getElementById('removeZip');
+        let uploadedZip = null;
+
+        zipUploadArea.addEventListener('click', () => zipInput.click());
+
+        zipUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zipUploadArea.classList.add('dragover');
+        });
+
+        zipUploadArea.addEventListener('dragleave', () => {
+            zipUploadArea.classList.remove('dragover');
+        });
+
+        zipUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zipUploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            handleZipFile(file);
+        });
+
+        zipInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            handleZipFile(file);
+        });
+
+        function handleZipFile(file) {
+            if (!file) return;
+
+            if (file.type !== 'application/zip' && file.type !== 'application/x-zip-compressed' && !file.name.endsWith('.zip')) {
+                showError('Please upload a ZIP file');
+                return;
+            }
+
+            const maxSize = 200 * 1024 * 1024; // 200MB
+            if (file.size > maxSize) {
+                showError('Zip file size must be less than 200MB');
+                return;
+            }
+
+            uploadedZip = file;
+            zipName.textContent = file.name;
+            zipSize.textContent = formatFileSize(file.size);
+            selectedZip.classList.add('show');
+            zipUploadArea.style.display = 'none';
+        }
+
+        removeZipBtn.addEventListener('click', () => {
+            uploadedZip = null;
+            zipInput.value = '';
+            selectedZip.classList.remove('show');
+            zipUploadArea.style.display = 'block';
+        });
+
         // Message functions
         function showError(message) {
             const errorMessage = document.getElementById('errorMessage');
@@ -1186,6 +1254,18 @@
                 return;
             }
 
+            // Validate GitHub link or zip file (at least one required)
+            const githubLink = document.getElementById('githubLink').value.trim();
+            if (!githubLink && !uploadedZip) {
+                showError('Please provide either a GitHub repository link or upload a project zip file (or both)');
+                return;
+            }
+
+            if (githubLink && !githubLink.startsWith('www.')) {
+                showError('GitHub link must start with www. (e.g. www.github.com/username/repo)');
+                return;
+            }
+
             const abstract = document.getElementById('abstract').value;
             if (abstract.split(/\s+/).length < 50) {
                 showError('Abstract must be at least 50 words');
@@ -1207,9 +1287,9 @@
                 title: document.getElementById('title').value,
                 type: document.getElementById('type').value,
                 department: document.getElementById('department').value,
-                session: document.getElementById('session').value,
                 year: document.getElementById('year').value,
                 semester: document.getElementById('semester').value,
+                session: currentUser.session || '',
                 abstract: abstract,
                 authorName: document.getElementById('authorName').value,
                 authorId: document.getElementById('authorId').value,
@@ -1222,17 +1302,8 @@
                 fileSize: uploadedFile.size
             };
 
-            // Add GitHub link if it's a project
-            if (document.getElementById('type').value === 'Project') {
-                const githubLink = document.getElementById('githubLink').value.trim();
-                if (!githubLink) {
-                    showError('Please provide a GitHub repository link for your project');
-                    return;
-                }
-                if (!githubLink.startsWith('www.')) {
-                    showError('GitHub link must start with www. (e.g. www.github.com/username/repo)');
-                    return;
-                }
+            // Add GitHub link if provided
+            if (githubLink) {
                 projectData.githubLink = githubLink;
             }
 
@@ -1262,7 +1333,7 @@
                     }
                 }, 200);
 
-                const result = await TPRSApi.submitProject(projectData, uploadedFile);
+                const result = await TPRSApi.submitProject(projectData, uploadedFile, uploadedZip);
                 
                 clearInterval(progressInterval);
                 progressFill.style.width = '100%';
@@ -1327,7 +1398,6 @@
                 title: document.getElementById('title').value,
                 type: document.getElementById('type').value,
                 department: document.getElementById('department').value,
-                session: document.getElementById('session').value,
                 year: document.getElementById('year').value,
                 semester: document.getElementById('semester').value,
                 githubLink: document.getElementById('githubLink').value,
@@ -1351,7 +1421,6 @@
                     document.getElementById('title').value = draft.title || '';
                     document.getElementById('type').value = draft.type || '';
                     document.getElementById('department').value = draft.department || '';
-                    document.getElementById('session').value = draft.session || '';
                     document.getElementById('year').value = draft.year || '';
                     document.getElementById('semester').value = draft.semester || '';
                     document.getElementById('abstract').value = draft.abstract || '';

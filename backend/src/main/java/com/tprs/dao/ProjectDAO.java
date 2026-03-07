@@ -30,7 +30,7 @@ public class ProjectDAO {
      * @return true if successful, false otherwise
      */
     public boolean create(Project project) {
-        String sql = "INSERT INTO project (title, description, type, student_id, supervisor_id, status, file_path, file_name, file_data, keywords, year, semester, department, session) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO project (title, description, type, student_id, supervisor_id, status, file_path, file_name, file_data, zip_file_path, zip_file_name, zip_file_size, github_link, keywords, year, semester, department, session) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Connection connection = getConnection();
         
         if (connection == null) {
@@ -52,11 +52,15 @@ public class ProjectDAO {
             } else {
                 stmt.setNull(9, Types.BLOB);
             }
-            stmt.setString(10, project.getKeywords());
-            stmt.setString(11, project.getYear());
-            stmt.setString(12, project.getSemester());
-            stmt.setString(13, project.getDepartment());
-            stmt.setString(14, project.getSession());
+            stmt.setString(10, project.getZipFilePath());
+            stmt.setString(11, project.getZipFileName());
+            stmt.setLong(12, project.getZipFileSize());
+            stmt.setString(13, project.getGithubLink());
+            stmt.setString(14, project.getKeywords());
+            stmt.setString(15, project.getYear());
+            stmt.setString(16, project.getSemester());
+            stmt.setString(17, project.getDepartment());
+            stmt.setString(18, project.getSession());
             
             int rowsAffected = stmt.executeUpdate();
             
@@ -355,6 +359,33 @@ public class ProjectDAO {
     }
     
     /**
+     * Get zip file path and name for a project (for download)
+     * @param projectId Project ID
+     * @return Project with only zipFileName and zipFilePath populated, or null
+     */
+    public Project getZipFileInfoById(int projectId) {
+        String sql = "SELECT zip_file_name, zip_file_path FROM project WHERE id = ?";
+        Connection connection = getConnection();
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, projectId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                Project project = new Project();
+                project.setId(projectId);
+                project.setZipFileName(rs.getString("zip_file_name"));
+                project.setZipFilePath(rs.getString("zip_file_path"));
+                return project;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting zip file info: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    /**
      * Map ResultSet to Project object
      */
     private Project mapResultSetToProject(ResultSet rs) throws SQLException {
@@ -368,6 +399,10 @@ public class ProjectDAO {
         project.setStatus(rs.getString("status"));
         project.setFilePath(rs.getString("file_path"));
         project.setFileName(rs.getString("file_name"));
+        project.setZipFilePath(rs.getString("zip_file_path"));
+        project.setZipFileName(rs.getString("zip_file_name"));
+        project.setZipFileSize(rs.getLong("zip_file_size"));
+        project.setGithubLink(rs.getString("github_link"));
         project.setKeywords(rs.getString("keywords"));
         project.setYear(rs.getString("year"));
         project.setSemester(rs.getString("semester"));
