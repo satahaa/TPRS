@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f7 100%);
-    color: #333;
+    background: #1e1e2e;
+    color: #e2e2ea;
     line-height: 1.6;
     min-height: 100vh;
 }
@@ -20,9 +20,9 @@ body {
    HEADER / TOP NAVIGATION BAR
    ===================================================== */
 header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #252538;
     padding: 1rem 2rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -80,7 +80,7 @@ nav a:hover {
     align-items: center;
     gap: 0.8rem;
     padding: 0.5rem 1rem;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 50px;
     cursor: pointer;
     transition: background 0.3s ease;
@@ -88,7 +88,7 @@ nav a:hover {
 }
 
 .user-profile:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .dropdown-arrow {
@@ -105,9 +105,9 @@ nav a:hover {
     position: absolute;
     top: 100%;
     right: 0;
-    background: white;
+    background: #2a2a3d;
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     min-width: 280px;
     margin-top: 0.8rem;
     opacity: 0;
@@ -129,7 +129,7 @@ nav a:hover {
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f7 100%);
+    background: #323248;
 }
 
 .dropdown-avatar {
@@ -154,12 +154,12 @@ nav a:hover {
 .dropdown-name {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #333;
+    color: #e2e2ea;
 }
 
 .dropdown-email {
     font-size: 0.8rem;
-    color: #999;
+    color: #9a9ab0;
 }
 
 .dropdown-details {
@@ -168,7 +168,7 @@ nav a:hover {
     gap: 0.4rem;
     margin-top: 0.6rem;
     padding-top: 0.6rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dropdown-detail-item {
@@ -176,18 +176,18 @@ nav a:hover {
     align-items: center;
     gap: 0.4rem;
     font-size: 0.75rem;
-    color: #666;
+    color: #9a9ab0;
     font-weight: 500;
 }
 
 .dropdown-detail-item .material-icons {
     font-size: 0.9rem;
-    color: #667eea;
+    color: #e84393;
 }
 
 .dropdown-divider {
     height: 1px;
-    background: #f0f2f7;
+    background: #3d3d52;
     margin: 0;
 }
 
@@ -200,7 +200,7 @@ nav a:hover {
     align-items: center;
     gap: 0.8rem;
     padding: 0.8rem 1.2rem;
-    color: #333;
+    color: #c8c8d8;
     text-decoration: none;
     border: none;
     background: none;
@@ -213,8 +213,8 @@ nav a:hover {
 }
 
 .dropdown-item:hover {
-    background: rgba(102, 126, 234, 0.05);
-    color: #667eea;
+    background: rgba(232, 67, 147, 0.1);
+    color: #e84393;
 }
 
 .dropdown-item span.material-icons {
@@ -225,7 +225,7 @@ nav a:hover {
 .logout-btn {
     padding: 0.8rem 1.2rem;
     color: #e74c3c;
-    border-top: 1px solid #f0f2f7;
+    border-top: 1px solid #3d3d52;
 }
 
 .logout-btn:hover {
@@ -269,10 +269,10 @@ nav a:hover {
    LEFT SIDEBAR - FILTERS
    ===================================================== */
 .sidebar-left {
-    background: white;
+    background: #2a2a3d;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     height: fit-content;
     position: sticky;
     top: 100px;
@@ -282,7 +282,7 @@ nav a:hover {
     font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    color: #333;
+    color: #e2e2ea;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -295,7 +295,7 @@ nav a:hover {
 .filter-label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #555;
+    color: #9a9ab0;
     margin-bottom: 0.8rem;
     display: block;
     text-transform: uppercase;
@@ -314,14 +314,14 @@ nav a:hover {
     gap: 0.6rem;
     cursor: pointer;
     font-size: 0.9rem;
-    color: #666;
+    color: #9a9ab0;
 }
 
 .checkbox-item input[type="checkbox"] {
     width: 18px;
     height: 18px;
     cursor: pointer;
-    accent-color: #667eea;
+    accent-color: #e84393;
 }
 
 .checkbox-item label {
@@ -331,46 +331,47 @@ nav a:hover {
 }
 
 .checkbox-item:hover label {
-    color: #667eea;
+    color: #e84393;
 }
 
 /* Dropdown styling */
 .dropdown-select {
     width: 100%;
     padding: 0.6rem 0.8rem;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #3d3d52;
     border-radius: 8px;
     font-family: 'Poppins', sans-serif;
     font-size: 0.9rem;
-    color: #666;
+    color: #c8c8d8;
     cursor: pointer;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    background: white;
+    background: #323248;
 }
 
 .dropdown-select:hover,
 .dropdown-select:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #e84393;
+    box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.15);
 }
 
 /* Text input styling */
 .text-input {
     width: 100%;
     padding: 0.6rem 0.8rem;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #3d3d52;
     border-radius: 8px;
     font-family: 'Poppins', sans-serif;
     font-size: 0.9rem;
-    color: #666;
+    color: #c8c8d8;
+    background: #323248;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .text-input:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #e84393;
+    box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.15);
 }
 
 /* =====================================================
@@ -392,18 +393,18 @@ nav a:hover {
     flex: 1;
     display: flex;
     align-items: center;
-    background: white;
+    background: #2a2a3d;
     border-radius: 12px;
     padding: 0 1.2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     border: 2px solid transparent;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
     position: relative;
 }
 
 .search-bar:focus-within {
-    border-color: #667eea;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    border-color: #e84393;
+    box-shadow: 0 4px 12px rgba(232, 67, 147, 0.2);
 }
 
 /* Autocomplete Suggestions */
@@ -412,9 +413,9 @@ nav a:hover {
     top: 100%;
     left: 0;
     right: 0;
-    background: white;
+    background: #2a2a3d;
     border-radius: 0 0 12px 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     margin-top: -2px;
     max-height: 0;
     overflow: hidden;
@@ -439,8 +440,8 @@ nav a:hover {
     gap: 0.8rem;
     transition: background 0.2s ease;
     font-size: 0.95rem;
-    color: #333;
-    border-bottom: 1px solid #f5f5f5;
+    color: #c8c8d8;
+    border-bottom: 1px solid #3d3d52;
 }
 
 .suggestion-item:last-child {
@@ -448,22 +449,22 @@ nav a:hover {
 }
 
 .suggestion-item:hover {
-    background: rgba(102, 126, 234, 0.08);
-    color: #667eea;
+    background: rgba(232, 67, 147, 0.1);
+    color: #e84393;
 }
 
 .suggestion-item.no-results {
     padding: 1rem 1.2rem;
     text-align: center;
-    color: #999;
+    color: #6b6b80;
     cursor: default;
     justify-content: center;
     flex-direction: column;
 }
 
 .suggestion-item.no-results:hover {
-    background: white;
-    color: #999;
+    background: #2a2a3d;
+    color: #6b6b80;
 }
 
 .suggestion-icon {
@@ -483,12 +484,12 @@ nav a:hover {
 
 .suggestion-meta {
     font-size: 0.8rem;
-    color: #999;
+    color: #6b6b80;
     margin-top: 0.2rem;
 }
 
 .suggestion-match-badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #e84393;
     color: white;
     padding: 0.25rem 0.6rem;
     border-radius: 12px;
@@ -506,11 +507,11 @@ nav a:hover {
     font-family: 'Poppins', sans-serif;
     font-size: 1rem;
     padding: 1rem 0;
-    color: #333;
+    color: #e2e2ea;
 }
 
 .search-bar input::placeholder {
-    color: #bbb;
+    color: #6b6b80;
 }
 
 .search-bar input:focus {
@@ -518,13 +519,13 @@ nav a:hover {
 }
 
 .search-icon {
-    color: #999;
+    color: #6b6b80;
     font-size: 1.4rem;
     margin-right: 0.5rem;
 }
 
 .search-btn {
-    background: linear-gradient(135deg, #f5a6d3 0%, #f093fb 100%);
+    background: #e84393;
     border: none;
     padding: 0.8rem 1.5rem;
     border-radius: 10px;
@@ -540,7 +541,7 @@ nav a:hover {
 
 .search-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(245, 93, 211, 0.3);
+    box-shadow: 0 4px 12px rgba(232, 67, 147, 0.4);
 }
 
 .search-btn:active {
@@ -557,16 +558,16 @@ nav a:hover {
 .section-title {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #333;
+    color: #e2e2ea;
     margin-bottom: 0.5rem;
 }
 
 .thesis-card {
-    background: white;
+    background: #2a2a3d;
     border-radius: 12px;
     padding: 1.2rem;
     margin-bottom: 1.2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     gap: 1.2rem;
@@ -577,13 +578,13 @@ nav a:hover {
 
 .thesis-card:hover {
     transform: translateX(4px);
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
-    border-left-color: #667eea;
+    box-shadow: 0 4px 16px rgba(232, 67, 147, 0.2);
+    border-left-color: #e84393;
 }
 
 .thesis-icon {
     font-size: 2.5rem;
-    color: #667eea;
+    color: #e84393;
     flex-shrink: 0;
 }
 
@@ -597,7 +598,7 @@ nav a:hover {
 .thesis-title {
     font-size: 1rem;
     font-weight: 700;
-    color: #333;
+    color: #e2e2ea;
 }
 
 .thesis-meta {
@@ -606,7 +607,7 @@ nav a:hover {
     gap: 1rem;
     flex-wrap: wrap;
     font-size: 0.85rem;
-    color: #777;
+    color: #9a9ab0;
 }
 
 .author-info {
@@ -629,12 +630,12 @@ nav a:hover {
 }
 
 .meta-tag {
-    background: #f0f2f7;
+    background: #323248;
     padding: 0.25rem 0.6rem;
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #667eea;
+    color: #e84393;
 }
 
 .thesis-actions {
@@ -650,32 +651,32 @@ nav a:hover {
     align-items: center;
     gap: 0.3rem;
     font-size: 0.85rem;
-    color: #999;
+    color: #6b6b80;
 }
 
 .bookmark-btn {
     background: none;
     border: none;
     font-size: 1.3rem;
-    color: #ddd;
+    color: #4d4d60;
     cursor: pointer;
     transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .bookmark-btn:hover {
-    color: #f5a6d3;
+    color: #e84393;
     transform: scale(1.15);
 }
 
 .bookmark-btn.active {
-    color: #f093fb;
+    color: #e84393;
 }
 
 /* No results message */
 .no-results {
     text-align: center;
     padding: 3rem 2rem;
-    color: #999;
+    color: #6b6b80;
     font-size: 1rem;
 }
 
@@ -689,26 +690,29 @@ nav a:hover {
 }
 
 .overview-card {
-    background: white;
+    background: #2a2a3d;
     border-radius: 12px;
     padding: 1.2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, outline 0.2s ease, opacity 0.2s ease;
     border-top: 4px solid;
+    cursor: pointer;
+    outline: 2.5px solid transparent;
+    user-select: none;
 }
 
 .overview-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .overview-card.thesis {
-    border-top-color: #667eea;
+    border-top-color: #e84393;
 }
 
 .overview-card.project {
-    border-top-color: #f5a6d3;
+    border-top-color: #fd79a8;
 }
 
 .overview-card.authors {
@@ -722,7 +726,7 @@ nav a:hover {
 
 .overview-label {
     font-size: 0.85rem;
-    color: #999;
+    color: #9a9ab0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.5rem;
@@ -732,15 +736,15 @@ nav a:hover {
 .overview-number {
     font-size: 1.9rem;
     font-weight: 700;
-    color: #333;
+    color: #e2e2ea;
 }
 
 /* Popular Keywords Section */
 .keywords-section {
-    background: white;
+    background: #2a2a3d;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     height: fit-content;
 }
 
@@ -748,7 +752,7 @@ nav a:hover {
     font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 1rem;
-    color: #333;
+    color: #e2e2ea;
 }
 
 .keyword-item {
@@ -756,7 +760,7 @@ nav a:hover {
     align-items: center;
     justify-content: space-between;
     padding: 0.8rem 0;
-    border-bottom: 1px solid #f0f2f7;
+    border-bottom: 1px solid #3d3d52;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -767,15 +771,15 @@ nav a:hover {
 
 .keyword-item:hover {
     padding-left: 0.5rem;
-    color: #667eea;
-    background-color: rgba(102, 126, 234, 0.05);
+    color: #e84393;
+    background-color: rgba(232, 67, 147, 0.08);
     border-radius: 6px;
     padding: 0.8rem 0.5rem;
 }
 
 .keyword-item.active {
-    color: #667eea;
-    background-color: rgba(102, 126, 234, 0.1);
+    color: #e84393;
+    background-color: rgba(232, 67, 147, 0.12);
     border-radius: 6px;
     padding: 0.8rem 0.5rem;
     font-weight: 600;
@@ -790,11 +794,11 @@ nav a:hover {
 
 .keyword-icon {
     font-size: 1.2rem;
-    color: #667eea;
+    color: #e84393;
 }
 
 .keyword-count {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #e84393;
     color: white;
     padding: 0.3rem 0.7rem;
     border-radius: 20px;

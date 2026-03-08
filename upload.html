@@ -20,8 +20,8 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f7 100%);
-            color: #333;
+            background: #1e1e2e;
+            color: #e2e2ea;
             line-height: 1.6;
             min-height: 100vh;
         }
@@ -30,9 +30,9 @@
            HEADER / TOP NAVIGATION BAR
            ===================================================== */
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #252538;
             padding: 1rem 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -131,21 +131,18 @@
 
         .page-header .icon {
             font-size: 4rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #e84393;
         }
 
         .page-header h1 {
             font-size: 2rem;
             font-weight: 700;
-            color: #333;
+            color: #e2e2ea;
             margin-top: 0.5rem;
         }
 
         .page-header p {
-            color: #666;
+            color: #9a9ab0;
             font-size: 1rem;
             margin-top: 0.5rem;
         }
@@ -154,10 +151,10 @@
            UPLOAD CARD
            ===================================================== */
         .upload-card {
-            background: white;
+            background: #2a2a3d;
             border-radius: 16px;
             padding: 2rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
             animation: fadeInUp 0.5s ease-out;
         }
 
@@ -182,17 +179,17 @@
         .form-section-title {
             font-size: 1.1rem;
             font-weight: 600;
-            color: #333;
+            color: #e2e2ea;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid #f0f2f7;
+            border-bottom: 2px solid #3d3d52;
         }
 
         .form-section-title .material-icons {
-            color: #667eea;
+            color: #e84393;
         }
 
         .form-row {
@@ -209,7 +206,7 @@
             display: block;
             font-size: 0.9rem;
             font-weight: 600;
-            color: #555;
+            color: #9a9ab0;
             margin-bottom: 0.5rem;
         }
 
@@ -222,11 +219,12 @@
         .form-group textarea {
             width: 100%;
             padding: 0.9rem 1rem;
-            border: 2px solid #e1e5eb;
+            border: 2px solid #3d3d52;
             border-radius: 10px;
             font-size: 0.95rem;
             font-family: 'Poppins', sans-serif;
-            background: #f9fafb;
+            background: #323248;
+            color: #e2e2ea;
             transition: all 0.3s ease;
         }
 
@@ -239,20 +237,20 @@
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
-            background: #fff;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: #e84393;
+            background: #323248;
+            box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.1);
         }
 
         .form-group input::placeholder,
         .form-group textarea::placeholder {
-            color: #aaa;
+            color: #6b6b80;
         }
 
         .form-group small {
             display: block;
             font-size: 0.75rem;
-            color: #888;
+            color: #6b6b80;
             margin-top: 0.4rem;
         }
 
@@ -260,43 +258,43 @@
            FILE UPLOAD AREA
            ===================================================== */
         .file-upload-area {
-            border: 2px dashed #d1d5db;
+            border: 2px dashed #3d3d52;
             border-radius: 12px;
             padding: 2rem;
             text-align: center;
-            background: #f9fafb;
+            background: #323248;
             transition: all 0.3s ease;
             cursor: pointer;
         }
 
         .file-upload-area:hover,
         .file-upload-area.dragover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
+            border-color: #e84393;
+            background: rgba(232, 67, 147, 0.05);
         }
 
         .file-upload-area .upload-icon {
             font-size: 3rem;
-            color: #667eea;
+            color: #e84393;
             margin-bottom: 1rem;
         }
 
         .file-upload-area h3 {
             font-size: 1.1rem;
-            color: #333;
+            color: #e2e2ea;
             margin-bottom: 0.5rem;
         }
 
         .file-upload-area p {
             font-size: 0.9rem;
-            color: #888;
+            color: #9a9ab0;
         }
 
         .file-upload-area .browse-btn {
             display: inline-block;
             margin-top: 1rem;
             padding: 0.6rem 1.5rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #e84393;
             color: white;
             border-radius: 8px;
             font-weight: 500;
@@ -305,7 +303,7 @@
 
         .file-upload-area .browse-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(232, 67, 147, 0.4);
         }
 
         .file-upload-input {
@@ -318,7 +316,7 @@
             align-items: center;
             gap: 1rem;
             padding: 1rem;
-            background: #e8f5e9;
+            background: rgba(39, 174, 96, 0.15);
             border-radius: 10px;
             margin-top: 1rem;
         }
@@ -338,12 +336,12 @@
 
         .selected-file .file-name {
             font-weight: 600;
-            color: #333;
+            color: #e2e2ea;
         }
 
         .selected-file .file-size {
             font-size: 0.8rem;
-            color: #666;
+            color: #9a9ab0;
         }
 
         .selected-file .remove-file {
@@ -367,17 +365,17 @@
             flex-wrap: wrap;
             gap: 0.5rem;
             padding: 0.5rem;
-            border: 2px solid #e1e5eb;
+            border: 2px solid #3d3d52;
             border-radius: 10px;
-            background: #f9fafb;
+            background: #323248;
             min-height: 50px;
             transition: all 0.3s ease;
         }
 
         .keywords-container:focus-within {
-            border-color: #667eea;
-            background: #fff;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: #e84393;
+            background: #323248;
+            box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.1);
         }
 
         .keyword-tag {
@@ -385,7 +383,7 @@
             align-items: center;
             gap: 0.3rem;
             padding: 0.3rem 0.6rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #e84393;
             color: white;
             border-radius: 20px;
             font-size: 0.85rem;
@@ -415,6 +413,7 @@
             font-family: 'Poppins', sans-serif;
             font-size: 0.9rem;
             outline: none;
+            color: #e2e2ea;
         }
 
         /* =====================================================
@@ -432,7 +431,7 @@
             gap: 1rem;
             align-items: end;
             padding: 1rem;
-            background: #f9fafb;
+            background: #323248;
             border-radius: 10px;
         }
 
@@ -460,9 +459,9 @@
             gap: 0.5rem;
             padding: 0.8rem 1.2rem;
             background: transparent;
-            border: 2px dashed #667eea;
+            border: 2px dashed #e84393;
             border-radius: 10px;
-            color: #667eea;
+            color: #e84393;
             font-family: 'Poppins', sans-serif;
             font-size: 0.9rem;
             font-weight: 500;
@@ -472,7 +471,7 @@
         }
 
         .add-coauthor-btn:hover {
-            background: rgba(102, 126, 234, 0.05);
+            background: rgba(232, 67, 147, 0.05);
         }
 
         /* =====================================================
@@ -484,7 +483,7 @@
             justify-content: flex-end;
             margin-top: 2rem;
             padding-top: 1.5rem;
-            border-top: 2px solid #f0f2f7;
+            border-top: 2px solid #3d3d52;
         }
 
         .btn {
@@ -501,28 +500,28 @@
         }
 
         .btn-secondary {
-            background: #f0f2f7;
-            border: 2px solid #e1e5eb;
-            color: #666;
+            background: #323248;
+            border: 2px solid #3d3d52;
+            color: #9a9ab0;
         }
 
         .btn-secondary:hover {
-            background: #e1e5eb;
+            background: #3d3d52;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #e84393;
             border: none;
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(232, 67, 147, 0.4);
         }
 
         .btn-primary:disabled {
-            background: #ccc;
+            background: #4d4d60;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -545,12 +544,12 @@
         }
 
         .message.error {
-            background: #ffeaea;
+            background: rgba(231, 76, 60, 0.15);
             color: #e74c3c;
         }
 
         .message.success {
-            background: #e8f5e9;
+            background: rgba(39, 174, 96, 0.15);
             color: #27ae60;
         }
 
@@ -572,21 +571,21 @@
 
         .progress-bar {
             height: 8px;
-            background: #e1e5eb;
+            background: #3d3d52;
             border-radius: 4px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #e84393;
             width: 0%;
             transition: width 0.3s ease;
         }
 
         .progress-text {
             font-size: 0.85rem;
-            color: #666;
+            color: #9a9ab0;
             margin-top: 0.5rem;
             text-align: center;
         }

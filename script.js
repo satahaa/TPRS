@@ -53,11 +53,32 @@ async function loadDataFromBackend() {
             }
 
             // Get dashboard stats
-            const statsResult = await TPRSApi.getDashboardStats();
-            if (statsResult.success && statsResult.stats) {
-                document.getElementById('totalThesis').textContent = statsResult.stats.totalThesis || 0;
-                document.getElementById('totalProject').textContent = statsResult.stats.totalProject || 0;
-                document.getElementById('totalAuthors').textContent = statsResult.stats.totalAuthors || 0;
+            let statsLoaded = false;
+            try {
+                const statsResult = await TPRSApi.getDashboardStats();
+                if (statsResult.success && statsResult.stats) {
+                    const t = statsResult.stats.totalThesis;
+                    const p = statsResult.stats.totalProject;
+                    const a = statsResult.stats.totalAuthors;
+                    if (t > 0 || p > 0 || a > 0) {
+                        document.getElementById('totalThesis').textContent = t || 0;
+                        document.getElementById('totalProject').textContent = p || 0;
+                        document.getElementById('totalAuthors').textContent = a || 0;
+                        statsLoaded = true;
+                    }
+                }
+            } catch (e) {
+                console.log('Dashboard stats endpoint failed, computing from loaded data');
+            }
+
+            // Fallback: compute stats from loaded project data
+            if (!statsLoaded && thesesData.length > 0) {
+                const totalThesis = thesesData.filter(t => t.field && t.field.toLowerCase() === 'thesis').length;
+                const totalProject = thesesData.filter(t => t.field && t.field.toLowerCase() !== 'thesis').length;
+                const totalAuthors = new Set(thesesData.map(t => t.author)).size;
+                document.getElementById('totalThesis').textContent = totalThesis;
+                document.getElementById('totalProject').textContent = totalProject;
+                document.getElementById('totalAuthors').textContent = totalAuthors;
             }
 
             // Build keywords from loaded project data
@@ -139,6 +160,8 @@ let displayedTheses = [...thesesData];
 let currentPage = 1;
 const ITEMS_PER_PAGE = 10;
 let isBookmarkView = false;
+let activeTypeFilter = ''; // '', 'thesis', or 'project'
+let isAuthorsView = false;
 let filters = {
     sessions: [],
     degrees: [],
@@ -173,11 +196,15 @@ const totalAuthorsEl = document.getElementById("totalAuthors");
  * Render the thesis list based on current filters and search
  */
 function renderThesisList() {
-    // Update section title based on bookmark view state
+    // Update section title based on view state
     const sectionTitle = document.querySelector('.section-title');
     if (sectionTitle) {
         if (isBookmarkView) {
-            sectionTitle.innerHTML = '<span class="material-icons" style="cursor:pointer;margin-right:0.4rem;vertical-align:middle;color:#667eea;" onclick="exitBookmarkView()">arrow_back</span> Bookmarks';
+            sectionTitle.innerHTML = '<span class="material-icons" style="cursor:pointer;margin-right:0.4rem;vertical-align:middle;color:#e84393;" onclick="exitBookmarkView()">arrow_back</span> Bookmarks';
+        } else if (activeTypeFilter === 'thesis') {
+            sectionTitle.textContent = 'Thesis';
+        } else if (activeTypeFilter === 'project') {
+            sectionTitle.textContent = 'Projects';
         } else {
             sectionTitle.textContent = 'Recent Thesis & Projects';
         }
@@ -247,16 +274,16 @@ function renderThesisList() {
     // Pagination controls
     if (totalPages > 1) {
         html += '<div class="pagination" style="display:flex;justify-content:center;align-items:center;gap:0.5rem;margin-top:1.5rem;flex-wrap:wrap;">';
-        html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="padding:0.4rem 0.8rem;border:1px solid #ddd;border-radius:6px;background:${currentPage === 1 ? '#f5f5f5' : '#fff'};cursor:${currentPage === 1 ? 'not-allowed' : 'pointer'};font-size:0.85rem;color:#555;"><span class="material-icons" style="font-size:1rem;vertical-align:middle;">chevron_left</span></button>`;
+        html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="padding:0.4rem 0.8rem;border:1px solid #3d3d52;border-radius:6px;background:${currentPage === 1 ? '#323248' : '#2a2a3d'};cursor:${currentPage === 1 ? 'not-allowed' : 'pointer'};font-size:0.85rem;color:#9a9ab0;"><span class="material-icons" style="font-size:1rem;vertical-align:middle;">chevron_left</span></button>`;
         for (let i = 1; i <= totalPages; i++) {
             if (totalPages <= 7 || i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-                html += `<button class="page-btn" onclick="goToPage(${i})" style="padding:0.4rem 0.8rem;border:1px solid ${i === currentPage ? '#667eea' : '#ddd'};border-radius:6px;background:${i === currentPage ? '#667eea' : '#fff'};color:${i === currentPage ? '#fff' : '#555'};cursor:pointer;font-size:0.85rem;font-weight:${i === currentPage ? '600' : '400'};">${i}</button>`;
+                html += `<button class="page-btn" onclick="goToPage(${i})" style="padding:0.4rem 0.8rem;border:1px solid ${i === currentPage ? '#e84393' : '#3d3d52'};border-radius:6px;background:${i === currentPage ? '#e84393' : '#2a2a3d'};color:${i === currentPage ? '#fff' : '#9a9ab0'};cursor:pointer;font-size:0.85rem;font-weight:${i === currentPage ? '600' : '400'};">${i}</button>`;
             } else if (i === currentPage - 2 || i === currentPage + 2) {
-                html += '<span style="color:#999;">…</span>';
+                html += '<span style="color:#6b6b80;">…</span>';
             }
         }
-        html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} style="padding:0.4rem 0.8rem;border:1px solid #ddd;border-radius:6px;background:${currentPage === totalPages ? '#f5f5f5' : '#fff'};cursor:${currentPage === totalPages ? 'not-allowed' : 'pointer'};font-size:0.85rem;color:#555;"><span class="material-icons" style="font-size:1rem;vertical-align:middle;">chevron_right</span></button>`;
-        html += `<span style="color:#999;font-size:0.8rem;margin-left:0.5rem;">Page ${currentPage} of ${totalPages}</span>`;
+        html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} style="padding:0.4rem 0.8rem;border:1px solid #3d3d52;border-radius:6px;background:${currentPage === totalPages ? '#323248' : '#2a2a3d'};cursor:${currentPage === totalPages ? 'not-allowed' : 'pointer'};font-size:0.85rem;color:#9a9ab0;"><span class="material-icons" style="font-size:1rem;vertical-align:middle;">chevron_right</span></button>`;
+        html += `<span style="color:#6b6b80;font-size:0.8rem;margin-left:0.5rem;">Page ${currentPage} of ${totalPages}</span>`;
         html += '</div>';
     }
 
@@ -307,6 +334,16 @@ function updateStats() {
  */
 function applyFilters() {
     displayedTheses = thesesData.filter(thesis => {
+        // Type filter (from overview card toggle)
+        if (activeTypeFilter) {
+            if (activeTypeFilter === 'thesis' && (!thesis.field || thesis.field.toLowerCase() !== 'thesis')) {
+                return false;
+            }
+            if (activeTypeFilter === 'project' && thesis.field && thesis.field.toLowerCase() === 'thesis') {
+                return false;
+            }
+        }
+
         // Session filter
         if (filters.sessions.length > 0 && !filters.sessions.includes(thesis.session)) {
             return false;
@@ -351,7 +388,12 @@ function applyFilters() {
     });
 
     currentPage = 1;
-    renderThesisList();
+    if (isAuthorsView) {
+        renderAuthorsView();
+    } else {
+        renderThesisList();
+    }
+    updateOverviewCardStyles();
 }
 
 /**
@@ -482,9 +524,222 @@ function exitBookmarkView() {
     renderThesisList();
 }
 
+// =====================================================
+// OVERVIEW CARD TOGGLE FILTERS
+// =====================================================
+
 /**
- * Handle keyword item clicks
+ * Setup click handlers on overview stat cards for toggle filtering
  */
+function setupOverviewCardToggles() {
+    const thesisCard = document.querySelector('.overview-card.thesis');
+    const projectCard = document.querySelector('.overview-card.project');
+    const authorsCard = document.querySelector('.overview-card.authors');
+
+    if (thesisCard) {
+        thesisCard.style.cursor = 'pointer';
+        thesisCard.addEventListener('click', () => {
+            isAuthorsView = false;
+            if (activeTypeFilter === 'thesis') {
+                activeTypeFilter = '';
+            } else {
+                activeTypeFilter = 'thesis';
+            }
+            applyFilters();
+        });
+    }
+
+    if (projectCard) {
+        projectCard.style.cursor = 'pointer';
+        projectCard.addEventListener('click', () => {
+            isAuthorsView = false;
+            if (activeTypeFilter === 'project') {
+                activeTypeFilter = '';
+            } else {
+                activeTypeFilter = 'project';
+            }
+            applyFilters();
+        });
+    }
+
+    if (authorsCard) {
+        authorsCard.style.cursor = 'pointer';
+        authorsCard.addEventListener('click', () => {
+            activeTypeFilter = '';
+            isAuthorsView = !isAuthorsView;
+            if (isAuthorsView) {
+                applyFilters();
+            } else {
+                applyFilters();
+            }
+        });
+    }
+
+    updateOverviewCardStyles();
+}
+
+/**
+ * Update active/inactive styles on overview cards
+ */
+function updateOverviewCardStyles() {
+    const thesisCard = document.querySelector('.overview-card.thesis');
+    const projectCard = document.querySelector('.overview-card.project');
+    const authorsCard = document.querySelector('.overview-card.authors');
+
+    [thesisCard, projectCard, authorsCard].forEach(c => {
+        if (c) { c.style.outline = 'none'; c.style.opacity = '1'; }
+    });
+
+    if (activeTypeFilter === 'thesis' && thesisCard) {
+        thesisCard.style.outline = '2.5px solid #e84393';
+        if (projectCard) projectCard.style.opacity = '0.5';
+        if (authorsCard) authorsCard.style.opacity = '0.5';
+    } else if (activeTypeFilter === 'project' && projectCard) {
+        projectCard.style.outline = '2.5px solid #fd79a8';
+        if (thesisCard) thesisCard.style.opacity = '0.5';
+        if (authorsCard) authorsCard.style.opacity = '0.5';
+    } else if (isAuthorsView && authorsCard) {
+        authorsCard.style.outline = '2.5px solid #48bb78';
+        if (thesisCard) thesisCard.style.opacity = '0.5';
+        if (projectCard) projectCard.style.opacity = '0.5';
+    }
+}
+
+/**
+ * Render authors as cards when Authors toggle is active
+ */
+function renderAuthorsView() {
+    const sectionTitle = document.querySelector('.section-title');
+    if (sectionTitle) {
+        sectionTitle.innerHTML = '<span class="material-icons" style="cursor:pointer;margin-right:0.4rem;vertical-align:middle;color:#48bb78;" onclick="exitAuthorsView()">arrow_back</span> Authors';
+    }
+
+    // Build author data from displayedTheses
+    const authorMap = {};
+    displayedTheses.forEach(t => {
+        const name = t.author || 'Unknown';
+        if (!authorMap[name]) {
+            authorMap[name] = {
+                name: name,
+                initials: t.authorInitials || getInitials(name),
+                department: t.department || '',
+                projectCount: 0,
+                thesisCount: 0,
+                projects: []
+            };
+        }
+        authorMap[name].projects.push(t);
+        if (t.field && t.field.toLowerCase() === 'thesis') {
+            authorMap[name].thesisCount++;
+        } else {
+            authorMap[name].projectCount++;
+        }
+    });
+
+    const authors = Object.values(authorMap).sort((a, b) => b.projects.length - a.projects.length);
+
+    if (authors.length === 0) {
+        thesisListEl.innerHTML = '<div class="no-results"><span class="material-icons" style="font-size:2.5rem;display:block;margin-bottom:0.5rem;opacity:0.3;">people</span>No authors found.</div>';
+        return;
+    }
+
+    const html = authors.map(author => `
+        <div class="author-card" onclick="openAuthorDetailModal('${author.name.replace(/'/g, "\\'")}')" style="cursor:pointer;background:#2a2a3d;border-radius:14px;padding:1.2rem 1.4rem;box-shadow:0 2px 12px rgba(0,0,0,0.2);margin-bottom:1rem;display:flex;align-items:center;gap:1rem;transition:transform 0.2s,box-shadow 0.2s;border:1px solid #3d3d52;">
+            <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex-shrink:0;">${author.initials}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:1rem;color:#e2e2ea;">${author.name}</div>
+                <div style="font-size:0.82rem;color:#9a9ab0;margin-top:0.2rem;">${author.department ? author.department + ' Department' : ''}</div>
+                <div style="display:flex;gap:0.8rem;margin-top:0.4rem;flex-wrap:wrap;">
+                    ${author.thesisCount > 0 ? `<span style="font-size:0.75rem;background:rgba(232,67,147,0.15);color:#e84393;padding:0.15rem 0.6rem;border-radius:12px;font-weight:600;">${author.thesisCount} Thesis</span>` : ''}
+                    ${author.projectCount > 0 ? `<span style="font-size:0.75rem;background:rgba(253,121,168,0.15);color:#fd79a8;padding:0.15rem 0.6rem;border-radius:12px;font-weight:600;">${author.projectCount} Project${author.projectCount > 1 ? 's' : ''}</span>` : ''}
+                </div>
+            </div>
+            <span class="material-icons" style="color:#6b6b80;font-size:1.3rem;">chevron_right</span>
+        </div>
+    `).join('');
+
+    thesisListEl.innerHTML = html;
+}
+
+/**
+ * Exit authors view
+ */
+function exitAuthorsView() {
+    isAuthorsView = false;
+    updateOverviewCardStyles();
+    const sectionTitle = document.querySelector('.section-title');
+    if (sectionTitle) sectionTitle.textContent = 'Recent Thesis & Projects';
+    renderThesisList();
+}
+
+/**
+ * Open author detail modal showing author info and their projects
+ */
+function openAuthorDetailModal(authorName) {
+    const authorProjects = displayedTheses.filter(t => t.author === authorName);
+    if (authorProjects.length === 0) return;
+
+    const first = authorProjects[0];
+    const initials = first.authorInitials || getInitials(authorName);
+    const department = first.department || 'N/A';
+    const thesisCount = authorProjects.filter(p => p.field && p.field.toLowerCase() === 'thesis').length;
+    const projectCount = authorProjects.length - thesisCount;
+
+    let projectsHtml = authorProjects.map(p => {
+        const typeColor = (p.field && p.field.toLowerCase() === 'thesis') ? '#e84393' : '#fd79a8';
+        const typeBg = (p.field && p.field.toLowerCase() === 'thesis') ? 'rgba(232,67,147,0.15)' : 'rgba(253,121,168,0.15)';
+        return `<div onclick="closeAuthorDetailModal(); openProjectDetail(${p.id})" style="padding:0.7rem 0;border-bottom:1px solid #3d3d52;cursor:pointer;display:flex;align-items:center;gap:0.7rem;">
+            <span class="material-icons" style="color:#e84393;font-size:1.1rem;">description</span>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:0.88rem;font-weight:500;color:#e2e2ea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</div>
+                <div style="display:flex;gap:0.5rem;margin-top:0.2rem;align-items:center;">
+                    <span style="font-size:0.7rem;background:${typeBg};color:${typeColor};padding:0.1rem 0.5rem;border-radius:10px;font-weight:600;">${p.field || 'Project'}</span>
+                    ${p.session ? `<span style="font-size:0.7rem;color:#6b6b80;">${p.session}</span>` : ''}
+                </div>
+            </div>
+            <span class="material-icons" style="color:#6b6b80;font-size:1rem;">open_in_new</span>
+        </div>`;
+    }).join('');
+
+    // Create/show the modal
+    let modal = document.getElementById('authorDetailModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'authorDetailModal';
+        modal.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:10001;align-items:center;justify-content:center;';
+        document.body.appendChild(modal);
+        modal.addEventListener('click', function(e) { if (e.target === this) closeAuthorDetailModal(); });
+    }
+
+    modal.innerHTML = `
+        <div style="background:#2a2a3d;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-width:520px;width:95%;max-height:85vh;overflow-y:auto;animation:spModalIn 0.25s ease;border:1px solid #3d3d52;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:1.2rem 1.5rem;border-bottom:1px solid #3d3d52;">
+                <h2 style="font-size:1.05rem;font-weight:700;color:#e2e2ea;margin:0;">Author Details</h2>
+                <button onclick="closeAuthorDetailModal()" style="background:none;border:none;cursor:pointer;color:#9a9ab0;padding:4px;border-radius:50%;"><span class="material-icons">close</span></button>
+            </div>
+            <div style="padding:1.5rem;text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.3rem;margin:0 auto 0.7rem;">${initials}</div>
+                <div style="font-size:1.15rem;font-weight:700;color:#e2e2ea;">${authorName}</div>
+                <div style="font-size:0.85rem;color:#9a9ab0;margin-top:0.2rem;">${department} Department</div>
+                <div style="display:flex;gap:0.8rem;justify-content:center;margin-top:0.7rem;">
+                    ${thesisCount > 0 ? `<span style="font-size:0.78rem;background:rgba(232,67,147,0.15);color:#e84393;padding:0.2rem 0.8rem;border-radius:12px;font-weight:600;">${thesisCount} Thesis</span>` : ''}
+                    ${projectCount > 0 ? `<span style="font-size:0.78rem;background:rgba(253,121,168,0.15);color:#fd79a8;padding:0.2rem 0.8rem;border-radius:12px;font-weight:600;">${projectCount} Project${projectCount > 1 ? 's' : ''}</span>` : ''}
+                </div>
+            </div>
+            <div style="padding:0 1.5rem 1.5rem;">
+                <div style="font-size:0.82rem;font-weight:600;color:#9a9ab0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.5rem;">Works</div>
+                ${projectsHtml}
+            </div>
+        </div>
+    `;
+    modal.style.display = 'flex';
+}
+
+function closeAuthorDetailModal() {
+    const modal = document.getElementById('authorDetailModal');
+    if (modal) modal.style.display = 'none';
+}
+
 function handleKeywordClick(e) {
     const keyword = e.currentTarget.dataset.keyword;
     
@@ -586,7 +841,7 @@ function updateProfileDisplay() {
         const initials = getInitials(fullName);
         const email = currentUser.email || '';
         const department = currentUser.department || 'N/A';
-        const studentId = currentUser.studentId || currentUser.id || 'N/A';
+        const userType = typeof TPRSApi !== 'undefined' ? TPRSApi.getUserType() : 'student';
         
         // Update header profile
         const userAvatar = document.querySelector('.user-avatar');
@@ -604,8 +859,22 @@ function updateProfileDisplay() {
         if (dropdownAvatar) dropdownAvatar.textContent = initials;
         if (dropdownName) dropdownName.textContent = fullName;
         if (dropdownEmail) dropdownEmail.textContent = email;
-        if (dropdownDept) dropdownDept.textContent = department + ' Department';
-        if (dropdownStudentId) dropdownStudentId.textContent = studentId;
+
+        if (userType === 'teacher') {
+            // For teachers: show email + designation only
+            const deptItem = dropdownDept ? dropdownDept.closest('.dropdown-detail-item') : null;
+            if (deptItem) deptItem.style.display = 'none';
+            if (dropdownStudentId) dropdownStudentId.textContent = currentUser.designation || 'Supervisor';
+            // Change badge icon to work icon for teachers
+            const badgeIcon = dropdownStudentId ? dropdownStudentId.closest('.dropdown-detail-item') : null;
+            if (badgeIcon) {
+                const icon = badgeIcon.querySelector('.material-icons');
+                if (icon) icon.textContent = 'work';
+            }
+        } else {
+            if (dropdownDept) dropdownDept.textContent = department + ' Department';
+            if (dropdownStudentId) dropdownStudentId.textContent = currentUser.studentId || currentUser.id || 'N/A';
+        }
     }
 }
 
@@ -853,7 +1122,7 @@ function renderAutocompleteSuggestions(suggestions, query) {
  */
 function highlightQuery(text, query) {
     const regex = new RegExp(`(${query})`, "gi");
-    return text.replace(regex, "<strong style='color: #667eea;'>$1</strong>");
+    return text.replace(regex, "<strong style='color: #e84393;'>$1</strong>");
 }
 
 /**
@@ -941,6 +1210,15 @@ async function init() {
     renderThesisList();
     renderKeywords();
     setupAutocompletSearch();
+    setupOverviewCardToggles();
+
+    // Clear search input to prevent browser autofill (Chrome ignores autocomplete="off")
+    const searchEl = document.getElementById('searchInput');
+    if (searchEl) {
+        searchEl.value = '';
+        // Browsers sometimes autofill after DOMContentLoaded, so clear again after a short delay
+        setTimeout(() => { searchEl.value = ''; }, 100);
+    }
 
     // Add smooth scroll behavior
     document.documentElement.style.scrollBehavior = "smooth";
