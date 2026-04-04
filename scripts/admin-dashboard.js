@@ -1,8 +1,8 @@
-// --- Extracted from admin-dashboard.html ---
+// --- Extracted from /TPRS/html/admin-dashboard.html ---
 // ===== Auth Check =====
         (function() {
             if (!TPRSApi.isLoggedIn() || TPRSApi.getUserType() !== 'admin') {
-                window.location.href = 'login.html';
+                window.location.href = '/TPRS/html/login.html';
             }
         })();
 
@@ -436,7 +436,7 @@
 
         function doLogout() {
             TPRSApi.logout();
-            window.location.href = 'login.html';
+            window.location.href = '/TPRS/html/login.html';
         }
 
         // ===== Delete Functions (custom confirm) =====

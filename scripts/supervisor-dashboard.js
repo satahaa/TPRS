@@ -1,4 +1,4 @@
-// --- Extracted from supervisor-dashboard.html ---
+// --- Extracted from /TPRS/html/supervisor-dashboard.html ---
 // ===== Global State =====
         let currentUser = null;
         let allUnassignedStudents = [];
@@ -7,13 +7,13 @@
         document.addEventListener('DOMContentLoaded', async function() {
             // Auth check
             if (!TPRSApi.isLoggedIn() || TPRSApi.getUserType() !== 'teacher') {
-                window.location.href = 'login.html';
+                window.location.href = '/TPRS/html/login.html';
                 return;
             }
 
             currentUser = TPRSApi.getCurrentUser();
             if (!currentUser) {
-                window.location.href = 'login.html';
+                window.location.href = '/TPRS/html/login.html';
                 return;
             }
 
@@ -573,7 +573,7 @@
 
         function handleLogout() {
             TPRSApi.logout();
-            window.location.href = 'login.html';
+            window.location.href = '/TPRS/html/login.html';
         }
     
 

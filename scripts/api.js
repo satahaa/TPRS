@@ -681,7 +681,7 @@ const TPRSApi = {
      */
     requireAuth() {
         if (!this.isLoggedIn()) {
-            window.location.href = 'login.html';
+            window.location.href = '/TPRS/html/login.html';
             return false;
         }
         return true;

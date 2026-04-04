@@ -7,10 +7,10 @@ let keywords = [];
 function checkAuth() {
     // Use TPRSApi if available, fallback to sessionStorage
     if (typeof TPRSApi !== 'undefined' && !TPRSApi.isLoggedIn()) {
-        window.location.href = 'login.html';
+        window.location.href = '/TPRS/html/login.html';
         return false;
     } else if (typeof TPRSApi === 'undefined' && sessionStorage.getItem('isLoggedIn') !== 'true') {
-        window.location.href = 'login.html';
+        window.location.href = '/TPRS/html/login.html';
         return false;
     }
     return true;
@@ -818,7 +818,7 @@ function setupProfileDropdown() {
                 sessionStorage.removeItem('userEmail');
                 sessionStorage.removeItem('currentUser');
             }
-            window.location.href = 'login.html';
+            window.location.href = '/TPRS/html/login.html';
         });
     }
 }
@@ -1281,7 +1281,7 @@ function exitTypeFilter() {
 }
 
 
-// --- Extracted from home.html ---
+// --- Extracted from /TPRS/html/home.html ---
 // Adjust nav and visibility for supervisor (teacher) users
         (function() {
             const userType = TPRSApi.getUserType();
@@ -1289,20 +1289,20 @@ function exitTypeFilter() {
                 // Change Dashboard link to point to supervisor dashboard
                 const navLinks = document.querySelectorAll('header nav a');
                 navLinks.forEach(link => {
-                    if (link.getAttribute('href') === 'home.html') {
-                        link.setAttribute('href', 'supervisor-dashboard.html');
+                    if (link.getAttribute('href') === '/TPRS/html/home.html') {
+                        link.setAttribute('href', '/TPRS/html/supervisor-dashboard.html');
                     }
                 });
                 // Hide Project Submission link
                 navLinks.forEach(link => {
-                    if (link.getAttribute('href') === 'upload.html') {
+                    if (link.getAttribute('href') === '/TPRS/html/upload.html') {
                         link.style.display = 'none';
                     }
                 });
                 // Add Browse Projects link if not present
                 const nav = document.querySelector('header nav');
                 const browseLink = document.createElement('a');
-                browseLink.href = 'home.html';
+                browseLink.href = '/TPRS/html/home.html';
                 browseLink.innerHTML = '<span class="material-icons">folder_special</span> Browse Projects';
                 browseLink.style.color = '#fff';
                 nav.appendChild(browseLink);

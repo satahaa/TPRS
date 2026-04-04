@@ -1,4 +1,4 @@
-// --- Extracted from signup.html ---
+// --- Extracted from /TPRS/html/signup.html ---
 // ===== Multi-tag Specialization =====
         let specTags = [];
         let specSuggestions = [];
@@ -347,7 +347,7 @@
                     await firebase.auth().signOut();
                     
                     setTimeout(() => {
-                        window.location.href = 'login.html';
+                        window.location.href = '/TPRS/html/login.html';
                     }, 5000);
                 } else {
                     showError(result.message || 'Registration failed. Please try again.');
@@ -379,7 +379,7 @@
 
         // Check if already logged in
         if (TPRSApi.isLoggedIn()) {
-            window.location.href = 'home.html';
+            window.location.href = '/TPRS/html/home.html';
         }
 
         async function initPage() {

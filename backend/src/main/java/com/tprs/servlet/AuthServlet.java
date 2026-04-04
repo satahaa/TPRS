@@ -197,7 +197,7 @@ public class AuthServlet extends HttpServlet {
 
                     jsonResponse.addProperty("userType", "teacher");
 
-                    jsonResponse.addProperty("redirect", "supervisor-dashboard.html");
+                    jsonResponse.addProperty("redirect", "/TPRS/html/supervisor-dashboard.html");
 
                     jsonResponse.add("user", gson.toJsonTree(teacher));
 
@@ -217,7 +217,7 @@ public class AuthServlet extends HttpServlet {
 
                     jsonResponse.addProperty("userType", "student");
 
-                    jsonResponse.addProperty("redirect", "home.html");
+                    jsonResponse.addProperty("redirect", "/TPRS/html/home.html");
 
                     jsonResponse.add("user", gson.toJsonTree(student));
 
@@ -254,7 +254,7 @@ public class AuthServlet extends HttpServlet {
                     jsonResponse.addProperty("success", true);
                     jsonResponse.addProperty("message", "Admin login successful");
                     jsonResponse.addProperty("userType", "admin");
-                    jsonResponse.addProperty("redirect", "admin-dashboard.html");
+                    jsonResponse.addProperty("redirect", "/TPRS/html/admin-dashboard.html");
                     jsonResponse.add("user", adminUser);
                     return;
                 } else {
@@ -289,7 +289,7 @@ public class AuthServlet extends HttpServlet {
 
                 jsonResponse.addProperty("userType", "teacher");
 
-                jsonResponse.addProperty("redirect", "supervisor-dashboard.html");
+                jsonResponse.addProperty("redirect", "/TPRS/html/supervisor-dashboard.html");
 
                 jsonResponse.add("user", gson.toJsonTree(teacher));
 
@@ -309,7 +309,7 @@ public class AuthServlet extends HttpServlet {
 
                 jsonResponse.addProperty("userType", "student");
 
-                jsonResponse.addProperty("redirect", "home.html");
+                jsonResponse.addProperty("redirect", "/TPRS/html/home.html");
 
                 jsonResponse.add("user", gson.toJsonTree(student));
 
