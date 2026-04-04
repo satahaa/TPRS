@@ -1,14 +1,9 @@
-// =====================================================
-// DATA - Loaded from backend API
-// =====================================================
 let thesesData = [];
 
 // Popular keywords (loaded dynamically)
 let keywords = [];
 
-// =====================================================
-// CHECK AUTHENTICATION
-// =====================================================
+
 function checkAuth() {
     // Use TPRSApi if available, fallback to sessionStorage
     if (typeof TPRSApi !== 'undefined' && !TPRSApi.isLoggedIn()) {
@@ -1284,3 +1279,402 @@ function exitTypeFilter() {
     activeTypeFilter = '';
     applyFilters();
 }
+
+
+// --- Extracted from home.html ---
+// Adjust nav and visibility for supervisor (teacher) users
+        (function() {
+            const userType = TPRSApi.getUserType();
+            if (userType === 'teacher') {
+                // Change Dashboard link to point to supervisor dashboard
+                const navLinks = document.querySelectorAll('header nav a');
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') === 'home.html') {
+                        link.setAttribute('href', 'supervisor-dashboard.html');
+                    }
+                });
+                // Hide Project Submission link
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') === 'upload.html') {
+                        link.style.display = 'none';
+                    }
+                });
+                // Add Browse Projects link if not present
+                const nav = document.querySelector('header nav');
+                const browseLink = document.createElement('a');
+                browseLink.href = 'home.html';
+                browseLink.innerHTML = '<span class="material-icons">folder_special</span> Browse Projects';
+                browseLink.style.color = '#fff';
+                nav.appendChild(browseLink);
+                // Hide notification bell
+                const bell = document.getElementById('notifBell');
+                if (bell) bell.style.display = 'none';
+            }
+        })();
+        // Load student notifications badge (only for students)
+        if (TPRSApi.isLoggedIn() && TPRSApi.getUserType() === 'student') {
+            (async function() {
+                const user = TPRSApi.getCurrentUser();
+                if (!user) return;
+                try {
+                    const result = await TPRSApi.getUnreadNotificationCount(user.id, 'student');
+                    const badge = document.getElementById('bellBadge');
+                    if (result.success && result.unreadCount > 0) {
+                        badge.textContent = result.unreadCount > 9 ? '9+' : result.unreadCount;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                } catch(e) { /* ignore */ }
+            })();
+        }
+
+        // Student notification dropdown toggle
+        function toggleStudentNotifDropdown(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('studentNotifDropdown');
+            if (dropdown.style.display === 'none' || !dropdown.style.display) {
+                dropdown.style.display = 'block';
+                loadStudentNotifications();
+            } else {
+                dropdown.style.display = 'none';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('studentNotifDropdown');
+            const bell = document.getElementById('notifBell');
+            if (dropdown && !bell.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Load student notifications
+        async function loadStudentNotifications() {
+            const user = TPRSApi.getCurrentUser();
+            if (!user) return;
+            const container = document.getElementById('studentNotifList');
+            container.innerHTML = '<div style="text-align:center;padding:2rem;color:#6b6b80;">Loading...</div>';
+            try {
+                const result = await TPRSApi.getNotifications(user.id, 'student');
+                if (!result.success || !result.notifications || result.notifications.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:2rem;color:#6b6b80;"><span class="material-icons" style="font-size:2rem;display:block;margin-bottom:0.5rem;color:#4d4d60;">notifications_none</span>No notifications yet</div>';
+                    return;
+                }
+                container.innerHTML = result.notifications.map(n => {
+                    const timeAgo = formatNotifTime(n.createdAt);
+                    const iconName = n.type === 'project_approved' ? 'check_circle' : n.type === 'project_rejected' ? 'cancel' : n.type === 'assignment' ? 'person_add' : 'info';
+                    const iconColor = n.type === 'project_approved' ? '#4caf50' : n.type === 'project_rejected' ? '#f44336' : n.type === 'assignment' ? '#d63d86' : '#ff9800';
+                    return '<div onclick="markStudentNotifRead(' + n.id + ')" style="padding:0.8rem 1.2rem;cursor:pointer;border-bottom:1px solid #585876;' + (n.isRead ? '' : 'background:rgba(232,67,147,0.08);') + 'display:flex;gap:0.7rem;align-items:flex-start;">' +
+                        '<span class="material-icons" style="font-size:1.3rem;color:' + iconColor + ';margin-top:2px;">' + iconName + '</span>' +
+                        '<div style="flex:1;min-width:0;">' +
+                        '<div style="font-weight:' + (n.isRead ? '400' : '600') + ';color:#e2e2ea;font-size:0.85rem;">' + escapeNotifHtml(n.title) + '</div>' +
+                        '<div style="color:#b5b5cc;font-size:0.78rem;margin-top:2px;">' + escapeNotifHtml(n.message) + '</div>' +
+                        '<div style="color:#6b6b80;font-size:0.7rem;margin-top:4px;">' + timeAgo + '</div>' +
+                        '</div></div>';
+                }).join('');
+            } catch(e) {
+                container.innerHTML = '<div style="text-align:center;padding:2rem;color:#6b6b80;">Failed to load notifications</div>';
+            }
+        }
+
+        async function markStudentNotifRead(notifId) {
+            const user = TPRSApi.getCurrentUser();
+            await TPRSApi.markNotificationRead(notifId);
+            // Refresh badge and list
+            const result = await TPRSApi.getUnreadNotificationCount(user.id, 'student');
+            const badge = document.getElementById('bellBadge');
+            if (result.success && result.unreadCount > 0) {
+                badge.textContent = result.unreadCount > 9 ? '9+' : result.unreadCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+            loadStudentNotifications();
+        }
+
+        async function markAllStudentNotifsRead(e) {
+            e.stopPropagation();
+            const user = TPRSApi.getCurrentUser();
+            if (!user) return;
+            await TPRSApi.markAllNotificationsRead(user.id, 'student');
+            document.getElementById('bellBadge').style.display = 'none';
+            loadStudentNotifications();
+        }
+
+        function formatNotifTime(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return '';
+            const now = new Date();
+            const diffMs = now - date;
+            if (diffMs < 0) return 'Just now';
+            const diffSecs = Math.floor(diffMs / 1000);
+            if (diffSecs < 60) return 'Just now';
+            const diffMins = Math.floor(diffSecs / 60);
+            if (diffMins < 60) return diffMins + (diffMins === 1 ? ' minute ago' : ' minutes ago');
+            const diffHrs = Math.floor(diffMins / 60);
+            if (diffHrs < 24) return diffHrs + (diffHrs === 1 ? ' hour ago' : ' hours ago');
+            const diffDays = Math.floor(diffHrs / 24);
+            if (diffDays < 30) return diffDays + (diffDays === 1 ? ' day ago' : ' days ago');
+            const diffMonths = Math.floor(diffDays / 30);
+            if (diffMonths < 12) return diffMonths + (diffMonths === 1 ? ' month ago' : ' months ago');
+            const diffYears = Math.floor(diffMonths / 12);
+            return diffYears + (diffYears === 1 ? ' year ago' : ' years ago');
+        }
+
+        function escapeNotifHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ===== Profile Modal (role-aware) =====
+        function openProfileModalForUser(e) {
+            if (e) e.preventDefault();
+            const userType = TPRSApi.getUserType();
+            if (userType === 'teacher') {
+                openTeacherProfileModal();
+            } else {
+                openStudentProfileModal(e);
+            }
+        }
+
+        function openTeacherProfileModal() {
+            const user = TPRSApi.getCurrentUser();
+            if (user) {
+                const fullName = (user.firstName || '') + ' ' + (user.lastName || '');
+                const initials = fullName.trim().split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase() || '?';
+                document.getElementById('spAvatar').textContent = initials;
+                document.getElementById('spName').textContent = fullName.trim() || 'Supervisor';
+                document.getElementById('spRole').textContent = 'Supervisor';
+                document.getElementById('spEmail').textContent = user.email || '—';
+                // Hide Teacher ID row for teachers
+                document.getElementById('spIdRow').style.display = 'none';
+                document.getElementById('spDept').textContent = user.department ? user.department + ' Department' : '—';
+                document.getElementById('spPhone').textContent = user.phone || '—';
+                // Show teacher-specific fields
+                const desigRow = document.getElementById('spDesignationRow');
+                const specRow = document.getElementById('spSpecializationRow');
+                if (desigRow) { desigRow.style.display = ''; document.getElementById('spDesignation').textContent = user.designation || '—'; }
+                if (specRow) { specRow.style.display = ''; document.getElementById('spSpecialization').textContent = user.specialization || '—'; }
+            }
+            document.getElementById('studentProfileModal').classList.add('active');
+            const userProfile = document.getElementById('userProfile');
+            if (userProfile) userProfile.classList.remove('active');
+        }
+
+        function openStudentProfileModal(e) {
+            if (e) e.preventDefault();
+            const user = TPRSApi.getCurrentUser();
+            if (user) {
+                const fullName = (user.firstName || '') + ' ' + (user.lastName || '');
+                const initials = fullName.trim().split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase() || '?';
+                document.getElementById('spAvatar').textContent = initials;
+                document.getElementById('spName').textContent = fullName.trim() || 'Student';
+                document.getElementById('spRole').textContent = 'Student';
+                document.getElementById('spEmail').textContent = user.email || '—';
+                document.getElementById('spIdLabel').textContent = 'Student ID';
+                document.getElementById('spIdRow').style.display = '';
+                document.getElementById('spStudentId').textContent = user.studentId || user.id || '—';
+                document.getElementById('spDept').textContent = user.department ? user.department + ' Department' : '—';
+                document.getElementById('spPhone').textContent = user.phone || '—';
+                // Hide teacher-specific fields
+                var desigRow = document.getElementById('spDesignationRow');
+                var specRow = document.getElementById('spSpecializationRow');
+                if (desigRow) desigRow.style.display = 'none';
+                if (specRow) specRow.style.display = 'none';
+            }
+            document.getElementById('studentProfileModal').classList.add('active');
+            // Close the dropdown
+            const userProfile = document.getElementById('userProfile');
+            if (userProfile) userProfile.classList.remove('active');
+        }
+        function closeStudentProfileModal() {
+            document.getElementById('studentProfileModal').classList.remove('active');
+            cancelStudentPhoneEdit();
+        }
+
+        function editStudentPhone() {
+            const user = TPRSApi.getCurrentUser();
+            document.getElementById('spPhoneInput').value = user && user.phone ? user.phone : '';
+            document.getElementById('spPhoneDisplay').style.display = 'none';
+            document.getElementById('spPhoneEdit').style.display = 'block';
+        }
+
+        function cancelStudentPhoneEdit() {
+            document.getElementById('spPhoneDisplay').style.display = '';
+            document.getElementById('spPhoneEdit').style.display = 'none';
+        }
+
+        async function saveStudentPhone() {
+            const user = TPRSApi.getCurrentUser();
+            if (!user) return;
+            const phone = document.getElementById('spPhoneInput').value.trim();
+            const userType = TPRSApi.getUserType() || 'student';
+            const result = await TPRSApi.updatePhone(user.id, userType, phone);
+            if (result.success) {
+                user.phone = phone;
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                document.getElementById('spPhone').textContent = phone || '—';
+                cancelStudentPhoneEdit();
+            } else {
+                alert(result.message || 'Failed to update phone.');
+            }
+        }
+        // Close modal on overlay click
+        document.getElementById('studentProfileModal').addEventListener('click', function(e) {
+            if (e.target === this) closeStudentProfileModal();
+        });
+
+        // ===== Project Detail Modal =====
+        async function openProjectDetail(projectId) {
+            const result = await TPRSApi.getProject(projectId);
+            if (!result.success || !result.project) return;
+            const p = result.project;
+
+            // Record unique view
+            const viewer = TPRSApi.getCurrentUser();
+            const vType = TPRSApi.getUserType();
+            if (viewer && viewer.id && vType) {
+                TPRSApi.recordView(projectId, viewer.id, vType);
+            }
+
+            document.getElementById('pdmTitle').textContent = p.title || 'Untitled';
+            document.getElementById('pdmDesc').textContent = p.description || 'No description provided.';
+            const typeVal = p.type || p.projectType || '—';
+            document.getElementById('pdmType').textContent = typeVal !== '—' ? typeVal.charAt(0).toUpperCase() + typeVal.slice(1) : '—';
+            document.getElementById('pdmAuthor').textContent = p.studentName || p.authorName || '—';
+            document.getElementById('pdmSupervisor').textContent = p.supervisorName || p.supervisor || '—';
+            document.getElementById('pdmDept').textContent = p.department || '—';
+            document.getElementById('pdmKeywords').textContent = p.keywords || '—';
+            const yearSem = ((p.year || '') + (p.year && p.semester ? ' Year, ' : '') + (p.semester || '') + (p.semester ? ' Semester' : '')) || '—';
+            document.getElementById('pdmYearSem').textContent = yearSem;
+            document.getElementById('pdmSession').textContent = p.session || '—';
+            const fileRow = document.getElementById('pdmFileRow');
+            if (p.fileName) {
+                fileRow.style.display = '';
+                document.getElementById('pdmFile').innerHTML = '<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectFile(' + p.id + ')" style="color:#4facfe;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">download</span>' + escapeHtmlStr(p.fileName) + '</a>';
+            } else {
+                fileRow.style.display = 'none';
+            }
+            const zipRow = document.getElementById('pdmZipRow');
+            if (p.zipFileName) {
+                zipRow.style.display = '';
+                document.getElementById('pdmZipFile').innerHTML = '<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectZip(' + p.id + ')" style="color:#d63d86;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">folder_zip</span>' + escapeHtmlStr(p.zipFileName) + '</a>';
+            } else {
+                zipRow.style.display = 'none';
+            }
+            const githubRow = document.getElementById('pdmGithubRow');
+            if (p.githubLink) {
+                githubRow.style.display = '';
+                var ghUrl = p.githubLink.indexOf('http') === 0 ? p.githubLink : 'https://' + p.githubLink;
+                document.getElementById('pdmGithub').innerHTML = '<a href="' + escapeHtmlStr(ghUrl) + '" target="_blank" rel="noopener noreferrer" style="color:#7b1fa2;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">open_in_new</span>' + escapeHtmlStr(p.githubLink) + '</a>';
+            } else {
+                githubRow.style.display = 'none';
+            }
+            document.getElementById('projectDetailModal').classList.add('active');
+        }
+
+        function closeProjectDetail() {
+            document.getElementById('projectDetailModal').classList.remove('active');
+        }
+
+        document.getElementById('projectDetailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProjectDetail();
+        });
+
+        function escapeHtmlStr(str) {
+            if (!str) return '';
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+    
+
+        function openChangePasswordModal(e) {
+            if (e) e.preventDefault();
+            document.getElementById('cpwOldPassword').value = '';
+            document.getElementById('cpwNewPassword').value = '';
+            document.getElementById('cpwConfirmPassword').value = '';
+            document.getElementById('cpwError').classList.remove('show');
+            document.getElementById('cpwSuccess').classList.remove('show');
+            resetCpwStrength();
+            document.getElementById('cpwSubmitBtn').disabled = false;
+            document.getElementById('cpwSubmitBtn').textContent = 'Change Password';
+            document.getElementById('changePasswordModal').classList.add('active');
+            const userProfile = document.getElementById('userProfile');
+            if (userProfile) userProfile.classList.remove('active');
+        }
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').classList.remove('active');
+        }
+        document.getElementById('changePasswordModal').addEventListener('click', function(e) {
+            if (e.target === this) closeChangePasswordModal();
+        });
+
+        function toggleCpwVisibility(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') { input.type = 'text'; icon.textContent = 'visibility_off'; }
+            else { input.type = 'password'; icon.textContent = 'visibility'; }
+        }
+
+        function resetCpwStrength() {
+            ['cpwBar1','cpwBar2','cpwBar3','cpwBar4'].forEach(id => document.getElementById(id).className = 'cpw-str-bar');
+            const t = document.getElementById('cpwStrText'); t.className = 'cpw-str-text'; t.textContent = 'Password strength';
+        }
+
+        function checkCpwStrength() {
+            const password = document.getElementById('cpwNewPassword').value;
+            const bars = ['cpwBar1','cpwBar2','cpwBar3','cpwBar4'].map(id => document.getElementById(id));
+            const text = document.getElementById('cpwStrText');
+            bars.forEach(b => b.className = 'cpw-str-bar');
+            text.className = 'cpw-str-text';
+            if (!password) { text.textContent = 'Password strength'; return; }
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.length >= 10) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (strength <= 2) {
+                bars[0].classList.add('weak'); text.textContent = 'Weak password'; text.classList.add('weak');
+            } else if (strength <= 3) {
+                bars[0].classList.add('medium'); bars[1].classList.add('medium'); text.textContent = 'Medium password'; text.classList.add('medium');
+            } else if (strength <= 4) {
+                bars[0].classList.add('strong'); bars[1].classList.add('strong'); bars[2].classList.add('strong'); text.textContent = 'Strong password'; text.classList.add('strong');
+            } else {
+                bars.forEach(b => b.classList.add('strong')); text.textContent = 'Very strong password'; text.classList.add('strong');
+            }
+        }
+
+        async function submitChangePassword() {
+            const oldPw = document.getElementById('cpwOldPassword').value;
+            const newPw = document.getElementById('cpwNewPassword').value;
+            const confirmPw = document.getElementById('cpwConfirmPassword').value;
+            const errEl = document.getElementById('cpwError'), errText = document.getElementById('cpwErrorText');
+            const succEl = document.getElementById('cpwSuccess'), succText = document.getElementById('cpwSuccessText');
+            errEl.classList.remove('show'); succEl.classList.remove('show');
+
+            if (!oldPw) { errText.textContent = 'Please enter your current password'; errEl.classList.add('show'); return; }
+            if (newPw.length < 6) { errText.textContent = 'New password must be at least 6 characters'; errEl.classList.add('show'); return; }
+            if (newPw !== confirmPw) { errText.textContent = 'New passwords do not match'; errEl.classList.add('show'); return; }
+
+            const btn = document.getElementById('cpwSubmitBtn');
+            btn.disabled = true; btn.textContent = 'Changing...';
+
+            const user = TPRSApi.getCurrentUser();
+            const userType = TPRSApi.getUserType();
+            const result = await TPRSApi.changePassword(user.id, userType, oldPw, newPw);
+
+            if (result.success) {
+                succText.textContent = 'Password changed successfully!'; succEl.classList.add('show');
+                btn.textContent = 'Done!';
+                setTimeout(() => closeChangePasswordModal(), 1500);
+            } else {
+                errText.textContent = result.message || 'Failed to change password'; errEl.classList.add('show');
+                btn.disabled = false; btn.textContent = 'Change Password';
+            }
+        }
