@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TPRS - Supervisor Dashboard</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d63d86'%3E%3Cpath d='M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -41,7 +43,7 @@
             align-items: center;
             margin-bottom: 1.2rem;
             padding-bottom: 0.8rem;
-            border-bottom: 2px solid #3d3d52;
+            border-bottom: 2px solid #585876;
         }
 
         .card-title {
@@ -54,12 +56,12 @@
         }
 
         .card-title .material-icons {
-            color: #e84393;
+            color: #d63d86;
             font-size: 1.4rem;
         }
 
         .card-badge {
-            background: #e84393;
+            background: #d63d86;
             color: white;
             padding: 0.2rem 0.7rem;
             border-radius: 20px;
@@ -99,7 +101,7 @@
             color: white;
         }
 
-        .stat-icon.students { background: #e84393; }
+        .stat-icon.students { background: #d63d86; }
         .stat-icon.pending { background: #fd79a8; }
         .stat-icon.approved { background: #4facfe; }
         .stat-icon.notifications { background: #48bb78; }
@@ -112,7 +114,7 @@
 
         .stat-info p {
             font-size: 0.8rem;
-            color: #9a9ab0;
+            color: #b5b5cc;
             font-weight: 500;
         }
 
@@ -166,12 +168,12 @@
         }
 
         .notification-item:hover {
-            background: #3d3d52;
+            background: #585876;
         }
 
         .notification-item.unread {
-            background: rgba(232, 67, 147, 0.1);
-            border-left: 3px solid #e84393;
+            background: rgba(214, 61, 134, 0.1);
+            border-left: 3px solid #d63d86;
         }
 
         .notif-icon {
@@ -185,7 +187,7 @@
         }
 
         .notif-icon .material-icons { font-size: 1.2rem; color: white; }
-        .notif-icon.submit { background: #e84393; }
+        .notif-icon.submit { background: #d63d86; }
         .notif-icon.approve { background: #48bb78; }
         .notif-icon.reject { background: #f5576c; }
         .notif-icon.assign { background: #4facfe; }
@@ -202,7 +204,7 @@
 
         .notif-message {
             font-size: 0.8rem;
-            color: #9a9ab0;
+            color: #b5b5cc;
             line-height: 1.4;
         }
 
@@ -215,7 +217,7 @@
         .mark-all-read {
             background: none;
             border: none;
-            color: #e84393;
+            color: #d63d86;
             font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
@@ -262,7 +264,7 @@
 
         .student-detail {
             font-size: 0.75rem;
-            color: #9a9ab0;
+            color: #b5b5cc;
         }
 
         .btn-assign, .btn-unassign {
@@ -279,7 +281,7 @@
         }
 
         .btn-assign {
-            background: #e84393;
+            background: #d63d86;
             color: white;
         }
 
@@ -299,7 +301,7 @@
             border-radius: 10px;
             margin-bottom: 0.8rem;
             background: #323248;
-            border-left: 3px solid #e84393;
+            border-left: 3px solid #d63d86;
         }
 
         .project-top {
@@ -317,7 +319,7 @@
 
         .project-meta {
             font-size: 0.8rem;
-            color: #9a9ab0;
+            color: #b5b5cc;
             margin-bottom: 0.6rem;
         }
 
@@ -423,7 +425,7 @@
         .modal-search {
             width: 100%;
             padding: 0.8rem 1rem;
-            border: 2px solid #3d3d52;
+            border: 2px solid #585876;
             border-radius: 10px;
             font-family: 'Poppins', sans-serif;
             font-size: 0.9rem;
@@ -434,7 +436,7 @@
             color: #e2e2ea;
         }
 
-        .modal-search:focus { border-color: #e84393; }
+        .modal-search:focus { border-color: #d63d86; }
 
         /* ===== Profile Modal ===== */
         .profile-modal-body {
@@ -466,13 +468,13 @@
 
         .profile-modal-role {
             font-size: 0.85rem;
-            color: #9a9ab0;
+            color: #b5b5cc;
             margin-bottom: 1.5rem;
         }
 
         .profile-modal-details {
             width: 100%;
-            border-top: 1px solid #3d3d52;
+            border-top: 1px solid #585876;
         }
 
         .profile-detail-row {
@@ -480,11 +482,11 @@
             align-items: center;
             gap: 1rem;
             padding: 0.9rem 0.5rem;
-            border-bottom: 1px solid #3d3d52;
+            border-bottom: 1px solid #585876;
         }
 
         .profile-detail-row .material-icons {
-            color: #e84393;
+            color: #d63d86;
             font-size: 1.3rem;
             width: 30px;
             text-align: center;
@@ -551,7 +553,7 @@
 
         .scrollable-list::-webkit-scrollbar { width: 5px; }
         .scrollable-list::-webkit-scrollbar-track { background: transparent; }
-        .scrollable-list::-webkit-scrollbar-thumb { background: #3d3d52; border-radius: 10px; }
+        .scrollable-list::-webkit-scrollbar-thumb { background: #585876; border-radius: 10px; }
 
         /* ===== Responsive ===== */
         @media (max-width: 900px) {
@@ -638,7 +640,7 @@
 
         .confirm-modal-message {
             font-size: 0.9rem;
-            color: #9a9ab0;
+            color: #b5b5cc;
             margin-bottom: 1.5rem;
             line-height: 1.5;
         }
@@ -646,7 +648,7 @@
         .confirm-modal-reason {
             width: 100%;
             padding: 0.8rem 1rem;
-            border: 2px solid #3d3d52;
+            border: 2px solid #585876;
             border-radius: 10px;
             font-family: 'Poppins', sans-serif;
             font-size: 0.85rem;
@@ -659,7 +661,7 @@
             color: #e2e2ea;
         }
 
-        .confirm-modal-reason:focus { border-color: #e84393; }
+        .confirm-modal-reason:focus { border-color: #d63d86; }
 
         .confirm-modal-reason::placeholder { color: #6b6b80; }
 
@@ -706,10 +708,10 @@
 
         .confirm-modal-btn.confirm-cancel {
             background: #323248;
-            color: #9a9ab0;
+            color: #b5b5cc;
         }
 
-        .confirm-modal-btn.confirm-cancel:hover { background: #3d3d52; }
+        .confirm-modal-btn.confirm-cancel:hover { background: #585876; }
 
         .confirm-modal-toast {
             position: fixed;
@@ -908,8 +910,8 @@
             </div>
             <div style="padding:0 1.5rem;display:flex;gap:0.8rem;margin-bottom:0.8rem;">
                 <div style="flex:1;">
-                    <label style="font-size:0.8rem;font-weight:600;color:#9a9ab0;display:block;margin-bottom:0.3rem;">Year <span style="color:#f5576c;">*</span></label>
-                    <select id="assignYear" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #3d3d52;border-radius:8px;font-size:0.9rem;background:#323248;color:#e2e2ea;" required>
+                    <label style="font-size:0.8rem;font-weight:600;color:#b5b5cc;display:block;margin-bottom:0.3rem;">Year <span style="color:#f5576c;">*</span></label>
+                    <select id="assignYear" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #585876;border-radius:8px;font-size:0.9rem;background:#323248;color:#e2e2ea;" required>
                         <option value="">Select Year</option>
                         <option value="1st">1st Year</option>
                         <option value="2nd">2nd Year</option>
@@ -918,8 +920,8 @@
                     </select>
                 </div>
                 <div style="flex:1;">
-                    <label style="font-size:0.8rem;font-weight:600;color:#9a9ab0;display:block;margin-bottom:0.3rem;">Semester <span style="color:#f5576c;">*</span></label>
-                    <select id="assignSemester" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #3d3d52;border-radius:8px;font-size:0.9rem;background:#323248;color:#e2e2ea;" required>
+                    <label style="font-size:0.8rem;font-weight:600;color:#b5b5cc;display:block;margin-bottom:0.3rem;">Semester <span style="color:#f5576c;">*</span></label>
+                    <select id="assignSemester" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #585876;border-radius:8px;font-size:0.9rem;background:#323248;color:#e2e2ea;" required>
                         <option value="">Select Semester</option>
                         <option value="1st">1st Semester</option>
                         <option value="2nd">2nd Semester</option>
@@ -984,19 +986,19 @@
                             <div class="profile-detail-label">Phone</div>
                             <div id="profilePhoneDisplay">
                                 <span class="profile-detail-value" id="profilePhone">—</span>
-                                <span class="material-icons" onclick="editSupervisorPhone()" style="font-size:1rem;color:#e84393;cursor:pointer;vertical-align:middle;margin-left:0.5rem;">edit</span>
+                                <span class="material-icons" onclick="editSupervisorPhone()" style="font-size:1rem;color:#d63d86;cursor:pointer;vertical-align:middle;margin-left:0.5rem;">edit</span>
                             </div>
                             <div id="profilePhoneEdit" style="display:none;margin-top:0.3rem;">
                                 <div style="display:flex;gap:0.4rem;align-items:center;">
-                                    <input type="tel" id="profilePhoneInput" style="flex:1;padding:0.4rem 0.6rem;border:1px solid #3d3d52;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.85rem;background:#323248;color:#e2e2ea;" placeholder="Enter phone number">
-                                    <button onclick="saveSupervisorPhone()" style="background:#e84393;color:white;border:none;padding:0.4rem 0.8rem;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">Save</button>
-                                    <button onclick="cancelSupervisorPhoneEdit()" style="background:#323248;color:#9a9ab0;border:none;padding:0.4rem 0.6rem;border-radius:8px;cursor:pointer;font-size:0.8rem;">Cancel</button>
+                                    <input type="tel" id="profilePhoneInput" style="flex:1;padding:0.4rem 0.6rem;border:1px solid #585876;border-radius:8px;font-family:'Poppins',sans-serif;font-size:0.85rem;background:#323248;color:#e2e2ea;" placeholder="Enter phone number">
+                                    <button onclick="saveSupervisorPhone()" style="background:#d63d86;color:white;border:none;padding:0.4rem 0.8rem;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">Save</button>
+                                    <button onclick="cancelSupervisorPhoneEdit()" style="background:#323248;color:#b5b5cc;border:none;padding:0.4rem 0.6rem;border-radius:8px;cursor:pointer;font-size:0.8rem;">Cancel</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <button class="profile-logout-btn" onclick="openChangePasswordModal(event)" style="background:#e84393;border-color:#e84393;color:white;margin-bottom:0.5rem;">
+                <button class="profile-logout-btn" onclick="openChangePasswordModal(event)" style="background:#d63d86;border-color:#d63d86;color:white;margin-bottom:0.5rem;">
                     <span class="material-icons">lock</span>
                     Change Password
                 </button>
@@ -1390,7 +1392,7 @@
                         <div class="project-title-text">${escapeHtml(p.title)}</div>
                         <span class="project-status status-pending">Pending</span>
                     </div>
-                    ${p.description ? `<div style="color:#9a9ab0;font-size:0.85rem;line-height:1.5;margin:0.3rem 0 0.5rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(p.description)}</div>` : ''}
+                    ${p.description ? `<div style="color:#b5b5cc;font-size:0.85rem;line-height:1.5;margin:0.3rem 0 0.5rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(p.description)}</div>` : ''}
                     <div class="project-meta">
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">person</span> ${escapeHtml(p.studentName || 'Unknown')}</span>
                         <span><span class="material-icons" style="font-size:0.9rem;vertical-align:middle">business</span> ${escapeHtml(p.department || '')}</span>
@@ -1402,7 +1404,7 @@
                             <span class="material-icons" style="font-size:1rem">download</span>
                             ${escapeHtml(p.fileName)}
                         </button>` : ''}
-                        ${p.zipFileName ? `<button class="btn-download" onclick="TPRSApi.downloadProjectZip(${p.id})" style="background:rgba(232,67,147,0.15);color:#e84393;border:none;padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;gap:0.3rem;">
+                        ${p.zipFileName ? `<button class="btn-download" onclick="TPRSApi.downloadProjectZip(${p.id})" style="background:rgba(232,67,147,0.15);color:#d63d86;border:none;padding:0.4rem 1rem;border-radius:8px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;gap:0.3rem;">
                             <span class="material-icons" style="font-size:1rem">folder_zip</span>
                             ${escapeHtml(p.zipFileName)}
                         </button>` : ''}
@@ -1657,7 +1659,7 @@
             const zipRow = document.getElementById('pdZipRow');
             if (p.zipFileName) {
                 zipRow.style.display = '';
-                document.getElementById('pdZipFile').innerHTML = `<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectZip(${p.id})" style="color:#e84393;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">folder_zip</span>${escapeHtml(p.zipFileName)}</a>`;
+                document.getElementById('pdZipFile').innerHTML = `<a href="javascript:void(0)" onclick="event.stopPropagation();TPRSApi.downloadProjectZip(${p.id})" style="color:#d63d86;text-decoration:none;display:flex;align-items:center;gap:0.3rem;"><span class="material-icons" style="font-size:1rem">folder_zip</span>${escapeHtml(p.zipFileName)}</a>`;
             } else {
                 zipRow.style.display = 'none';
             }
@@ -1734,7 +1736,7 @@
         @keyframes spModalIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
         .cpw-header {
             display:flex; justify-content:space-between; align-items:center;
-            padding:1.2rem 1.5rem; border-bottom:1px solid #3d3d52;
+            padding:1.2rem 1.5rem; border-bottom:1px solid #585876;
         }
         .cpw-header h2 { font-size:1.1rem; font-weight:700; color:#e2e2ea; margin:0; }
         .cpw-close {
@@ -1745,22 +1747,22 @@
         .cpw-body { padding:1.5rem; }
         .cpw-group { margin-bottom:1.2rem; }
         .cpw-group label {
-            display:block; font-size:0.85rem; font-weight:600; color:#9a9ab0;
+            display:block; font-size:0.85rem; font-weight:600; color:#b5b5cc;
             margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;
         }
         .cpw-input-wrap { position:relative; }
         .cpw-input-wrap input {
-            width:100%; padding:0.8rem 2.8rem 0.8rem 1rem; border:2px solid #3d3d52; border-radius:10px;
+            width:100%; padding:0.8rem 2.8rem 0.8rem 1rem; border:2px solid #585876; border-radius:10px;
             font-size:0.95rem; font-family:'Poppins',sans-serif; background:#323248; color:#e2e2ea; transition:all 0.3s ease;
         }
-        .cpw-input-wrap input:focus { outline:none; border-color:#e84393; background:#323248; box-shadow:0 0 0 4px rgba(232,67,147,0.1); }
+        .cpw-input-wrap input:focus { outline:none; border-color:#d63d86; background:#323248; box-shadow:0 0 0 4px rgba(232,67,147,0.1); }
         .cpw-toggle {
             position:absolute; right:0.8rem; top:50%; transform:translateY(-50%);
             cursor:pointer; color:#6b6b80; font-size:1.2rem; transition:color 0.3s;
         }
-        .cpw-toggle:hover { color:#e84393; }
+        .cpw-toggle:hover { color:#d63d86; }
         .cpw-strength { display:flex; gap:0.3rem; margin-top:0.5rem; }
-        .cpw-str-bar { flex:1; height:4px; background:#3d3d52; border-radius:2px; transition:background 0.3s; }
+        .cpw-str-bar { flex:1; height:4px; background:#585876; border-radius:2px; transition:background 0.3s; }
         .cpw-str-bar.weak { background:#e74c3c; }
         .cpw-str-bar.medium { background:#f39c12; }
         .cpw-str-bar.strong { background:#27ae60; }
@@ -1773,7 +1775,7 @@
         .cpw-success { background:rgba(39,174,96,0.15); color:#27ae60; padding:0.6rem 0.8rem; border-radius:8px; font-size:0.85rem; display:none; margin-bottom:1rem; align-items:center; gap:0.4rem; }
         .cpw-success.show { display:flex; }
         .cpw-submit {
-            width:100%; padding:0.9rem; background:#e84393;
+            width:100%; padding:0.9rem; background:#d63d86;
             color:white; border:none; border-radius:10px; font-size:0.95rem; font-weight:600;
             font-family:'Poppins',sans-serif; cursor:pointer; transition:all 0.3s; text-transform:uppercase; letter-spacing:0.5px;
         }

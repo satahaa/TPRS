@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TPRS - Admin Dashboard</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d63d86'%3E%3Cpath d='M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="api.js"></script>
     <style>
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background: #1e1e2e; min-height: 100vh; color: #e2e2ea; }
 
@@ -301,6 +307,9 @@
         <button class="tab-btn" data-tab="assignments" onclick="switchTab('assignments')">
             <span class="material-icons" style="font-size:1.1rem;">assignment</span> Assignments
         </button>
+        <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
+            <span class="material-icons" style="font-size:1.1rem;">settings</span> Settings
+        </button>
     </div>
 
     <div class="admin-container">
@@ -343,17 +352,7 @@
                             <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:0.2rem;">Session</label>
                             <select class="assign-select" id="assignSessionFilter" onchange="filterAssignStudents()">
                                 <option value="">All Sessions</option>
-                                <option value="2029-2030">2029-2030</option>
-                                <option value="2028-2029">2028-2029</option>
-                                <option value="2027-2028">2027-2028</option>
-                                <option value="2026-2027">2026-2027</option>
-                                <option value="2025-2026">2025-2026</option>
-                                <option value="2024-2025">2024-2025</option>
-                                <option value="2023-2024">2023-2024</option>
-                                <option value="2022-2023">2022-2023</option>
-                                <option value="2021-2022">2021-2022</option>
-                                <option value="2020-2021">2020-2021</option>
-                            </select>
+                                </select>
                         </div>
                     </div>
                     <div class="student-checklist" id="assignStudentList">
@@ -408,7 +407,84 @@
             </div>
             <div id="assignmentsTable"></div>
         </div>
-    </div>
+                <!-- ===== Settings Section ===== -->
+        <div class="section" id="section-settings">
+            <div class="overview-grid" style="display:flex; flex-direction:column; gap:1.5rem;">
+                <div class="overview-card" style="width:100%;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #3d3d52; padding-bottom:1rem; margin-bottom:1.5rem;">
+                        <h3 class="overview-card-title" style="margin:0; border:none; padding:0; display:flex; align-items:center; gap:0.5rem; font-size:1.3rem;">
+                            <span class="material-icons" style="color:#2196F3; font-size:1.6rem;">settings</span> System Settings
+                        </h3>
+                        <button class="primary-btn" onclick="saveSystemSettings()" style="padding:0.6rem 1.2rem; display:flex; align-items:center; gap:0.4rem; font-size:0.95rem;">
+                            <span class="material-icons" style="font-size:1.1rem;">save</span> Save Settings
+                        </button>
+                    </div>
+                    <p style="color:#b5b5cc; font-size:0.95rem; margin-top:0; margin-bottom:1.5rem;">Modify the dynamic configuration values for the system.</p>
+                    
+                    <div style="display:flex; flex-direction:column; gap:2.5rem;">
+                        <!-- Top Row: Sessions and Specs -->
+                        <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+                            <!-- SESSIONS -->
+                            <div style="flex:1; min-width:300px; background:#323248; padding:1.2rem; border-radius:10px; border:1px solid #3d3d52; box-shadow: 0 2px 12px rgba(0,0,0,0.1);">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.8rem; border-bottom:1px solid #3d3d52;">
+                                    <label style="font-size:1.05rem; font-weight:700; color:#e2e2ea; margin:0; display:flex; align-items:center; gap:0.4rem;">
+                                        <span class="material-icons" style="color:#f44336; font-size:1.2rem;">date_range</span> Academic Sessions
+                                    </label>
+                                    <button onclick="addSessionRow()" class="primary-btn" style="padding:0.4rem 0.8rem; display:flex; align-items:center; gap:0.2rem; font-size:0.85rem; border-radius:5px;"><span class="material-icons" style="font-size:1.1rem;">add</span> Add</button>
+                                </div>
+                                <div id="settings-sessions-list" class="hide-scrollbar" style="display:flex; flex-direction:column; gap:0.6rem; max-height:280px; overflow-y:auto; padding-right:8px;"></div>
+                            </div>
+
+                            <!-- SPECIALIZATIONS -->
+                            <div style="flex:1; min-width:300px; background:#323248; padding:1.2rem; border-radius:10px; border:1px solid #3d3d52; box-shadow: 0 2px 12px rgba(0,0,0,0.1);">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.8rem; border-bottom:1px solid #3d3d52;">
+                                    <label style="font-size:1.05rem; font-weight:700; color:#e2e2ea; margin:0; display:flex; align-items:center; gap:0.4rem;">
+                                        <span class="material-icons" style="color:#4caf50; font-size:1.2rem;">school</span> Specializations
+                                    </label>
+                                    <button onclick="addSpecializationRow()" class="primary-btn" style="padding:0.4rem 0.8rem; display:flex; align-items:center; gap:0.2rem; font-size:0.85rem; border-radius:5px;"><span class="material-icons" style="font-size:1.1rem;">add</span> Add</button>
+                                </div>
+                                <div id="settings-specializations-list" class="hide-scrollbar" style="display:flex; flex-direction:column; gap:0.6rem; max-height:280px; overflow-y:auto; padding-right:8px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Row: Departments and Degrees -->
+                        <div style="display:flex; gap:2rem; flex-wrap:wrap;">
+                            <!-- DEPARTMENTS -->
+                            <div style="flex:1; min-width:300px; background:#323248; padding:1.2rem; border-radius:10px; border:1px solid #3d3d52; box-shadow: 0 2px 12px rgba(0,0,0,0.1);">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.8rem; border-bottom:1px solid #3d3d52;">
+                                    <label style="font-size:1.05rem; font-weight:700; color:#e2e2ea; margin:0; display:flex; align-items:center; gap:0.4rem;">
+                                        <span class="material-icons" style="color:#ff9800; font-size:1.2rem;">domain</span> Departments
+                                    </label>
+                                    <button onclick="addDepartmentRow()" class="primary-btn" style="padding:0.4rem 0.8rem; display:flex; align-items:center; gap:0.2rem; font-size:0.85rem; border-radius:5px;"><span class="material-icons" style="font-size:1.1rem;">add</span> Add</button>
+                                </div>
+                                <div style="display:flex; gap:0.5rem; margin-bottom:0.6rem; color:#b5b5cc; font-size:0.85rem; font-weight:700; padding:0 5px; text-transform:uppercase; letter-spacing:0.5px;">
+                                    <div style="flex:1; padding-left:1.8rem;">ID</div>
+                                    <div style="flex:3;">Name</div>
+                                    <div style="width:30px;"></div>
+                                </div>
+                                <div id="settings-departments-list" class="hide-scrollbar" style="display:flex; flex-direction:column; gap:0.6rem; max-height:300px; overflow-y:auto; padding-right:8px;"></div>
+                            </div>
+
+                            <!-- DEGREES -->
+                            <div style="flex:1; min-width:300px; background:#323248; padding:1.2rem; border-radius:10px; border:1px solid #3d3d52; box-shadow: 0 2px 12px rgba(0,0,0,0.1);">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.8rem; border-bottom:1px solid #3d3d52;">
+                                    <label style="font-size:1.05rem; font-weight:700; color:#e2e2ea; margin:0; display:flex; align-items:center; gap:0.4rem;">
+                                        <span class="material-icons" style="color:#9c27b0; font-size:1.2rem;">menu_book</span> Degree Types
+                                    </label>
+                                    <button onclick="addDegreeRow()" class="primary-btn" style="padding:0.4rem 0.8rem; display:flex; align-items:center; gap:0.2rem; font-size:0.85rem; border-radius:5px;"><span class="material-icons" style="font-size:1.1rem;">add</span> Add</button>
+                                </div>
+                                <div style="display:flex; gap:0.5rem; margin-bottom:0.6rem; color:#b5b5cc; font-size:0.85rem; font-weight:700; padding:0 5px; text-transform:uppercase; letter-spacing:0.5px;">
+                                    <div style="flex:1; padding-left:1.8rem;">ID</div>
+                                    <div style="flex:3;">Name</div>
+                                    <div style="width:30px;"></div>
+                                </div>
+                                <div id="settings-degrees-list" class="hide-scrollbar" style="display:flex; flex-direction:column; gap:0.6rem; max-height:300px; overflow-y:auto; padding-right:8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- ===== Edit Student Modal ===== -->
     <div class="modal-overlay" id="editStudentModal">
@@ -565,6 +641,7 @@
             else if (tab === 'students') loadStudents();
             else if (tab === 'projects') loadProjects();
             else if (tab === 'assignments') loadAllAssignments();
+            else if (tab === 'settings') loadSystemSettings();
         }
 
         // ===== Toast =====
@@ -1132,6 +1209,192 @@
 
         // Initial load
         loadOverview();
+
+        // ===== Settings Panel =====
+        // ===== Drag and Drop Ordering =====
+        let draggedRow = null;
+
+        function attachDragEvents(row) {
+            row.draggable = true;
+            row.addEventListener('dragstart', (e) => {
+                draggedRow = row;
+                row.style.opacity = '0.5';
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            row.addEventListener('dragend', () => {
+                draggedRow.style.opacity = '1';
+                draggedRow = null;
+            });
+            row.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const container = row.parentElement;
+                
+                // Determine insertion point
+                const siblings = [...container.querySelectorAll('.settings-row:not([style*="opacity: 0.5"])')];
+                const nextSibling = siblings.find(sibling => {
+                    const box = sibling.getBoundingClientRect();
+                    return e.clientY <= box.top + box.height / 2;
+                });
+                
+                if (draggedRow && draggedRow !== row) {
+                    container.insertBefore(draggedRow, nextSibling || null);
+                }
+            });
+        }
+
+        function createInputsHtml(inputs) {
+            return inputs.map(i => `<input type="text" style="flex:${i.flex}; font-size:0.95rem; padding:0.6rem; border:1px solid #3d3d52; border-radius:6px; outline:none; background:#252538; color:#e2e2ea; transition:border-color 0.2s; box-shadow:inset 0 1px 3px rgba(0,0,0,0.2);" class="${i.class}" value="${i.val}" placeholder="${i.placeholder}" onfocus="this.style.borderColor='#e84393'" onblur="this.style.borderColor='#3d3d52'">`).join('');
+        }
+        
+        function moveRowUp(btn) {
+            const row = btn.parentElement.parentElement;
+            if (row.previousElementSibling) {
+                row.parentElement.insertBefore(row, row.previousElementSibling);
+            }
+        }
+
+        function moveRowDown(btn) {
+            const row = btn.parentElement.parentElement;
+            if (row.nextElementSibling) {
+                row.parentElement.insertBefore(row.nextElementSibling, row);
+            }
+        }
+
+        function addListRow(containerId, inputs) {
+            const container = document.getElementById(containerId);
+            const row = document.createElement('div');
+            row.className = 'settings-row';
+            row.style.display = 'flex';
+            row.style.gap = '0.5rem';
+            row.style.alignItems = 'center';
+            row.style.cursor = 'grab';
+            row.style.transition = 'all 0.2s';
+            
+            row.innerHTML = `
+                <span class="material-icons" style="color:#b5b5cc; cursor:grab; font-size:1.2rem;">drag_indicator</span>
+            ` + createInputsHtml(inputs) + `
+                <button type="button" tabindex="-1" onclick="this.parentElement.remove()" style="background:none; border:none; color:#f44336; cursor:pointer; display:flex; align-items:center; padding:5px;" title="Delete">
+                    <span class="material-icons" style="font-size:1.2rem;">delete</span>
+                </button>
+            `;
+            
+            // Allow clicking to edit, drag logic handles cursor states
+            row.addEventListener('mousedown', () => row.style.cursor = 'grabbing');
+            row.addEventListener('mouseup', () => row.style.cursor = 'grab');
+            
+            attachDragEvents(row);
+            container.appendChild(row);
+
+            // Auto-scroll and focus for new empty rows
+            requestAnimationFrame(() => {
+                if (inputs[0] && !inputs[0].val) {
+                    container.scrollTop = container.scrollHeight;
+                    const firstInput = row.querySelector('input');
+                    if (firstInput) firstInput.focus();
+                }
+            });
+        }
+
+        function addSessionRow(val = '') {
+            addListRow('settings-sessions-list', [{val, class: 'sess-input', flex: 1, placeholder: '2020-21'}]);
+        }
+        
+        function addSpecializationRow(val = '') {
+            addListRow('settings-specializations-list', [{val, class: 'spec-input', flex: 1, placeholder: 'e.g. AI'}]);
+        }
+
+        function addDepartmentRow(id = '', name = '') {
+            addListRow('settings-departments-list', [
+                {val: id, class: 'dep-id', flex: 1, placeholder: 'ID'},
+                {val: name, class: 'dep-name', flex: 3, placeholder: 'Name'}
+            ]);
+        }
+        
+        function addDegreeRow(id = '', name = '') {
+            addListRow('settings-degrees-list', [
+                {val: id, class: 'deg-id', flex: 1, placeholder: 'ID'},
+                {val: name, class: 'deg-name', flex: 3, placeholder: 'Name'}
+            ]);
+        }
+
+        async function loadSystemSettings() {
+            try {
+                document.getElementById('settings-sessions-list').innerHTML = '';
+                document.getElementById('settings-specializations-list').innerHTML = '';
+                document.getElementById('settings-departments-list').innerHTML = '';
+                document.getElementById('settings-degrees-list').innerHTML = '';
+                
+                const settings = await TPRSApi.getSettings();
+                
+                if (settings.sessions) settings.sessions.forEach(s => addSessionRow(s));
+                if (settings.specializations) settings.specializations.forEach(s => addSpecializationRow(s));
+                if (settings.departments) settings.departments.forEach(d => addDepartmentRow(d.id, d.name));
+                if (settings.degreeTypes) settings.degreeTypes.forEach(d => addDegreeRow(d.id, d.name));
+                
+            } catch(e) {
+                console.error("Failed to load settings array:", e);
+                showToast('Failed to load settings', 'error');
+            }
+        }
+
+        async function saveSystemSettings() {
+            try {
+                // Collect Arrays
+                const sessions = Array.from(document.querySelectorAll('.sess-input')).map(el => el.value.trim()).filter(v => v);
+                const specializations = Array.from(document.querySelectorAll('.spec-input')).map(el => el.value.trim()).filter(v => v);
+                
+                // Collect Departments
+                const departmentRows = Array.from(document.getElementById('settings-departments-list').children);
+                const departments = departmentRows.map(row => {
+                    return {
+                        id: row.querySelector('.dep-id').value.trim(),
+                        name: row.querySelector('.dep-name').value.trim()
+                    };
+                }).filter(d => d.id && d.name);
+
+                // Collect Degrees
+                const degreeRows = Array.from(document.getElementById('settings-degrees-list').children);
+                const degreeTypes = degreeRows.map(row => {
+                    return {
+                        id: row.querySelector('.deg-id').value.trim(),
+                        name: row.querySelector('.deg-name').value.trim()
+                    };
+                }).filter(d => d.id && d.name);
+                
+                const settingsData = { sessions, specializations, departments, degreeTypes };
+                
+                const res = await TPRSApi.updateSettings(settingsData);
+                if(res.success) {
+                    showToast('Settings saved successfully', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast(res.message || 'Failed to save settings', 'error');
+                }
+            } catch(e) {
+                console.error(e);
+                showToast('Save failed layout mismatch', 'error');
+            }
+        }
+
+        async function loadAdminSettings() {
+            try {
+                const settings = await TPRSApi.getSettings();
+                
+                const sessionFilter = document.getElementById('assignSessionFilter');
+                if (sessionFilter && settings.sessions) {
+                    sessionFilter.innerHTML = '<option value="">All Sessions</option>';
+                    settings.sessions.forEach(session => {
+                        const opt = document.createElement('option');
+                        opt.value = session;
+                        opt.textContent = session;
+                        sessionFilter.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load admin settings dropdown:", err);
+            }
+        }
 
         // Clear all search inputs to prevent browser autofill
         document.querySelectorAll('input[type="search"]').forEach(el => el.value = '');

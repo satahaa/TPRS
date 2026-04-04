@@ -240,43 +240,31 @@ public class AuthServlet extends HttpServlet {
             
 
             // Fallback to email/password for Admin or legacy users
-
             String email = data.has("email") ? data.get("email").getAsString() : "";
-
             String password = data.has("password") ? data.get("password").getAsString() : "";
 
-            
-
             // Check admin credentials first
-
-            if (email.equals(adminUsername) && password.equals(adminPassword)) {
-
-                JsonObject adminUser = new JsonObject();
-
-                adminUser.addProperty("id", 0);
-
-                adminUser.addProperty("username", adminUsername);
-
-                adminUser.addProperty("firstName", "System");
-
-                adminUser.addProperty("lastName", "Admin");
-
-                jsonResponse.addProperty("success", true);
-
-                jsonResponse.addProperty("message", "Admin login successful");
-
-                jsonResponse.addProperty("userType", "admin");
-
-                jsonResponse.addProperty("redirect", "admin-dashboard.html");
-
-                jsonResponse.add("user", adminUser);
-
-                return;
-
+            if (email.equals(adminUsername)) {
+                if (password.equals(adminPassword)) {
+                    JsonObject adminUser = new JsonObject();
+                    adminUser.addProperty("id", 0);
+                    adminUser.addProperty("username", adminUsername);
+                    adminUser.addProperty("firstName", "System");
+                    adminUser.addProperty("lastName", "Admin");
+                    jsonResponse.addProperty("success", true);
+                    jsonResponse.addProperty("message", "Admin login successful");
+                    jsonResponse.addProperty("userType", "admin");
+                    jsonResponse.addProperty("redirect", "admin-dashboard.html");
+                    jsonResponse.add("user", adminUser);
+                    return;
+                } else {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    jsonResponse.addProperty("success", false);
+                    jsonResponse.addProperty("isAdminEmail", true);
+                    jsonResponse.addProperty("message", "Invalid admin password");
+                    return;
+                }
             }
-
-            
-
             // Auto-detect role for legacy login
 
             Teacher teacher = teacherService.loginCheck(email, password);

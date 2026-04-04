@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TPRS - Login</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d63d86'%3E%3Cpath d='M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="login.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -52,6 +54,7 @@
                     Sign In
                 </button>
                 <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
             </form>
             <div class="signup-link">
                 <p>Don't have an account? <a href="signup.html">Sign up</a></p>
@@ -107,27 +110,45 @@
             
             try {
                 // Call backend API - auto-detects role by email
-                // Call backend API via Firebase Auth first
                 let result;
-                try {
-                    const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-                    if (userCredential.user.emailVerified === false) {
-                        showError("Please verify your email address. Check your inbox.");
-                        await firebase.auth().signOut();
+                
+                // 1. Check if it's an admin login direct to backend
+                const backendResult = await TPRSApi.login(email, password);
+                
+                if (backendResult.success && backendResult.userType === 'admin') {
+                    // Admin successfully logged in via db.properties
+                    result = backendResult;
+                } else if (backendResult.isAdminEmail) {
+                    // Admin entered wrong password, bypass Firebase completely
+                    showError("Incorrect credentials");
+                    loginBtn.innerHTML = originalBtnContent;
+                    loginBtn.disabled = false;
+                    return;
+                } else {
+                    // 2. Normal user login via Firebase Auth
+                    try {
+                        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+                        if (userCredential.user.emailVerified === false) {
+                            showError("Please verify your email address. Check your inbox.");
+                            await firebase.auth().signOut();
+                            loginBtn.innerHTML = originalBtnContent;
+                            loginBtn.disabled = false;
+                            return;
+                        }
+                        const idToken = await userCredential.user.getIdToken();
+                        result = await TPRSApi.loginWithToken(idToken);
+                    } catch (firebaseErr) {
+                        if (firebaseErr.code === 'auth/invalid-credential' || firebaseErr.code === 'auth/wrong-password' || firebaseErr.code === 'auth/user-not-found') {
+                            showError("Incorrect credentials");
+                        } else {
+                            showError("Firebase Login failed: " + firebaseErr.message);
+                        }
                         loginBtn.innerHTML = originalBtnContent;
                         loginBtn.disabled = false;
                         return;
                     }
-                    const idToken = await userCredential.user.getIdToken();
-                    result = await TPRSApi.loginWithToken(idToken);
-                } catch (firebaseErr) {
-                    showError("Firebase Login failed: " + firebaseErr.message);
-                    loginBtn.innerHTML = originalBtnContent;
-                    loginBtn.disabled = false;
-                    return;
                 }
-                
-                if (result.success) {
+                if (result && result.success) {
                     // Successful login - save session with detected role
                     TPRSApi.saveSession(result.user, result.userType);
                     
@@ -184,23 +205,7 @@
             }
             try {
                 await firebase.auth().sendPasswordResetEmail(email);
-                alert("Password reset email sent. Check your inbox.");
-            } catch (err) {
-                showError("Forgot Password failed: " + err.message);
-            }
-        });
-
-        // Forgot Password
-        document.getElementById("forgotPassLink").addEventListener("click", async function(e) {
-            e.preventDefault();
-            const email = document.getElementById("email").value.trim();
-            if (!email) {
-                showError("Enter your email address first");
-                return;
-            }
-            try {
-                await firebase.auth().sendPasswordResetEmail(email);
-                alert("Password reset email sent. Check your inbox.");
+                showSuccess("Password reset email sent. Check your inbox.");
             } catch (err) {
                 showError("Forgot Password failed: " + err.message);
             }
@@ -209,8 +214,19 @@
         // Show error message
         function showError(message) {
             const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            successMessage.classList.remove('show');
             errorMessage.textContent = message;
             errorMessage.classList.add('show');
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            errorMessage.classList.remove('show');
+            successMessage.textContent = message;
+            successMessage.classList.add('show');
         }
 
         // Check for remembered email on page load

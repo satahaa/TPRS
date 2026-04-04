@@ -202,9 +202,9 @@ function renderThesisList() {
         if (isBookmarkView) {
             sectionTitle.innerHTML = '<span class="material-icons" style="cursor:pointer;margin-right:0.4rem;vertical-align:middle;color:#e84393;" onclick="exitBookmarkView()">arrow_back</span> Bookmarks';
         } else if (activeTypeFilter === 'thesis') {
-            sectionTitle.textContent = 'Thesis';
+            sectionTitle.innerHTML = '<span class="material-icons" style="cursor:pointer;margin-right:0.4rem;vertical-align:middle;color:#2196F3;" onclick="exitTypeFilter()">arrow_back</span> Thesis Filter';
         } else if (activeTypeFilter === 'project') {
-            sectionTitle.textContent = 'Projects';
+            sectionTitle.innerHTML = '<span class="material-icons" style="cursor:pointer;margin-right:0.4rem;vertical-align:middle;color:#ff9800;" onclick="exitTypeFilter()">arrow_back</span> Projects Filter';
         } else {
             sectionTitle.textContent = 'Recent Thesis & Projects';
         }
@@ -391,6 +391,7 @@ function applyFilters() {
     if (isAuthorsView) {
         renderAuthorsView();
     } else {
+
         renderThesisList();
     }
     updateOverviewCardStyles();
@@ -502,6 +503,7 @@ function handleBookmarkClick(e) {
     
     if (thesis) {
         thesis.bookmarked = !thesis.bookmarked;
+
         renderThesisList();
     }
 }
@@ -512,6 +514,7 @@ function handleBookmarkClick(e) {
 function enterBookmarkView() {
     isBookmarkView = true;
     currentPage = 1;
+
     renderThesisList();
 }
 
@@ -521,6 +524,7 @@ function enterBookmarkView() {
 function exitBookmarkView() {
     isBookmarkView = false;
     currentPage = 1;
+
     renderThesisList();
 }
 
@@ -669,6 +673,7 @@ function exitAuthorsView() {
     updateOverviewCardStyles();
     const sectionTitle = document.querySelector('.section-title');
     if (sectionTitle) sectionTitle.textContent = 'Recent Thesis & Projects';
+
     renderThesisList();
 }
 
@@ -761,6 +766,7 @@ function goToPage(page) {
     const totalPages = Math.ceil(displayedTheses.length / ITEMS_PER_PAGE);
     if (page < 1 || page > totalPages) return;
     currentPage = page;
+
     renderThesisList();
     // Scroll to top of thesis list
     const thesisList = document.getElementById('thesisList');
@@ -1191,7 +1197,49 @@ function setupAutocompletSearch() {
 /**
  * Initialize the application
  */
+async function loadDynamicSettings() {
+    try {
+        const settings = await TPRSApi.getSettings();
+        const sessionFilter = document.getElementById('sessionFilter');
+        if (sessionFilter && settings.sessions) {
+            sessionFilter.innerHTML = '';
+            settings.sessions.forEach(sess => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="session${sess.replace(/[\\W_]+/g, '')}" value="${sess}">
+                    <label for="session${sess.replace(/[\\W_]+/g, '')}">${sess}</label>
+                `;
+                sessionFilter.appendChild(div);
+            });
+            const olderDiv = document.createElement('div');
+            olderDiv.className = 'checkbox-item';
+            olderDiv.innerHTML = `
+                <input type="checkbox" id="sessionOlder" value="Older">
+                <label for="sessionOlder">Older</label>
+            `;
+            sessionFilter.appendChild(olderDiv);
+        }
+        const degreeFilter = document.getElementById('degreeFilter');
+        if (degreeFilter && settings.degreeTypes) {
+            degreeFilter.innerHTML = '';
+            settings.degreeTypes.forEach(deg => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="degree${deg.id}" value="${deg.name}">
+                    <label for="degree${deg.id}">${deg.name}</label>
+                `;
+                degreeFilter.appendChild(div);
+            });
+        }
+    } catch(e) {
+        console.error("Failed to load settings ui", e);
+    }
+}
 async function init() {
+    await loadDynamicSettings();
+
     // Check if user is authenticated
     if (!checkAuth()) {
         return;
@@ -1207,6 +1255,7 @@ async function init() {
     displayedTheses = [...thesesData];
     
     // Render UI components
+
     renderThesisList();
     renderKeywords();
     setupAutocompletSearch();
@@ -1229,4 +1278,9 @@ if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
 } else {
     init();
+}
+
+function exitTypeFilter() {
+    activeTypeFilter = '';
+    applyFilters();
 }

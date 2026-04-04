@@ -8,6 +8,42 @@ const API_BASE_URL = '/tprs/api';
 const TPRSApi = {
     
     // =====================================================
+    // SETTINGS / CONFIG APIs
+    // =====================================================
+    
+    /**
+     * Fetch application settings (departments, sessions, specializations, etc)
+     */
+    async getSettings() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/settings`);
+            return await response.json();
+        } catch (error) {
+            console.error('Settings fetch error:', error);
+            // Fallback to empty structures to prevent crash if server fails
+            return { departments: [], degreeTypes: [], sessions: [], specializations: [] };
+        }
+    },
+
+    /**
+     * Update the global system settings (Admin Only)
+     */
+    async updateSettings(settingsData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/settings`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settingsData)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Settings fetch error:', error);
+            return { success: false, message: 'Network error updating settings' };
+        }
+    },
+    // =====================================================
     // AUTHENTICATION APIs
     // =====================================================
     

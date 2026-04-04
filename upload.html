@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Submission - Thesis & Project Repository System</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d63d86'%3E%3Cpath d='M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z'/%3E%3C/svg%3E">
     <!-- Google Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <!-- Google Fonts - Poppins -->
@@ -20,7 +22,7 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: #1e1e2e;
+            background: #151520;
             color: #e2e2ea;
             line-height: 1.6;
             min-height: 100vh;
@@ -131,7 +133,7 @@
 
         .page-header .icon {
             font-size: 4rem;
-            color: #e84393;
+            color: #d63d86;
         }
 
         .page-header h1 {
@@ -142,7 +144,7 @@
         }
 
         .page-header p {
-            color: #9a9ab0;
+            color: #b5b5cc;
             font-size: 1rem;
             margin-top: 0.5rem;
         }
@@ -185,11 +187,11 @@
             align-items: center;
             gap: 0.5rem;
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid #3d3d52;
+            border-bottom: 2px solid #585876;
         }
 
         .form-section-title .material-icons {
-            color: #e84393;
+            color: #d63d86;
         }
 
         .form-row {
@@ -206,7 +208,7 @@
             display: block;
             font-size: 0.9rem;
             font-weight: 600;
-            color: #9a9ab0;
+            color: #b5b5cc;
             margin-bottom: 0.5rem;
         }
 
@@ -219,7 +221,7 @@
         .form-group textarea {
             width: 100%;
             padding: 0.9rem 1rem;
-            border: 2px solid #3d3d52;
+            border: 2px solid #585876;
             border-radius: 10px;
             font-size: 0.95rem;
             font-family: 'Poppins', sans-serif;
@@ -237,9 +239,9 @@
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #e84393;
+            border-color: #d63d86;
             background: #323248;
-            box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.1);
+            box-shadow: 0 0 0 4px rgba(214, 61, 134, 0.1);
         }
 
         .form-group input::placeholder,
@@ -258,7 +260,7 @@
            FILE UPLOAD AREA
            ===================================================== */
         .file-upload-area {
-            border: 2px dashed #3d3d52;
+            border: 2px dashed #585876;
             border-radius: 12px;
             padding: 2rem;
             text-align: center;
@@ -269,13 +271,13 @@
 
         .file-upload-area:hover,
         .file-upload-area.dragover {
-            border-color: #e84393;
-            background: rgba(232, 67, 147, 0.05);
+            border-color: #d63d86;
+            background: rgba(214, 61, 134, 0.05);
         }
 
         .file-upload-area .upload-icon {
             font-size: 3rem;
-            color: #e84393;
+            color: #d63d86;
             margin-bottom: 1rem;
         }
 
@@ -287,14 +289,14 @@
 
         .file-upload-area p {
             font-size: 0.9rem;
-            color: #9a9ab0;
+            color: #b5b5cc;
         }
 
         .file-upload-area .browse-btn {
             display: inline-block;
             margin-top: 1rem;
             padding: 0.6rem 1.5rem;
-            background: #e84393;
+            background: #d63d86;
             color: white;
             border-radius: 8px;
             font-weight: 500;
@@ -303,7 +305,7 @@
 
         .file-upload-area .browse-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(232, 67, 147, 0.4);
+            box-shadow: 0 4px 12px rgba(214, 61, 134, 0.4);
         }
 
         .file-upload-input {
@@ -341,7 +343,7 @@
 
         .selected-file .file-size {
             font-size: 0.8rem;
-            color: #9a9ab0;
+            color: #b5b5cc;
         }
 
         .selected-file .remove-file {
@@ -365,7 +367,7 @@
             flex-wrap: wrap;
             gap: 0.5rem;
             padding: 0.5rem;
-            border: 2px solid #3d3d52;
+            border: 2px solid #585876;
             border-radius: 10px;
             background: #323248;
             min-height: 50px;
@@ -373,9 +375,9 @@
         }
 
         .keywords-container:focus-within {
-            border-color: #e84393;
+            border-color: #d63d86;
             background: #323248;
-            box-shadow: 0 0 0 4px rgba(232, 67, 147, 0.1);
+            box-shadow: 0 0 0 4px rgba(214, 61, 134, 0.1);
         }
 
         .keyword-tag {
@@ -383,7 +385,7 @@
             align-items: center;
             gap: 0.3rem;
             padding: 0.3rem 0.6rem;
-            background: #e84393;
+            background: #d63d86;
             color: white;
             border-radius: 20px;
             font-size: 0.85rem;
@@ -459,9 +461,9 @@
             gap: 0.5rem;
             padding: 0.8rem 1.2rem;
             background: transparent;
-            border: 2px dashed #e84393;
+            border: 2px dashed #d63d86;
             border-radius: 10px;
-            color: #e84393;
+            color: #d63d86;
             font-family: 'Poppins', sans-serif;
             font-size: 0.9rem;
             font-weight: 500;
@@ -471,7 +473,7 @@
         }
 
         .add-coauthor-btn:hover {
-            background: rgba(232, 67, 147, 0.05);
+            background: rgba(214, 61, 134, 0.05);
         }
 
         /* =====================================================
@@ -483,7 +485,7 @@
             justify-content: flex-end;
             margin-top: 2rem;
             padding-top: 1.5rem;
-            border-top: 2px solid #3d3d52;
+            border-top: 2px solid #585876;
         }
 
         .btn {
@@ -501,23 +503,23 @@
 
         .btn-secondary {
             background: #323248;
-            border: 2px solid #3d3d52;
-            color: #9a9ab0;
+            border: 2px solid #585876;
+            color: #b5b5cc;
         }
 
         .btn-secondary:hover {
-            background: #3d3d52;
+            background: #585876;
         }
 
         .btn-primary {
-            background: #e84393;
+            background: #d63d86;
             border: none;
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(232, 67, 147, 0.4);
+            box-shadow: 0 8px 20px rgba(214, 61, 134, 0.4);
         }
 
         .btn-primary:disabled {
@@ -571,21 +573,21 @@
 
         .progress-bar {
             height: 8px;
-            background: #3d3d52;
+            background: #585876;
             border-radius: 4px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: #e84393;
+            background: #d63d86;
             width: 0%;
             transition: width 0.3s ease;
         }
 
         .progress-text {
             font-size: 0.85rem;
-            color: #9a9ab0;
+            color: #b5b5cc;
             margin-top: 0.5rem;
             text-align: center;
         }
@@ -697,11 +699,6 @@
                             <label for="department">Department <span class="required">*</span></label>
                             <select id="department" name="department" required>
                                 <option value="">Select Department</option>
-                                <option value="CSE">Computer Science & Engineering</option>
-                                <option value="EEE">Electrical & Electronic Engineering</option>
-                                <option value="ICE">Information & Communication Engineering</option>
-                                <option value="TE">Textile Engineering</option>
-                                <option value="ME">Mechanical Engineering</option>
                             </select>
                         </div>
                     </div>
@@ -980,27 +977,7 @@
         const keywords = [];
         const keywordsContainer = document.getElementById('keywordsContainer');
         const keywordInput = document.getElementById('keywordInput');
-        const baseKeywords = [
-            'Machine Learning', 'Deep Learning', 'Artificial Intelligence', 'Neural Network',
-            'Natural Language Processing', 'Computer Vision', 'Data Mining', 'Big Data',
-            'Cloud Computing', 'Internet of Things', 'Blockchain', 'Cybersecurity',
-            'Software Engineering', 'Web Development', 'Mobile Application', 'Database',
-            'Algorithm', 'Data Structure', 'Operating System', 'Computer Network',
-            'Image Processing', 'Signal Processing', 'Robotics', 'Embedded System',
-            'Distributed System', 'Parallel Computing', 'Quantum Computing',
-            'Information Security', 'Cryptography', 'Digital Forensics',
-            'Human Computer Interaction', 'User Experience', 'Augmented Reality', 'Virtual Reality',
-            'Bioinformatics', 'Health Informatics', 'E-commerce', 'FinTech',
-            'Renewable Energy', 'Smart Grid', 'Automation', 'Control System',
-            'VLSI', 'Microprocessor', 'FPGA', 'Power System', 'Power Electronics',
-            'Telecommunication', 'Wireless Communication', 'Antenna', '5G',
-            'Environmental Engineering', 'Structural Engineering', 'Geotechnical Engineering',
-            'Water Resources', 'Transportation Engineering', 'Construction Management',
-            'Supply Chain', 'Project Management', 'Quality Control', 'Optimization',
-            'Statistical Analysis', 'Regression', 'Classification', 'Clustering',
-            'Reinforcement Learning', 'Transfer Learning', 'Generative AI', 'LLM',
-            'Sentiment Analysis', 'Speech Recognition', 'Object Detection', 'Segmentation'
-        ];
+        let baseKeywords = [];
         let approvedKeywords = [...baseKeywords];
 
         // Load additional keywords from approved projects
@@ -1457,8 +1434,26 @@
             showSuccess('Draft saved successfully!');
         });
 
-        // Load draft on page load
-        window.addEventListener('load', function() {
+        // Load draft and settings on page load
+        window.addEventListener('load', async function() {
+            try {
+                const settings = await TPRSApi.getSettings();
+                const deptSelect = document.getElementById('department');
+                if (settings.departments) {
+                    settings.departments.forEach(dept => {
+                        const opt = document.createElement('option');
+                        opt.value = dept.id;
+                        opt.textContent = dept.name;
+                        deptSelect.appendChild(opt);
+                    });
+                }
+                if (settings.specializations) {
+                    baseKeywords = settings.specializations;
+                }
+            } catch(e) {
+                console.error("Failed to load generic settings", e);
+            }
+
             const draft = JSON.parse(localStorage.getItem('thesisDraft') || 'null');
             if (draft) {
                 if (confirm('You have a saved draft. Would you like to load it?')) {

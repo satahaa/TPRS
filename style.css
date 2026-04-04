@@ -10,7 +10,7 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background: #1e1e2e;
+    background: #151520;
     color: #e2e2ea;
     line-height: 1.6;
     min-height: 100vh;
@@ -159,7 +159,7 @@ nav a:hover {
 
 .dropdown-email {
     font-size: 0.8rem;
-    color: #9a9ab0;
+    color: #b5b5cc;
 }
 
 .dropdown-details {
@@ -176,18 +176,18 @@ nav a:hover {
     align-items: center;
     gap: 0.4rem;
     font-size: 0.75rem;
-    color: #9a9ab0;
+    color: #b5b5cc;
     font-weight: 500;
 }
 
 .dropdown-detail-item .material-icons {
     font-size: 0.9rem;
-    color: #e84393;
+    color: #d63d86;
 }
 
 .dropdown-divider {
     height: 1px;
-    background: #3d3d52;
+    background: #585876;
     margin: 0;
 }
 
@@ -213,8 +213,8 @@ nav a:hover {
 }
 
 .dropdown-item:hover {
-    background: rgba(232, 67, 147, 0.1);
-    color: #e84393;
+    background: rgba(214, 61, 134, 0.1);
+    color: #d63d86;
 }
 
 .dropdown-item span.material-icons {
@@ -225,7 +225,7 @@ nav a:hover {
 .logout-btn {
     padding: 0.8rem 1.2rem;
     color: #e74c3c;
-    border-top: 1px solid #3d3d52;
+    border-top: 1px solid #585876;
 }
 
 .logout-btn:hover {
@@ -295,7 +295,7 @@ nav a:hover {
 .filter-label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #9a9ab0;
+    color: #b5b5cc;
     margin-bottom: 0.8rem;
     display: block;
     text-transform: uppercase;
@@ -314,14 +314,14 @@ nav a:hover {
     gap: 0.6rem;
     cursor: pointer;
     font-size: 0.9rem;
-    color: #9a9ab0;
+    color: #b5b5cc;
 }
 
 .checkbox-item input[type="checkbox"] {
     width: 18px;
     height: 18px;
     cursor: pointer;
-    accent-color: #e84393;
+    accent-color: #d63d86;
 }
 
 .checkbox-item label {
@@ -331,14 +331,14 @@ nav a:hover {
 }
 
 .checkbox-item:hover label {
-    color: #e84393;
+    color: #d63d86;
 }
 
 /* Dropdown styling */
 .dropdown-select {
     width: 100%;
     padding: 0.6rem 0.8rem;
-    border: 1px solid #3d3d52;
+    border: 1px solid #585876;
     border-radius: 8px;
     font-family: 'Poppins', sans-serif;
     font-size: 0.9rem;
@@ -351,15 +351,15 @@ nav a:hover {
 .dropdown-select:hover,
 .dropdown-select:focus {
     outline: none;
-    border-color: #e84393;
-    box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.15);
+    border-color: #d63d86;
+    box-shadow: 0 0 0 3px rgba(214, 61, 134, 0.15);
 }
 
 /* Text input styling */
 .text-input {
     width: 100%;
     padding: 0.6rem 0.8rem;
-    border: 1px solid #3d3d52;
+    border: 1px solid #585876;
     border-radius: 8px;
     font-family: 'Poppins', sans-serif;
     font-size: 0.9rem;
@@ -370,8 +370,8 @@ nav a:hover {
 
 .text-input:focus {
     outline: none;
-    border-color: #e84393;
-    box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.15);
+    border-color: #d63d86;
+    box-shadow: 0 0 0 3px rgba(214, 61, 134, 0.15);
 }
 
 /* =====================================================
@@ -403,8 +403,8 @@ nav a:hover {
 }
 
 .search-bar:focus-within {
-    border-color: #e84393;
-    box-shadow: 0 4px 12px rgba(232, 67, 147, 0.2);
+    border-color: #d63d86;
+    box-shadow: 0 4px 12px rgba(214, 61, 134, 0.2);
 }
 
 /* Autocomplete Suggestions */
@@ -441,7 +441,7 @@ nav a:hover {
     transition: background 0.2s ease;
     font-size: 0.95rem;
     color: #c8c8d8;
-    border-bottom: 1px solid #3d3d52;
+    border-bottom: 1px solid #585876;
 }
 
 .suggestion-item:last-child {
@@ -449,8 +449,8 @@ nav a:hover {
 }
 
 .suggestion-item:hover {
-    background: rgba(232, 67, 147, 0.1);
-    color: #e84393;
+    background: rgba(214, 61, 134, 0.1);
+    color: #d63d86;
 }
 
 .suggestion-item.no-results {
@@ -489,7 +489,7 @@ nav a:hover {
 }
 
 .suggestion-match-badge {
-    background: #e84393;
+    background: #d63d86;
     color: white;
     padding: 0.25rem 0.6rem;
     border-radius: 12px;
@@ -525,7 +525,7 @@ nav a:hover {
 }
 
 .search-btn {
-    background: #e84393;
+    background: #d63d86;
     border: none;
     padding: 0.8rem 1.5rem;
     border-radius: 10px;
@@ -541,7 +541,7 @@ nav a:hover {
 
 .search-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(232, 67, 147, 0.4);
+    box-shadow: 0 4px 12px rgba(214, 61, 134, 0.4);
 }
 
 .search-btn:active {
@@ -578,13 +578,13 @@ nav a:hover {
 
 .thesis-card:hover {
     transform: translateX(4px);
-    box-shadow: 0 4px 16px rgba(232, 67, 147, 0.2);
-    border-left-color: #e84393;
+    box-shadow: 0 4px 16px rgba(214, 61, 134, 0.2);
+    border-left-color: #d63d86;
 }
 
 .thesis-icon {
     font-size: 2.5rem;
-    color: #e84393;
+    color: #d63d86;
     flex-shrink: 0;
 }
 
@@ -607,7 +607,7 @@ nav a:hover {
     gap: 1rem;
     flex-wrap: wrap;
     font-size: 0.85rem;
-    color: #9a9ab0;
+    color: #b5b5cc;
 }
 
 .author-info {
@@ -635,7 +635,7 @@ nav a:hover {
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #e84393;
+    color: #d63d86;
 }
 
 .thesis-actions {
@@ -664,12 +664,12 @@ nav a:hover {
 }
 
 .bookmark-btn:hover {
-    color: #e84393;
+    color: #d63d86;
     transform: scale(1.15);
 }
 
 .bookmark-btn.active {
-    color: #e84393;
+    color: #d63d86;
 }
 
 /* No results message */
@@ -708,7 +708,7 @@ nav a:hover {
 }
 
 .overview-card.thesis {
-    border-top-color: #e84393;
+    border-top-color: #d63d86;
 }
 
 .overview-card.project {
@@ -726,7 +726,7 @@ nav a:hover {
 
 .overview-label {
     font-size: 0.85rem;
-    color: #9a9ab0;
+    color: #b5b5cc;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.5rem;
@@ -760,7 +760,7 @@ nav a:hover {
     align-items: center;
     justify-content: space-between;
     padding: 0.8rem 0;
-    border-bottom: 1px solid #3d3d52;
+    border-bottom: 1px solid #585876;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -771,15 +771,15 @@ nav a:hover {
 
 .keyword-item:hover {
     padding-left: 0.5rem;
-    color: #e84393;
-    background-color: rgba(232, 67, 147, 0.08);
+    color: #d63d86;
+    background-color: rgba(214, 61, 134, 0.08);
     border-radius: 6px;
     padding: 0.8rem 0.5rem;
 }
 
 .keyword-item.active {
-    color: #e84393;
-    background-color: rgba(232, 67, 147, 0.12);
+    color: #d63d86;
+    background-color: rgba(214, 61, 134, 0.12);
     border-radius: 6px;
     padding: 0.8rem 0.5rem;
     font-weight: 600;
@@ -794,11 +794,11 @@ nav a:hover {
 
 .keyword-icon {
     font-size: 1.2rem;
-    color: #e84393;
+    color: #d63d86;
 }
 
 .keyword-count {
-    background: #e84393;
+    background: #d63d86;
     color: white;
     padding: 0.3rem 0.7rem;
     border-radius: 20px;
