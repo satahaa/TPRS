@@ -2,6 +2,8 @@ package com.tprs.service;
 
 import com.tprs.dao.TeacherDAO;
 import com.tprs.model.Teacher;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.UserRecord;
 import com.tprs.util.PasswordUtil;
 
 import java.util.List;
@@ -24,15 +26,55 @@ public class TeacherService {
      * @return true if successful, false otherwise
      */
     public boolean register(Teacher teacher) {
+
         // Check if email already exists
+
         if (teacherDAO.getByEmail(teacher.getEmail()) != null) {
+
             System.out.println("Email already registered!");
+
             return false;
+
         }
+
         
-        teacher.setPassword(PasswordUtil.hashPassword(teacher.getPassword()));
+
+        // Create Placeholder in Firebase Admin
+
+        try {
+
+            UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+
+                .setEmail(teacher.getEmail())
+
+                .setEmailVerified(true)
+
+                .setPassword("csembstu");
+
+            UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+
+            teacher.setFirebaseUid(userRecord.getUid());
+
+            teacher.setEmailVerified(true);
+
+        } catch (Exception e) {
+
+            // If the user already exists in Firebase, just leave the UIDs alone for now
+
+            System.err.println("Firebase user creation failed: " + e.getMessage());
+
+        }
+
         
+
+        // Set default password per policy
+
+        teacher.setPassword(com.tprs.util.PasswordUtil.hashPassword("csembstu"));
+
+        
+
         return teacherDAO.create(teacher);
+
     }
     
     /**

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Thesis & Project Repository System</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236c5ce7'%3E%3Cpath d='M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z'/%3E%3C/svg%3E">
     <!-- Google Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <!-- Google Fonts - Poppins -->
@@ -540,24 +542,22 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" placeholder="Choose a username" required autocomplete="off">
-                    <small>Username must be at least 4 characters</small>
+                <!-- Student ID (Moved Up & Replaces Username) -->
+                <div id="studentIdField" style="display: block;">
+                    <div class="form-group">
+                        <label for="studentId">Student ID</label>
+                        <input type="text" id="studentId" name="studentId" minlength="7" maxlength="7" placeholder="Exactly 7 characters" autocomplete="off" oninput="autoFillEmail()">
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your email@mbstu.ac.bd" required autocomplete="off">
+                    <input type="email" id="email" name="email" placeholder="Autofilled from ID" required autocomplete="off" readonly>
                     <small id="emailHint" style="color:red; display:none;">Must end with @mbstu.ac.bd</small>
                 </div>
 
                 <!-- Student-specific fields -->
                 <div id="studentFields">
-                    <div class="form-group">
-                        <label for="studentId">Student ID</label>
-                        <input type="text" id="studentId" name="studentId" placeholder="e.g., CE23___" autocomplete="off">
-                    </div>
                     <div class="form-group">
                         <label for="session">Session</label>
                         <select id="session" name="session">
@@ -592,7 +592,7 @@
                         <div class="form-group">
                             <label>Specializations</label>
                             <div class="spec-tags-container" id="specTagsContainer" onclick="document.getElementById('specInput').focus()" style="position:relative;">
-                                <input type="text" class="spec-tags-input" id="specInput" placeholder="e.g., Machine Learning" onkeydown="handleSpecKeydown(event)" autocomplete="off">
+                                <input type="text" class="spec-tags-input" id="specInput" placeholder="Machine Learning" onkeydown="handleSpecKeydown(event)" autocomplete="off">
                                 <div id="specSuggestions" style="display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);max-height:180px;overflow-y:auto;z-index:100;"></div>
                             </div>
                             <small>Press Enter to add multiple specializations</small>
@@ -662,6 +662,9 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="api.js"></script>
     <script>
         // ===== Multi-tag Specialization =====
@@ -745,7 +748,7 @@
             });
             // Update hidden field
             document.getElementById('specialization').value = specTags.join(', ');
-            input.placeholder = specTags.length > 0 ? '' : 'e.g., Machine Learning';
+            input.placeholder = specTags.length > 0 ? '' : 'Machine Learning';
         }
 
         // Also add tag when input loses focus (delayed to allow suggestion clicks)
@@ -759,6 +762,21 @@
             }, 250);
         });
 
+        // AutoFill Email dynamically
+        function autoFillEmail() {
+            const role = document.getElementById('role').value;
+            const studentIdVal = document.getElementById('studentId').value.trim().toLowerCase();
+            const emailInput = document.getElementById('email');
+            
+            if (role === 'student') {
+                if (studentIdVal.length > 0) {
+                    emailInput.value = studentIdVal + '@mbstu.ac.bd';
+                } else {
+                    emailInput.value = '';
+                }
+            }
+        }
+
         // Toggle role-specific fields
         function toggleRoleFields() {
             const role = document.getElementById('role').value;
@@ -766,16 +784,29 @@
             const teacherFields = document.getElementById('teacherFields');
             const degreeGroup = document.getElementById('degreeGroup');
             
+            const studentIdField = document.getElementById('studentIdField');
+            const emailField = document.getElementById('email');
+            
             if (role === 'teacher') {
                 studentFields.style.display = 'none';
                 teacherFields.style.display = 'block';
                 degreeGroup.style.display = 'none';
+                studentIdField.style.display = 'none';
                 document.getElementById('studentId').removeAttribute('required');
+                
+                emailField.removeAttribute('readonly'); 
+                emailField.value = ''; // Let teacher type own email
+                emailField.placeholder = "Enter your email@mbstu.ac.bd";
             } else {
                 studentFields.style.display = 'block';
                 teacherFields.style.display = 'none';
                 degreeGroup.style.display = 'block';
+                studentIdField.style.display = 'block';
                 document.getElementById('studentId').setAttribute('required', '');
+                
+                emailField.setAttribute('readonly', 'true');
+                autoFillEmail(); // Re-trigger autofill if they switch back to student
+                emailField.placeholder = "Autofilled (ce23060@mbstu.ac.bd)";
             }
         }
 
@@ -887,7 +918,6 @@
             const role = document.getElementById('role').value;
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
-            const username = document.getElementById('username').value.trim();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
@@ -895,9 +925,13 @@
             const terms = document.getElementById('terms').checked;
             
             // Validation
-            if (username.length < 4) {
-                showError('Username must be at least 4 characters');
-                return;
+            if (role === 'student') {
+                const sIdInput = document.getElementById('studentId').value.trim();
+                const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+                if (sIdInput.length !== 7 || !alphanumericRegex.test(sIdInput)) {
+                    showError('Student ID must be exactly 7 alphanumeric characters long');
+                    return;
+                }
             }
             
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -932,6 +966,14 @@
             submitBtn.disabled = true;
             
             try {
+                // 1. Create User in Firebase FIRST!
+                const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                
+                // 2. Immediately send the verification email
+                await userCredential.user.sendEmailVerification();
+                
+                const firebaseUid = userCredential.user.uid;
+                
                 let result;
                 
                 if (role === 'student') {
@@ -942,6 +984,8 @@
                         showError('Student ID is required');
                         submitBtn.textContent = 'Create Account';
                         submitBtn.disabled = false;
+                        // Cleanup if they failed front-end validation after Firebase created them
+                        await userCredential.user.delete(); 
                         return;
                     }
                     
@@ -950,7 +994,8 @@
                         lastName,
                         username,
                         email,
-                        password,
+                        password, // Backend still needs this temporarily for legacy DB code
+                        firebaseUid,   // <--- We pass the Firebase UID to the Java backend!
                         studentId,
                         department,
                         degreeType,
@@ -968,7 +1013,8 @@
                         lastName,
                         username,
                         email,
-                        password,
+                        password, // Backend still needs this temporarily for legacy DB code
+                        firebaseUid,   // <--- We pass the Firebase UID to the Java backend!
                         department,
                         designation,
                         specialization
@@ -977,59 +1023,40 @@
                 }
                 
                 if (result.success) {
-                    showSuccess('Account created successfully! Redirecting to login...');
+                    showSuccess('Account created successfully! Please check your email inbox (and spam folder) to verify your address before logging in. Redirecting...');
                     submitBtn.textContent = 'Account Created!';
+                    
+                    // Firebase manages the session instantly. We sign them out so they must login after verification
+                    await firebase.auth().signOut();
                     
                     setTimeout(() => {
                         window.location.href = 'login.html';
-                    }, 2000);
+                    }, 5000);
                 } else {
                     showError(result.message || 'Registration failed. Please try again.');
+                    // If backend failed, cleanup the firebase user
+                    await userCredential.user.delete();
                     submitBtn.textContent = 'Create Account';
                     submitBtn.disabled = false;
                 }
             } catch (error) {
-                console.log('API not available, using local storage fallback');
+                console.error('Registration Error:', error);
                 
-                const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-                const emailExists = existingUsers.some(user => user.email === email);
-                
-                if (emailExists) {
-                    showError('An account with this email already exists');
-                    submitBtn.textContent = 'Create Account';
-                    submitBtn.disabled = false;
-                    return;
+                let errorMessage = 'An error occurred during registration.';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'This email address is already registered.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'The email address is not valid.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'The password is too weak.';
+                } else if (error.message) {
+                    errorMessage = error.message;
                 }
                 
-                const userData = {
-                    firstName,
-                    lastName,
-                    username,
-                    email,
-                    password,
-                    role,
-                    department,
-                    createdAt: new Date().toISOString()
-                };
-                
-                if (role === 'student') {
-                    userData.studentId = document.getElementById('studentId').value.trim();
-                    userData.degreeType = document.getElementById('degreeType').value;
-                    userData.session = document.getElementById('session').value;
-                } else {
-                    userData.designation = document.getElementById('designation').value;
-                    userData.specialization = document.getElementById('specialization').value.trim();
-                }
-                
-                existingUsers.push(userData);
-                localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
-                
-                showSuccess('Account created successfully! Redirecting to login...');
-                submitBtn.textContent = 'Account Created!';
-                
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
+                showError(errorMessage);
+                submitBtn.textContent = 'Create Account';
+                submitBtn.disabled = false;
+                return;
             }
         });
 

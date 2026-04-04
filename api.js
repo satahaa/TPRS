@@ -3,7 +3,7 @@
  * Handles all API calls to the Java backend
  */
 
-const API_BASE_URL = 'http://localhost:8080/tprs/api';
+const API_BASE_URL = '/tprs/api';
 
 const TPRSApi = {
     
@@ -17,6 +17,22 @@ const TPRSApi = {
      * @param {string} password - User password
      * @returns {Promise} - API response with userType and redirect
      */
+    async loginWithToken(idToken) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ idToken })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error("Login token error:", error);
+            return { success: false, message: "Network error." };
+        }
+    },
+
     async login(email, password) {
         try {
             const response = await fetch(`${API_BASE_URL}/auth/login`, {

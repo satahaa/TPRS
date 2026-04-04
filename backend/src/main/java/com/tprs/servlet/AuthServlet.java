@@ -4,6 +4,8 @@ import com.tprs.service.StudentService;
 import com.tprs.service.TeacherService;
 import com.tprs.model.Student;
 import com.tprs.model.Teacher;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -144,55 +146,209 @@ public class AuthServlet extends HttpServlet {
     }
     
     private void handleLogin(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
-        String email = data.get("email").getAsString();
-        String password = data.get("password").getAsString();
-        
-        // Check admin credentials first
-        if (email.equals(adminUsername) && password.equals(adminPassword)) {
-            JsonObject adminUser = new JsonObject();
-            adminUser.addProperty("id", 0);
-            adminUser.addProperty("username", adminUsername);
-            adminUser.addProperty("firstName", "System");
-            adminUser.addProperty("lastName", "Admin");
-            jsonResponse.addProperty("success", true);
-            jsonResponse.addProperty("message", "Admin login successful");
-            jsonResponse.addProperty("userType", "admin");
-            jsonResponse.addProperty("redirect", "admin-dashboard.html");
-            jsonResponse.add("user", adminUser);
-            return;
-        }
-        
-        // Auto-detect role: try teacher first, then student
-        Teacher teacher = teacherService.loginCheck(email, password);
-        if (teacher != null) {
-            if (!teacher.isAuthorized()) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+        try {
+
+            if (data.has("idToken")) {
+
+                String idToken = data.get("idToken").getAsString();
+
+                FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+
+                String email = decodedToken.getEmail();
+
+                
+
+                if (!decodedToken.isEmailVerified()) {
+
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+                    jsonResponse.addProperty("success", false);
+
+                    jsonResponse.addProperty("message", "Email not verified.");
+
+                    return;
+
+                }
+
+                
+
+                // Auto-detect role: try teacher first, then student
+
+                Teacher teacher = teacherService.getByEmail(email);
+
+                if (teacher != null) {
+
+                    if (!teacher.isAuthorized()) {
+
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+                        jsonResponse.addProperty("success", false);
+
+                        jsonResponse.addProperty("message", "Your account has not been authorized by the admin yet.");
+
+                        return;
+
+                    }
+
+                    jsonResponse.addProperty("success", true);
+
+                    jsonResponse.addProperty("message", "Login successful");
+
+                    jsonResponse.addProperty("userType", "teacher");
+
+                    jsonResponse.addProperty("redirect", "supervisor-dashboard.html");
+
+                    jsonResponse.add("user", gson.toJsonTree(teacher));
+
+                    return;
+
+                }
+
+                
+
+                Student student = studentService.getByEmail(email);
+
+                if (student != null) {
+
+                    jsonResponse.addProperty("success", true);
+
+                    jsonResponse.addProperty("message", "Login successful");
+
+                    jsonResponse.addProperty("userType", "student");
+
+                    jsonResponse.addProperty("redirect", "home.html");
+
+                    jsonResponse.add("user", gson.toJsonTree(student));
+
+                    return;
+
+                }
+
+                
+
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
                 jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Your account has not been authorized by the admin yet. Please contact the administrator.");
+
+                jsonResponse.addProperty("message", "User not found for this Firebase account.");
+
                 return;
+
             }
-            jsonResponse.addProperty("success", true);
-            jsonResponse.addProperty("message", "Login successful");
-            jsonResponse.addProperty("userType", "teacher");
-            jsonResponse.addProperty("redirect", "supervisor-dashboard.html");
-            jsonResponse.add("user", gson.toJsonTree(teacher));
-            return;
+
+            
+
+            // Fallback to email/password for Admin or legacy users
+
+            String email = data.has("email") ? data.get("email").getAsString() : "";
+
+            String password = data.has("password") ? data.get("password").getAsString() : "";
+
+            
+
+            // Check admin credentials first
+
+            if (email.equals(adminUsername) && password.equals(adminPassword)) {
+
+                JsonObject adminUser = new JsonObject();
+
+                adminUser.addProperty("id", 0);
+
+                adminUser.addProperty("username", adminUsername);
+
+                adminUser.addProperty("firstName", "System");
+
+                adminUser.addProperty("lastName", "Admin");
+
+                jsonResponse.addProperty("success", true);
+
+                jsonResponse.addProperty("message", "Admin login successful");
+
+                jsonResponse.addProperty("userType", "admin");
+
+                jsonResponse.addProperty("redirect", "admin-dashboard.html");
+
+                jsonResponse.add("user", adminUser);
+
+                return;
+
+            }
+
+            
+
+            // Auto-detect role for legacy login
+
+            Teacher teacher = teacherService.loginCheck(email, password);
+
+            if (teacher != null) {
+
+                if (!teacher.isAuthorized()) {
+
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+                    jsonResponse.addProperty("success", false);
+
+                    jsonResponse.addProperty("message", "Your account has not been authorized.");
+
+                    return;
+
+                }
+
+                jsonResponse.addProperty("success", true);
+
+                jsonResponse.addProperty("message", "Login successful");
+
+                jsonResponse.addProperty("userType", "teacher");
+
+                jsonResponse.addProperty("redirect", "supervisor-dashboard.html");
+
+                jsonResponse.add("user", gson.toJsonTree(teacher));
+
+                return;
+
+            }
+
+            
+
+            Student student = studentService.login(email, password);
+
+            if (student != null) {
+
+                jsonResponse.addProperty("success", true);
+
+                jsonResponse.addProperty("message", "Login successful");
+
+                jsonResponse.addProperty("userType", "student");
+
+                jsonResponse.addProperty("redirect", "home.html");
+
+                jsonResponse.add("user", gson.toJsonTree(student));
+
+                return;
+
+            }
+
+            
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+            jsonResponse.addProperty("success", false);
+
+            jsonResponse.addProperty("message", "Invalid email or password");
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+
+            jsonResponse.addProperty("success", false);
+
+            jsonResponse.addProperty("message", "Server Error: " + e.getMessage());
+
         }
-        
-        Student student = studentService.login(email, password);
-        if (student != null) {
-            jsonResponse.addProperty("success", true);
-            jsonResponse.addProperty("message", "Login successful");
-            jsonResponse.addProperty("userType", "student");
-            jsonResponse.addProperty("redirect", "home.html");
-            jsonResponse.add("user", gson.toJsonTree(student));
-            return;
-        }
-        
-        // Neither found - invalid credentials
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        jsonResponse.addProperty("success", false);
-        jsonResponse.addProperty("message", "Invalid email or password");
+
     }
     
     private void handleStudentRegistration(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
@@ -210,6 +366,8 @@ public class AuthServlet extends HttpServlet {
             }
             student.setEmail(studentEmail);
             student.setPassword(getJsonString(data, "password", ""));
+            student.setFirebaseUid(getJsonString(data, "firebaseUid", ""));
+            student.setEmailVerified(false);
             student.setDepartment(getJsonString(data, "department", ""));
             // Handle both "semester" and "degreeType" from frontend
             String semester = getJsonString(data, "semester", "");
@@ -310,6 +468,8 @@ public class AuthServlet extends HttpServlet {
             }
             teacher.setEmail(teacherEmail);
             teacher.setPassword(getJsonString(data, "password", ""));
+            teacher.setFirebaseUid(getJsonString(data, "firebaseUid", ""));
+            teacher.setEmailVerified(false);
             teacher.setDepartment(getJsonString(data, "department", ""));
             teacher.setDesignation(getJsonString(data, "designation", ""));
             teacher.setSpecialization(getJsonString(data, "specialization", ""));
