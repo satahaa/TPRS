@@ -129,7 +129,7 @@
                     <label for="password">Password</label>
                     <div class="input-with-icon">
                         <input type="password" id="password" name="password" placeholder="Create a strong password" required autocomplete="new-password">
-                        <span class="material-icons toggle-password" onclick="togglePassword('password')">visibility</span>
+                        <span class="material-icons toggle-password" id="signupPasswordToggleIcon" onclick="toggleSignupPasswords()">visibility</span>
                     </div>
                     <div class="password-strength" id="passwordStrength">
                         <div class="strength-bar" id="strengthBar1"></div>
@@ -142,10 +142,7 @@
 
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
-                    <div class="input-with-icon">
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required autocomplete="new-password">
-                        <span class="material-icons toggle-password" onclick="togglePassword('confirmPassword')">visibility</span>
-                    </div>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required autocomplete="new-password">
                 </div>
 
                 <div class="terms-group">

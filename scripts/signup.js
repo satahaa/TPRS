@@ -172,18 +172,19 @@
             }
         }
 
-        // Toggle password visibility
-        function togglePassword(inputId) {
-            const passwordInput = document.getElementById(inputId);
-            const toggleBtn = passwordInput.nextElementSibling;
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleBtn.textContent = 'visibility_off';
-            } else {
-                passwordInput.type = 'password';
-                toggleBtn.textContent = 'visibility';
-            }
+        // Toggle both signup password fields with one button
+        let signupPasswordsVisible = false;
+        function toggleSignupPasswords() {
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const toggleIcon = document.getElementById('signupPasswordToggleIcon');
+
+            signupPasswordsVisible = !signupPasswordsVisible;
+            const inputType = signupPasswordsVisible ? 'text' : 'password';
+
+            passwordInput.type = inputType;
+            confirmPasswordInput.type = inputType;
+            toggleIcon.textContent = signupPasswordsVisible ? 'visibility_off' : 'visibility';
         }
 
         // Password strength checker

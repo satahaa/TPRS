@@ -22,16 +22,23 @@
 
             <div id="message" class="message" role="status" aria-live="polite"></div>
 
-            <form id="resetForm" class="hidden" novalidate>
+            <form id="resetForm" class="hidden" novalidate autocomplete="on">
+                <input type="email" id="resetEmail" name="email" autocomplete="username" tabindex="-1" aria-hidden="true" class="sr-only" readonly>
+
                 <div class="input-group">
                     <label for="newPassword">New Password</label>
-                    <input type="password" id="newPassword" name="newPassword" minlength="6" required autocomplete="new-password" placeholder="Enter new password">
+                    <input type="password" id="newPassword" name="new-password" minlength="6" required autocomplete="new-password" placeholder="Enter new password">
                 </div>
 
                 <div class="input-group">
                     <label for="confirmPassword">Confirm Password</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" minlength="6" required autocomplete="new-password" placeholder="Confirm new password">
+                    <input type="password" id="confirmPassword" name="new-password-confirm" minlength="6" required autocomplete="new-password" placeholder="Confirm new password">
                 </div>
+
+                <button type="button" id="togglePasswordsBtn" class="toggle-passwords-btn" aria-label="Show passwords">
+                    <span class="material-icons" id="togglePasswordsIcon">visibility</span>
+                    <span id="togglePasswordsText">Show Passwords</span>
+                </button>
 
                 <button type="submit" id="resetBtn">
                     <span class="material-icons">check_circle</span>
