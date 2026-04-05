@@ -143,7 +143,16 @@ Once the backend container has unpacked the `.war`, access the application via y
 
 ---
 
-## 📡 API Reference Overview
+## �️ Migration & Maintenance Documentation
+
+When moving the application to production or restructuring your environment, please refer to following architectural guides:
+
+- [**Domain Name & SSL Migration Guide**](docs/domain-name-migration.md): Detailed steps for changing the application's domain name, setting up HTTPS/SSL using Certbot, and re-configuring Firebase/Google Cloud Authorized Domains.
+- [**Web Server Migration Guide**](docs/web-server-migration.md): Instructions for switching the frontend/backend servers (e.g. Apache to Nginx, Jetty to Tomcat) and setting up secure reverse proxies.
+
+---
+
+## �📡 API Reference Overview
 
 The backend exposes a highly structured RESTful API under the `/tprs/api` namespace.
 
