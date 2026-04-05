@@ -352,7 +352,11 @@
                 
                 // 2. Immediately send the verification email
                 if (!userCredential.user.emailVerified) {
-                    await userCredential.user.sendEmailVerification();
+                    const actionCodeSettings = {
+                        url: window.location.origin + '/html/auth-action.html',
+                        handleCodeInApp: false
+                    };
+                    await userCredential.user.sendEmailVerification(actionCodeSettings);
                 }
                 
                 const firebaseUid = userCredential.user.uid;

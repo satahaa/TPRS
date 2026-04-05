@@ -4,6 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const togglePasswordBtn = document.querySelector('.toggle-password');
     const loginForm = document.getElementById('loginForm');
     const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+
+    const loginParams = new URLSearchParams(window.location.search);
+    if (successMessage) {
+        if (loginParams.get('verified') === '1') {
+            successMessage.textContent = 'Email verified successfully. You can now sign in.';
+            successMessage.classList.add('show');
+        } else if (loginParams.get('reset') === '1') {
+            successMessage.textContent = 'Password updated successfully. Please sign in with your new password.';
+            successMessage.classList.add('show');
+        }
+    }
     
     // Toggle Password Visibility
     if (togglePasswordBtn) {
@@ -180,7 +192,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // Send password reset email using Firebase Auth
-                await firebase.auth().sendPasswordResetEmail(email);
+                const actionCodeSettings = {
+                    url: window.location.origin + '/html/auth-action.html',
+                    handleCodeInApp: false
+                };
+                await firebase.auth().sendPasswordResetEmail(email, actionCodeSettings);
 
                 // Tell backend to disable default supervisor password after reset is initiated.
                 if (typeof TPRSApi !== 'undefined' && typeof TPRSApi.notifyForgotPassword === 'function') {
