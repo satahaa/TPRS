@@ -149,36 +149,27 @@ body {
     color: #6b6b80;
 }
 
-.toggle-passwords-btn {
-    width: 100%;
-    border: 2px solid #585876;
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin-bottom: 14px;
-    font: inherit;
-    font-weight: 500;
-    font-size: 14px;
-    color: #b5b5cc;
-    background: #323248;
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon input {
+    padding-right: 3rem;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    text-transform: none;
-    letter-spacing: 0;
-    transition: all 0.3s ease;
+    color: #6b6b80;
+    transition: color 0.3s ease;
+    user-select: none;
 }
 
-.toggle-passwords-btn:hover {
+.toggle-password:hover {
     color: #d63d86;
-    border-color: #d63d86;
-    box-shadow: 0 0 0 3px rgba(214, 61, 134, 0.12);
-    transform: none;
-}
-
-.toggle-passwords-btn .material-icons {
-    font-size: 20px;
 }
 
 button {

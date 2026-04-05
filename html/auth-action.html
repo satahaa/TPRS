@@ -27,18 +27,16 @@
 
                 <div class="input-group">
                     <label for="newPassword">New Password</label>
-                    <input type="password" id="newPassword" name="new-password" minlength="6" required autocomplete="new-password" placeholder="Enter new password">
+                    <div class="input-with-icon">
+                        <input type="password" id="newPassword" name="new-password" minlength="6" required autocomplete="new-password" placeholder="Enter new password">
+                        <span class="material-icons toggle-password" id="togglePasswordsIcon" aria-label="Show passwords">visibility</span>
+                    </div>
                 </div>
 
                 <div class="input-group">
                     <label for="confirmPassword">Confirm Password</label>
                     <input type="password" id="confirmPassword" name="new-password-confirm" minlength="6" required autocomplete="new-password" placeholder="Confirm new password">
                 </div>
-
-                <button type="button" id="togglePasswordsBtn" class="toggle-passwords-btn" aria-label="Show passwords">
-                    <span class="material-icons" id="togglePasswordsIcon">visibility</span>
-                    <span id="togglePasswordsText">Show Passwords</span>
-                </button>
 
                 <button type="submit" id="resetBtn">
                     <span class="material-icons">check_circle</span>

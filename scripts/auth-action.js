@@ -5,9 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const messageBox = document.getElementById('message');
     const resetForm = document.getElementById('resetForm');
     const resetBtn = document.getElementById('resetBtn');
-    const togglePasswordsBtn = document.getElementById('togglePasswordsBtn');
     const togglePasswordsIcon = document.getElementById('togglePasswordsIcon');
-    const togglePasswordsText = document.getElementById('togglePasswordsText');
     const resetEmailInput = document.getElementById('resetEmail');
     const newPasswordInput = document.getElementById('newPassword');
     const confirmPasswordInput = document.getElementById('confirmPassword');
@@ -41,8 +39,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         showMessage(message, 'error');
     }
 
-    if (togglePasswordsBtn) {
-        togglePasswordsBtn.addEventListener('click', () => {
+    if (togglePasswordsIcon) {
+        togglePasswordsIcon.addEventListener('click', () => {
             passwordsVisible = !passwordsVisible;
             const inputType = passwordsVisible ? 'text' : 'password';
 
@@ -50,8 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             confirmPasswordInput.type = inputType;
 
             togglePasswordsIcon.textContent = passwordsVisible ? 'visibility_off' : 'visibility';
-            togglePasswordsBtn.setAttribute('aria-label', passwordsVisible ? 'Hide passwords' : 'Show passwords');
-            togglePasswordsText.textContent = passwordsVisible ? 'Hide Passwords' : 'Show Passwords';
+            togglePasswordsIcon.setAttribute('aria-label', passwordsVisible ? 'Hide passwords' : 'Show passwords');
         });
     }
 
