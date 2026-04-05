@@ -152,6 +152,15 @@ public class TeacherService {
      * @return true if successful, false otherwise
      */
     public boolean deleteTeacher(int id) {
+        Teacher teacher = teacherDAO.getById(id);
+        if (teacher != null && teacher.getEmail() != null) {
+            try {
+                UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(teacher.getEmail());
+                FirebaseAuth.getInstance().deleteUser(userRecord.getUid());
+            } catch (Exception ignored) {
+                // Ignore if not present in Firebase and continue deletion
+            }
+        }
         return teacherDAO.delete(id);
     }
     

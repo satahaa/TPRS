@@ -10,24 +10,24 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <!-- Google Fonts - Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/TPRS/styles/upload.css">
+    <link rel="stylesheet" href="/styles/upload.css">
 </head>
 <body>
     <!-- =========================================================
          HEADER / TOP NAVIGATION BAR
          ========================================================= -->
     <header>
-        <a href="/TPRS/html/home.html" class="header-left">
+        <a href="/html/home.html" class="header-left">
             <span class="material-icons logo-icon">school</span>
             <div class="logo-text">Thesis & Project Repository System</div>
         </a>
         <div class="header-right">
             <nav>
-                <a href="/TPRS/html/home.html">
+                <a href="/html/home.html">
                     <span class="material-icons">dashboard</span>
                     Dashboard
                 </a>
-                <a href="/TPRS/html/upload.html" class="active">
+                <a href="/html/upload.html" class="active">
                     <span class="material-icons">cloud_upload</span>
                     Upload
                 </a>
@@ -165,7 +165,7 @@
                         <label>Assigned Supervisor</label>
                         <div id="assignedSupervisorDisplay" style="padding:0.8rem 1rem;background:#f0f4ff;border:1px solid #d0d8f0;border-radius:8px;color:#333;font-weight:500;display:flex;align-items:center;gap:0.5rem;">
                             <span class="material-icons" style="color:#667eea;">person</span>
-                            <span id="supervisorNameText">Loading supervisor...</span>
+                            <span id="supervisorNameText">Select year & semester to load supervisor</span>
                         </div>
                         <input type="hidden" id="supervisorId" name="supervisorId" value="">
                         <small>Your supervisor is automatically assigned by the department</small>
@@ -267,7 +267,7 @@
         </div>
     </div>
 
-    <script src="/TPRS/scripts/api.js"></script>
-    <script src="/TPRS/scripts/upload.js"></script>
+    <script src="/scripts/api.js"></script>
+    <script src="/scripts/upload.js"></script>
 </body>
 </html>

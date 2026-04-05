@@ -11,7 +11,7 @@
     <!-- Google Fonts - Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- External CSS -->
-    <link rel="stylesheet" href="/TPRS/styles/home.css">
+    <link rel="stylesheet" href="/styles/home.css">
 </head>
 <body>
 
@@ -24,11 +24,11 @@
         </div>
         <div class="header-right">
             <nav>
-                <a href="/TPRS/html/home.html">
+                <a href="/html/home.html">
                     <span class="material-icons">dashboard</span>
                     Dashboard
                 </a>
-                <a href="/TPRS/html/upload.html">
+                <a href="/html/upload.html">
                     <span class="material-icons">cloud_upload</span>
                     Project Submission
                 </a>
@@ -95,13 +95,7 @@
         </div>
     </header>
 
-    <!-- =========================================================
-         MAIN CONTAINER - THREE COLUMN LAYOUT
-         ========================================================= -->
     <div class="container">
-        <!-- =====================================================
-             LEFT SIDEBAR - FILTERS
-             ===================================================== -->
         <aside class="sidebar-left">
             <h2 class="sidebar-title">
                 <span class="material-icons">filter_list</span>
@@ -173,15 +167,12 @@
             </div>
         </aside>
 
-        <!-- =====================================================
-             MAIN CONTENT AREA
-             ===================================================== -->
         <main class="main-content">
             <!-- Search Bar Section -->
             <div class="search-section">
                 <div class="search-bar" id="searchBar">
                     <span class="material-icons search-icon">search</span>
-                    <input type="search" id="searchInput" placeholder="Search for Thesis or Project" autocomplete="off" name="project-search">
+                    <input type="search" id="searchInput" placeholder="Search for Thesis or Project" autocomplete="new-password" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly');" name="project-search">
                     <!-- Autocomplete Suggestions -->
                     <div class="search-suggestions" id="searchSuggestions">
                         <div class="suggestions-list" id="suggestionsList"></div>
@@ -231,9 +222,6 @@
         </aside>
     </div>
 
-    <!-- External JavaScript -->
-    <script src="/TPRS/scripts/api.js"></script>
-    <script src="/TPRS/scripts/home.js"></script>
 
     <!-- Student Profile Modal -->
 
@@ -269,6 +257,13 @@
                         <div>
                             <div class="sp-detail-label">Department</div>
                             <div class="sp-detail-value" id="spDept">—</div>
+                        </div>
+                    </div>
+                    <div class="sp-detail-row" id="spDegreeRow" style="display:none;">
+                        <span class="material-icons">school</span>
+                        <div>
+                            <div class="sp-detail-label">Degree</div>
+                            <div class="sp-detail-value" id="spDegree">—</div>
                         </div>
                     </div>
                     <div class="sp-detail-row" id="spDesignationRow" style="display:none;">
@@ -310,9 +305,20 @@
     <!-- Project Detail Modal -->
 
     <div class="project-detail-overlay" id="projectDetailModal">
+    <style>
+        #projectDetailModal .project-detail-box::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            background: transparent !important;
+        }
+        #projectDetailModal .project-detail-box {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+    </style>
         <div class="project-detail-box">
             <div class="project-detail-header">
-                <h2>Project Details</h2>
+                <h2 style="font-size:2.0rem; font-weight:700;">Project Details</h2>
                 <button class="project-detail-close" onclick="closeProjectDetail()">
                     <span class="material-icons">close</span>
                 </button>
@@ -335,6 +341,10 @@
                 <div class="pd-row">
                     <span class="material-icons">business</span>
                     <div><div class="pd-label">Department</div><div class="pd-value" id="pdmDept">—</div></div>
+                  </div>
+                  <div class="pd-row">
+                      <span class="material-icons">workspace_premium</span>
+                      <div><div class="pd-label">Degree</div><div class="pd-value" id="pdmDegree">—</div></div>
                 </div>
                 <div class="pd-row">
                     <span class="material-icons">label</span>
@@ -377,6 +387,10 @@
             <div class="cpw-body">
                 <div class="cpw-error" id="cpwError"><span class="material-icons" style="font-size:1rem;">error</span><span id="cpwErrorText"></span></div>
                 <div class="cpw-success" id="cpwSuccess"><span class="material-icons" style="font-size:1rem;">check_circle</span><span id="cpwSuccessText"></span></div>
+                
+                <!-- Hidden username field to prevent browser autofill from hijacking the page search bar -->
+                <input type="text" name="username" autocomplete="username" style="display:none;" aria-hidden="true" value="" />
+
                 <div class="cpw-group">
                     <label>Old Password</label>
                     <div class="cpw-input-wrap">
@@ -409,5 +423,12 @@
             </div>
         </div>
     </div>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="/scripts/firebase-config.js"></script>
+    <!-- External JavaScript -->
+    <script src="/scripts/api.js"></script>
+    <script src="/scripts/home.js"></script>
 </body>
 </html>

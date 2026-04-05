@@ -7,10 +7,10 @@ let keywords = [];
 function checkAuth() {
     // Use TPRSApi if available, fallback to sessionStorage
     if (typeof TPRSApi !== 'undefined' && !TPRSApi.isLoggedIn()) {
-        window.location.href = '/TPRS/html/login.html';
+        window.location.href = '/html/login.html';
         return false;
     } else if (typeof TPRSApi === 'undefined' && sessionStorage.getItem('isLoggedIn') !== 'true') {
-        window.location.href = '/TPRS/html/login.html';
+        window.location.href = '/html/login.html';
         return false;
     }
     return true;
@@ -27,23 +27,26 @@ async function loadDataFromBackend() {
             const recentResult = await TPRSApi.getProjects({ status: 'approved' });
             if (recentResult.success && recentResult.projects && recentResult.projects.length > 0) {
                 // Convert backend data to display format
-                thesesData = recentResult.projects.map(project => ({
-                    id: project.id,
-                    title: project.title,
-                    author: project.studentName || project.authorName || 'Unknown',
-                    authorInitials: getInitials(project.studentName || project.authorName || 'Unknown'),
-                    department: project.department || 'CSE',
-                    degree: project.degree || 'Bachelor',
-                    year: project.year || '',
-                    semester: project.semester || '',
-                    session: project.session || '',
-                    description: project.description || '',
-                    field: project.type || 'Thesis',
-                    keywords: project.keywords || '',
-                    views: project.views || 0,
-                    bookmarked: false,
-                    supervisor: project.supervisorName || project.supervisor || 'N/A',
-                    status: project.status || 'approved'
+                thesesData = await Promise.all(recentResult.projects.map(async project => {
+                    const resolvedDegree = project.degreeType ? await TPRSApi.getDegreeName(project.degreeType) : 'Bachelor';
+                    return {
+                        id: project.id,
+                        title: project.title,
+                        author: project.studentName || project.authorName || 'Unknown',
+                        authorInitials: getInitials(project.studentName || project.authorName || 'Unknown'),
+                        department: project.department || 'CSE',
+                        degree: resolvedDegree,
+                        year: project.year || '',
+                        semester: project.semester || '',
+                        session: project.session || '',
+                        description: project.description || '',
+                        field: project.type || 'Thesis',
+                        keywords: project.keywords || '',
+                        views: project.views || 0,
+                        bookmarked: false,
+                        supervisor: project.supervisorName || project.supervisor || 'N/A',
+                        status: project.status || 'approved'
+                    };
                 }));
             }
 
@@ -108,29 +111,32 @@ async function loadDataFromBackend() {
     } catch (error) {
         console.log('Backend not available, using local data');
         // Load from localStorage as fallback
-        loadLocalStorageData();
+        await loadLocalStorageData();
     }
 }
 
 // Load data from localStorage (fallback)
-function loadLocalStorageData() {
+async function loadLocalStorageData() {
     const submissions = JSON.parse(localStorage.getItem('thesisSubmissions') || '[]');
     if (submissions.length > 0) {
-        const localTheses = submissions.map((sub, index) => ({
-            id: sub.id || (1000 + index),
-            title: sub.title,
-            author: sub.authorName,
-            authorInitials: getInitials(sub.authorName),
-            department: sub.department || 'CSE',
-            degree: sub.degree || 'Bachelor',
-            year: new Date(sub.submittedAt).getFullYear(),
-            semester: sub.semester || '',
-            session: sub.session || '2024-2025',
-            field: sub.type || 'Thesis',
-            views: 0,
-            bookmarked: false,
-            supervisor: sub.supervisor || 'N/A',
-            status: sub.status || 'pending'
+        const localTheses = await Promise.all(submissions.map(async (sub, index) => {
+            const resolvedDegree = sub.degreeType ? await TPRSApi.getDegreeName(sub.degreeType) : "Bachelor";
+            return {
+                id: sub.id || (1000 + index),
+                title: sub.title,
+                author: sub.authorName,
+                authorInitials: getInitials(sub.authorName),
+                department: sub.department || 'CSE',
+                degree: resolvedDegree,
+                year: new Date(sub.submittedAt).getFullYear(),
+                semester: sub.semester || '',
+                session: sub.session || '2024-2025',
+                field: sub.type || 'Thesis',
+                views: 0,
+                bookmarked: false,
+                supervisor: sub.supervisor || 'N/A',
+                status: sub.status || 'pending'
+            };
         }));
         
         // Merge with existing data (recent first)
@@ -818,7 +824,7 @@ function setupProfileDropdown() {
                 sessionStorage.removeItem('userEmail');
                 sessionStorage.removeItem('currentUser');
             }
-            window.location.href = '/TPRS/html/login.html';
+            window.location.href = '/html/login.html';
         });
     }
 }
@@ -1281,7 +1287,7 @@ function exitTypeFilter() {
 }
 
 
-// --- Extracted from /TPRS/html/home.html ---
+// --- Extracted from /html/home.html ---
 // Adjust nav and visibility for supervisor (teacher) users
         (function() {
             const userType = TPRSApi.getUserType();
@@ -1289,20 +1295,20 @@ function exitTypeFilter() {
                 // Change Dashboard link to point to supervisor dashboard
                 const navLinks = document.querySelectorAll('header nav a');
                 navLinks.forEach(link => {
-                    if (link.getAttribute('href') === '/TPRS/html/home.html') {
-                        link.setAttribute('href', '/TPRS/html/supervisor-dashboard.html');
+                    if (link.getAttribute('href') === '/html/home.html') {
+                        link.setAttribute('href', '/html/supervisor-dashboard.html');
                     }
                 });
                 // Hide Project Submission link
                 navLinks.forEach(link => {
-                    if (link.getAttribute('href') === '/TPRS/html/upload.html') {
+                    if (link.getAttribute('href') === '/html/upload.html') {
                         link.style.display = 'none';
                     }
                 });
                 // Add Browse Projects link if not present
                 const nav = document.querySelector('header nav');
                 const browseLink = document.createElement('a');
-                browseLink.href = '/TPRS/html/home.html';
+                browseLink.href = '/html/home.html';
                 browseLink.innerHTML = '<span class="material-icons">folder_special</span> Browse Projects';
                 browseLink.style.color = '#fff';
                 nav.appendChild(browseLink);
@@ -1466,7 +1472,7 @@ function exitTypeFilter() {
             if (userProfile) userProfile.classList.remove('active');
         }
 
-        function openStudentProfileModal(e) {
+        async function openStudentProfileModal(e) {
             if (e) e.preventDefault();
             const user = TPRSApi.getCurrentUser();
             if (user) {
@@ -1480,6 +1486,20 @@ function exitTypeFilter() {
                 document.getElementById('spIdRow').style.display = '';
                 document.getElementById('spStudentId').textContent = user.studentId || user.id || '—';
                 document.getElementById('spDept').textContent = user.department ? user.department + ' Department' : '—';
+
+                // Display degree securely
+                const spDegreeRow = document.getElementById('spDegreeRow');
+                const spDegree = document.getElementById('spDegree');
+                if (spDegreeRow && spDegree) {
+                    const degreeVal = user.semester || user.degreeType;
+                    if (degreeVal) {
+                        spDegreeRow.style.display = '';
+                        spDegree.textContent = await TPRSApi.getDegreeName(degreeVal);
+                    } else {
+                        spDegreeRow.style.display = 'none';
+                    }
+                }
+
                 document.getElementById('spPhone').textContent = user.phone || '—';
                 // Hide teacher-specific fields
                 var desigRow = document.getElementById('spDesignationRow');
@@ -1525,9 +1545,12 @@ function exitTypeFilter() {
             }
         }
         // Close modal on overlay click
-        document.getElementById('studentProfileModal').addEventListener('click', function(e) {
-            if (e.target === this) closeStudentProfileModal();
-        });
+        const studentProfileModal = document.getElementById('studentProfileModal');
+        if (studentProfileModal) {
+            studentProfileModal.addEventListener('click', function(e) {
+                if (e.target === this) closeStudentProfileModal();
+            });
+        }
 
         // ===== Project Detail Modal =====
         async function openProjectDetail(projectId) {
@@ -1549,6 +1572,10 @@ function exitTypeFilter() {
             document.getElementById('pdmAuthor').textContent = p.studentName || p.authorName || '—';
             document.getElementById('pdmSupervisor').textContent = p.supervisorName || p.supervisor || '—';
             document.getElementById('pdmDept').textContent = p.department || '—';
+            
+            const resolvedDegree = p.degreeType ? await TPRSApi.getDegreeName(p.degreeType) : 'Bachelor';
+            document.getElementById('pdmDegree').textContent = resolvedDegree;
+
             document.getElementById('pdmKeywords').textContent = p.keywords || '—';
             const yearSem = ((p.year || '') + (p.year && p.semester ? ' Year, ' : '') + (p.semester || '') + (p.semester ? ' Semester' : '')) || '—';
             document.getElementById('pdmYearSem').textContent = yearSem;
@@ -1582,9 +1609,12 @@ function exitTypeFilter() {
             document.getElementById('projectDetailModal').classList.remove('active');
         }
 
-        document.getElementById('projectDetailModal').addEventListener('click', function(e) {
-            if (e.target === this) closeProjectDetail();
-        });
+        var pdm = document.getElementById('projectDetailModal');
+        if (pdm) {
+            pdm.addEventListener('click', function(e) {
+                if (e.target === this) closeProjectDetail();
+            });
+        }
 
         function escapeHtmlStr(str) {
             if (!str) return '';
@@ -1611,9 +1641,13 @@ function exitTypeFilter() {
         function closeChangePasswordModal() {
             document.getElementById('changePasswordModal').classList.remove('active');
         }
-        document.getElementById('changePasswordModal').addEventListener('click', function(e) {
-            if (e.target === this) closeChangePasswordModal();
-        });
+        var cpwModal = document.getElementById('changePasswordModal');
+        // Removed click-outside listener to prevent accidental closures while autofilling
+        // if (cpwModal) {
+        //     cpwModal.addEventListener('click', function(e) {
+        //         if (e.target === this) closeChangePasswordModal();
+        //     });
+        // }
 
         function toggleCpwVisibility(inputId, icon) {
             const input = document.getElementById(inputId);

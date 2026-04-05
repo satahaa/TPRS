@@ -1,4 +1,4 @@
-// --- Extracted from /TPRS/html/signup.html ---
+// --- Extracted from /html/signup.html ---
 // ===== Multi-tag Specialization =====
         let specTags = [];
         let specSuggestions = [];
@@ -10,7 +10,7 @@
             const matches = specSuggestions.filter(s => s.toLowerCase().includes(val) && !specTags.includes(s)).slice(0, 8);
             if (matches.length === 0) { specSuggestBox.style.display = 'none'; return; }
             specSuggestBox.innerHTML = matches.map(m =>
-                '<div style="padding:0.5rem 0.8rem;cursor:pointer;font-size:0.85rem;border-bottom:1px solid #f0f0f0;" onmousedown="selectSpecSuggestion(\'' + m.replace(/'/g, "\\'") + '\')">' + m + '</div>'
+                '<div class="suggestion-item" onmousedown="selectSpecSuggestion(\'' + m.replace(/'/g, "\\'") + '\')">' + m + '</div>'
             ).join('');
             specSuggestBox.style.display = 'block';
         });
@@ -123,7 +123,6 @@
                 
                 emailField.setAttribute('readonly', 'true');
                 autoFillEmail(); // Re-trigger autofill if they switch back to student
-                emailField.placeholder = "Autofilled (ce23060@mbstu.ac.bd)";
             }
         }
 
@@ -283,18 +282,36 @@
             submitBtn.disabled = true;
             
             try {
-                // 1. Create User in Firebase FIRST!
-                const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                let userCredential;
+                try {
+                    // 1. Create User in Firebase FIRST!
+                    userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                } catch (authError) {
+                    if (authError.code === 'auth/email-already-in-use') {
+                        // The user might have been partially created due to a previous crash.
+                        // Let's try to sign in to salvage the Firebase account for backend registration.
+                        try {
+                            userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+                        } catch (signInErr) {
+                            // If sign in fails, the email is genuinely taken, or wrong password
+                            throw new Error("This email is already registered. If your previous signup crashed halfway, please use the exact same password you tried earlier, or use the 'Forgot Password' directly on the Login page to reset your orphaned account before attempting to sign up again.");
+                        }
+                    } else {
+                        throw authError;
+                    }
+                }
                 
                 // 2. Immediately send the verification email
-                await userCredential.user.sendEmailVerification();
+                if (!userCredential.user.emailVerified) {
+                    await userCredential.user.sendEmailVerification();
+                }
                 
                 const firebaseUid = userCredential.user.uid;
                 
                 let result;
                 
                 if (role === 'student') {
-                    const studentId = document.getElementById('studentId').value.trim();
+                    const studentId = document.getElementById('studentId').value.trim().toUpperCase();
                     const degreeType = document.getElementById('degreeType').value;
                     
                     if (!studentId) {
@@ -309,7 +326,6 @@
                     const studentData = {
                         firstName,
                         lastName,
-                        username,
                         email,
                         password, // Backend still needs this temporarily for legacy DB code
                         firebaseUid,   // <--- We pass the Firebase UID to the Java backend!
@@ -328,7 +344,6 @@
                     const teacherData = {
                         firstName,
                         lastName,
-                        username,
                         email,
                         password, // Backend still needs this temporarily for legacy DB code
                         firebaseUid,   // <--- We pass the Firebase UID to the Java backend!
@@ -347,7 +362,7 @@
                     await firebase.auth().signOut();
                     
                     setTimeout(() => {
-                        window.location.href = '/TPRS/html/login.html';
+                        window.location.href = '/html/login.html';
                     }, 5000);
                 } else {
                     showError(result.message || 'Registration failed. Please try again.');
@@ -379,7 +394,7 @@
 
         // Check if already logged in
         if (TPRSApi.isLoggedIn()) {
-            window.location.href = '/TPRS/html/home.html';
+            window.location.href = '/html/home.html';
         }
 
         async function initPage() {

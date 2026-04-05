@@ -53,11 +53,11 @@ public class Student {
     }
     
     public String getStudentId() {
-        return studentId;
+        return (studentId != null) ? studentId.toUpperCase() : null;
     }
     
     public void setStudentId(String studentId) {
-        this.studentId = studentId;
+        this.studentId = (studentId != null) ? studentId.toUpperCase() : null;
     }
     
     public String getFirstName() {

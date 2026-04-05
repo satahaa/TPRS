@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d63d86'%3E%3Cpath d='M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/TPRS/styles/supervisor-dashboard.css">
+    <link rel="stylesheet" href="/styles/supervisor-dashboard.css">
 </head>
 <body>
     <!-- ===== HEADER ===== -->
@@ -19,11 +19,11 @@
         </div>
         <div class="header-right">
             <nav>
-                <a href="/TPRS/html/supervisor-dashboard.html">
+                <a href="/html/supervisor-dashboard.html">
                     <span class="material-icons">dashboard</span>
                     Dashboard
                 </a>
-                <a href="/TPRS/html/home.html">
+                <a href="/html/home.html">
                     <span class="material-icons">folder_special</span>
                     Browse Projects
                 </a>
@@ -180,7 +180,7 @@
             <div style="padding:0 1.5rem;display:flex;gap:0.8rem;margin-bottom:0.8rem;">
                 <div style="flex:1;">
                     <label style="font-size:0.8rem;font-weight:600;color:#b5b5cc;display:block;margin-bottom:0.3rem;">Year <span style="color:#f5576c;">*</span></label>
-                    <select id="assignYear" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #585876;border-radius:8px;font-size:0.9rem;background:#323248;color:#e2e2ea;" required>
+                    <select id="assignYear" onchange="filterStudents()" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #585876;border-radius:8px;font-size:0.9rem;background:#323248;color:#e2e2ea;" required>
                         <option value="">Select Year</option>
                         <option value="1st">1st Year</option>
                         <option value="2nd">2nd Year</option>
@@ -190,14 +190,14 @@
                 </div>
                 <div style="flex:1;">
                     <label style="font-size:0.8rem;font-weight:600;color:#b5b5cc;display:block;margin-bottom:0.3rem;">Semester <span style="color:#f5576c;">*</span></label>
-                    <select id="assignSemester" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #585876;border-radius:8px;font-size:0.9rem;background:#323248;color:#e2e2ea;" required>
+                    <select id="assignSemester" onchange="filterStudents()" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #585876;border-radius:8px;font-size:0.9rem;background:#323248;color:#e2e2ea;" required>
                         <option value="">Select Semester</option>
                         <option value="1st">1st Semester</option>
                         <option value="2nd">2nd Semester</option>
                     </select>
                 </div>
             </div>
-            <input type="search" class="modal-search" id="studentSearch" placeholder="Search by name or ID..." oninput="filterStudents()" autocomplete="off">
+            <input type="search" class="modal-search" id="studentSearch" placeholder="Search by name or ID..." oninput="filterStudents()" autocomplete="new-password" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly');">
             <div class="scrollable-list" id="unassignedStudentsList">
                 <div class="empty-state">
                     <span class="material-icons">search_off</span>
@@ -281,9 +281,20 @@
 
     <!-- ===== Project Detail Modal ===== -->
     <div class="modal-overlay" id="projectDetailModal">
+    <style>
+        #projectDetailModal .modal-box::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            background: transparent !important;
+        }
+        #projectDetailModal .modal-box {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+    </style>
         <div class="modal-box" style="max-width:600px;">
             <div class="modal-header">
-                <h2>Project Details</h2>
+                <h2 style="font-size:2.0rem; font-weight:700;">Project Details</h2>
                 <button class="modal-close" onclick="closeProjectDetailModal()">
                     <span class="material-icons">close</span>
                 </button>
@@ -411,7 +422,11 @@
     </div>
 
     <!-- ===== SCRIPTS ===== -->
-    <script src="/TPRS/scripts/api.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="/scripts/firebase-config.js"></script>
+    <script src="/scripts/api.js"></script>
 
     <!-- Change Password Modal -->
 
@@ -426,6 +441,10 @@
             <div class="cpw-body">
                 <div class="cpw-error" id="cpwError"><span class="material-icons" style="font-size:1rem;">error</span><span id="cpwErrorText"></span></div>
                 <div class="cpw-success" id="cpwSuccess"><span class="material-icons" style="font-size:1rem;">check_circle</span><span id="cpwSuccessText"></span></div>
+                
+                <!-- Hidden username field to prevent browser autofill from hijacking the page search bar -->
+                <input type="text" name="username" autocomplete="username" style="display:none;" aria-hidden="true" value="" />
+
                 <div class="cpw-group">
                     <label>Old Password</label>
                     <div class="cpw-input-wrap">
@@ -458,6 +477,6 @@
             </div>
         </div>
     </div>
-    <script src="/TPRS/scripts/supervisor-dashboard.js"></script>
+    <script src="/scripts/supervisor-dashboard.js"></script>
 </body>
 </html>

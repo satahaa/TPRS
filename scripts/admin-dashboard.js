@@ -1,8 +1,8 @@
-// --- Extracted from /TPRS/html/admin-dashboard.html ---
+// --- Extracted from /html/admin-dashboard.html ---
 // ===== Auth Check =====
         (function() {
             if (!TPRSApi.isLoggedIn() || TPRSApi.getUserType() !== 'admin') {
-                window.location.href = '/TPRS/html/login.html';
+                window.location.href = '/html/login.html';
             }
         })();
 
@@ -68,12 +68,14 @@
         // ===== Overview =====
         let cachedAllStudents = [];
         let cachedAllTeachers = [];
+        let cachedAllAssignments = [];
 
         async function loadOverview() {
-            const [statsRes, tRes, sRes] = await Promise.all([
+            const [statsRes, tRes, sRes, assignRes] = await Promise.all([
                 TPRSApi.adminGetStats(),
                 TPRSApi.adminGetTeachers(),
-                TPRSApi.adminGetStudents()
+                TPRSApi.adminGetStudents(),
+                TPRSApi.adminGetAllAssignments()
             ]);
 
             if (statsRes.success) {
@@ -122,8 +124,14 @@
             // Cache students for assignment
             if (sRes.success) {
                 cachedAllStudents = sRes.students;
-                filterAssignStudents();
             }
+
+            if (assignRes && assignRes.success) {
+                cachedAllAssignments = assignRes.assignments;
+            }
+
+            // Call this at the end to render the students with possibly greyed out options
+            filterAssignStudents();
         }
 
         function populateAssignSupervisors(list) {
@@ -142,6 +150,9 @@
         function filterAssignStudents() {
             const q = document.getElementById('assignStuSearch').value.trim().toLowerCase();
             const session = document.getElementById('assignSessionFilter').value;
+            const year = document.getElementById('assignYear').value;
+            const semester = document.getElementById('assignSemester').value;
+
             let list = cachedAllStudents;
             if (session) list = list.filter(s => s.session === session);
             if (q) list = list.filter(s =>
@@ -153,12 +164,28 @@
                 container.innerHTML = '<div class="empty-state" style="padding:1rem;"><span class="material-icons" style="font-size:1.5rem;">search_off</span><p style="font-size:0.8rem;">No students found</p></div>';
                 return;
             }
+
+            const assignedStuIds = new Set();
+            if (year && semester) {
+                for (const a of cachedAllAssignments) {
+                    if (a.assignedYear === year && a.assignedSemester === semester) {
+                        assignedStuIds.add(parseInt(a.studentId));
+                    }
+                }
+            }
+
             let html = '';
             for (const s of list) {
-                html += `<label class="student-check-item">
-                    <input type="checkbox" value="${s.id}" class="assign-stu-cb">
+                const isAssigned = assignedStuIds.has(parseInt(s.id));
+                const disabledAttr = isAssigned ? 'disabled' : '';
+                const itemClass = isAssigned ? 'student-check-item assigned' : 'student-check-item';
+                const badge = isAssigned ? '<span class="badge badge-assigned">Assigned</span>' : '';
+
+                html += `<label class="${itemClass}">
+                    <input type="checkbox" value="${s.id}" class="assign-stu-cb" ${disabledAttr}>
                     <span>${esc(s.firstName + ' ' + s.lastName)}</span>
                     <span class="stu-id">${esc(s.studentId || '')}${s.session ? ' &middot; ' + esc(s.session) : ''}</span>
+                    ${badge}
                 </label>`;
             }
             container.innerHTML = html;
@@ -174,13 +201,24 @@
 
             let successCount = 0, failCount = 0;
             for (const cb of checked) {
-                const res = await TPRSApi.adminAssignStudent(supervisorId, parseInt(cb.value), year, semester);
-                if (res.success) successCount++; else failCount++;
+                const stuId = parseInt(cb.value);
+                const res = await TPRSApi.adminAssignStudent(supervisorId, stuId, year, semester);
+                if (res.success) {
+                    successCount++;
+                    cachedAllAssignments.push({
+                        assignedYear: year,
+                        assignedSemester: semester,
+                        studentId: stuId,
+                        teacherId: supervisorId
+                    });
+                } else {
+                    failCount++;
+                }
             }
             if (successCount > 0) showToast(successCount + ' student(s) assigned successfully', 'success');
             if (failCount > 0) showToast(failCount + ' assignment(s) failed (may already exist)', 'error');
-            // Uncheck all
-            document.querySelectorAll('.assign-stu-cb:checked').forEach(cb => cb.checked = false);
+            
+            filterAssignStudents();
         }
 
         function renderPendingTeachers(list) {
@@ -306,12 +344,13 @@
             </tr></thead><tbody>`;
             for (const s of list) {
                 const safeName = esc(s.firstName + ' ' + s.lastName);
+                const degreeName = await TPRSApi.getDegreeName(s.semester);
                 html += `<tr>
                     <td>${esc(s.studentId)}</td>
                     <td>${safeName}</td>
                     <td>${esc(s.email)}</td>
                     <td>${esc(s.department)}</td>
-                    <td>${esc(s.semester || '—')}</td>
+                    <td>${esc(degreeName || '—')}</td>
                     <td>${esc(s.session || '—')}</td>
                     <td style="white-space:nowrap;">
                         <button class="btn-sm btn-edit" onclick="openEditStudent(${s.id})"><span class="material-icons" style="font-size:0.9rem;">edit</span> Edit</button>
@@ -326,6 +365,18 @@
         async function openEditStudent(id) {
             const res = await TPRSApi.adminGetStudents();
             if (!res.success) return;
+            
+            // Populate Degree Select Options
+            const settings = await TPRSApi.getSettings();
+            const esSem = document.getElementById('es_semester');
+            if (esSem.options.length <= 1) { // if not populated yet
+                settings.degreeTypes.forEach(deg => {
+                    const opt = document.createElement('option');
+                    opt.value = deg.id; opt.textContent = deg.name;
+                    esSem.appendChild(opt);
+                });
+            }
+
             allStudents = res.students;
             const s = allStudents.find(x => x.id === id);
             if (!s) return;
@@ -344,7 +395,7 @@
         async function saveStudent() {
             const id = document.getElementById('es_id').value;
             const data = {
-                studentId: document.getElementById('es_studentId').value.trim(),
+                studentId: document.getElementById('es_studentId').value.trim().toUpperCase(),
                 firstName: document.getElementById('es_firstName').value.trim(),
                 lastName: document.getElementById('es_lastName').value.trim(),
                 department: document.getElementById('es_department').value.trim(),
@@ -436,7 +487,7 @@
 
         function doLogout() {
             TPRSApi.logout();
-            window.location.href = '/TPRS/html/login.html';
+            window.location.href = '/html/login.html';
         }
 
         // ===== Delete Functions (custom confirm) =====
@@ -512,7 +563,7 @@
                     <td>${esc(a.assignedSemester || '—')}</td>
                     <td>${esc(a.studentSession || '—')}</td>
                     <td style="white-space:nowrap;">
-                        <button class="btn-sm btn-edit" onclick="openReassign(${a.assignmentId}, ${a.studentId}, '${safeStuName.replace(/'/g, "\\'")}', '${safeSupName.replace(/'/g, "\\'")}', '${esc(a.assignedYear || '')}', '${esc(a.assignedSemester || '')}')"><span class="material-icons" style="font-size:0.9rem;">swap_horiz</span> Reassign</button>
+                        <button class="btn-sm btn-edit" onclick="openReassign(${a.assignmentId}, ${a.studentId}, '${safeStuName.replace(/'/g, "\\'")}', ${a.supervisorId}, '${safeSupName.replace(/'/g, "\\'")}', '${esc(a.assignedYear || '')}', '${esc(a.assignedSemester || '')}')"><span class="material-icons" style="font-size:0.9rem;">swap_horiz</span> Reassign</button>
                         <button class="btn-sm btn-delete" onclick="deleteAssignment(${a.assignmentId}, '${safeStuName.replace(/'/g, "\\'")}', '${safeSupName.replace(/'/g, "\\'")}')"><span class="material-icons" style="font-size:0.9rem;">delete</span> Remove</button>
                     </td>
                 </tr>`;
@@ -521,9 +572,10 @@
             document.getElementById('assignmentsTable').innerHTML = html;
         }
 
-        async function openReassign(assignmentId, studentId, studentName, currentSupervisor, year, semester) {
+        async function openReassign(assignmentId, studentId, studentName, oldSupervisorId, currentSupervisor, year, semester) {
             document.getElementById('ra_assignmentId').value = assignmentId;
             document.getElementById('ra_studentId').value = studentId;
+            document.getElementById('ra_oldSupervisorId').value = oldSupervisorId;
             document.getElementById('ra_studentName').value = studentName;
             document.getElementById('ra_currentSupervisor').value = currentSupervisor;
             document.getElementById('ra_year').value = year || '';
@@ -550,6 +602,8 @@
         async function doReassign() {
             const assignmentId = document.getElementById('ra_assignmentId').value;
             const studentId = document.getElementById('ra_studentId').value;
+            const oldSupervisorId = document.getElementById('ra_oldSupervisorId').value;
+            const studentName = document.getElementById('ra_studentName').value;
             const newSupervisorId = document.getElementById('ra_newSupervisor').value;
             const year = document.getElementById('ra_year').value || null;
             const semester = document.getElementById('ra_semester').value || null;
@@ -568,6 +622,28 @@
                 showToast('Student reassigned successfully', 'success');
                 closeModal('reassignModal');
                 loadAllAssignments();
+
+                // Send notification to old supervisor
+                await TPRSApi.createNotification({
+                    recipientId: parseInt(oldSupervisorId),
+                    recipientType: 'teacher',
+                    senderId: parseInt(studentId),
+                    senderType: 'student',
+                    type: 'assignment',
+                    title: 'Student Reassigned',
+                    message: studentName + ' has been reassigned to a different supervisor.'
+                });
+
+                // Send notification to student
+                await TPRSApi.createNotification({
+                    recipientId: parseInt(studentId),
+                    recipientType: 'student',
+                    senderId: parseInt(oldSupervisorId), // Just an arbitrary teacher sender
+                    senderType: 'teacher',
+                    type: 'assignment',
+                    title: 'Supervisor Reassigned',
+                    message: 'Your supervisor has been changed. Check your profile for the new assignment.'
+                });
             } else {
                 showToast('Reassignment failed: ' + assignRes.message, 'error');
             }
@@ -586,6 +662,7 @@
 
         // Initial load
         loadOverview();
+        loadAdminSettings();
 
         // ===== Settings Panel =====
         // ===== Drag and Drop Ordering =====

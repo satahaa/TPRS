@@ -1,4 +1,4 @@
-/* Modular CSS extracted from /TPRS/html/signup.html */
+/* Modular CSS extracted from /html/signup.html */
 * {
             margin: 0;
             padding: 0;
@@ -94,6 +94,39 @@
             background: #323248;
             box-shadow: 0 0 0 4px rgba(214, 61, 134, 0.1);
         }
+        
+        .suggestion-box {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            background: #323248;
+            color: #ffffff;
+            border: 2px solid #585876;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .suggestion-item {
+            padding: 0.5rem 0.8rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #585876;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background: #d63d86;
+            color: #ffffff;
+        }
+
         .spec-tag {
             display: flex;
             align-items: center;

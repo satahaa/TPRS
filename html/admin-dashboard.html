@@ -8,8 +8,8 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d63d86'%3E%3Cpath d='M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="/TPRS/scripts/api.js"></script>
-    <link rel="stylesheet" href="/TPRS/styles/admin-dashboard.css">
+    <script src="/scripts/api.js"></script>
+    <link rel="stylesheet" href="/styles/admin-dashboard.css">
 </head>
 <body>
     <!-- Top Bar -->
@@ -59,7 +59,7 @@
                     <div class="assign-form-row">
                         <div>
                             <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:0.2rem;">Year</label>
-                            <select class="assign-select" id="assignYear">
+                            <select class="assign-select" id="assignYear" onchange="filterAssignStudents()">
                                 <option value="">Select Year</option>
                                 <option value="1st">1st</option>
                                 <option value="2nd">2nd</option>
@@ -69,7 +69,7 @@
                         </div>
                         <div>
                             <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:0.2rem;">Semester</label>
-                            <select class="assign-select" id="assignSemester">
+                            <select class="assign-select" id="assignSemester" onchange="filterAssignStudents()">
                                 <option value="">Select Semester</option>
                                 <option value="1st">1st</option>
                                 <option value="2nd">2nd</option>
@@ -79,7 +79,7 @@
                     <div class="assign-form-row" style="margin-bottom:0.3rem;">
                         <div style="flex:2;">
                             <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:0.2rem;">Search Students (by ID or name)</label>
-                            <input type="search" class="assign-input" id="assignStuSearch" placeholder="Search by student ID or name..." oninput="filterAssignStudents()" autocomplete="off">
+                            <input type="search" class="assign-input" id="assignStuSearch" placeholder="Search by student ID or name..." oninput="filterAssignStudents()" autocomplete="new-password" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly');">
                         </div>
                         <div style="flex:1;">
                             <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:0.2rem;">Session</label>
@@ -109,7 +109,7 @@
         <div class="section" id="section-supervisors">
             <div class="search-bar">
                 <span class="material-icons">search</span>
-                <input type="search" id="teacherSearch" placeholder="Search supervisors by name or email..." oninput="debounceTeacherSearch()" autocomplete="off">
+                <input type="search" id="teacherSearch" placeholder="Search supervisors by name or email..." oninput="debounceTeacherSearch()" autocomplete="new-password" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly');">
             </div>
             <div id="teachersTable"></div>
         </div>
@@ -118,7 +118,7 @@
         <div class="section" id="section-students">
             <div class="search-bar">
                 <span class="material-icons">search</span>
-                <input type="search" id="studentSearch" placeholder="Search students by name or email..." oninput="debounceStudentSearch()" autocomplete="off">
+                <input type="search" id="studentSearch" placeholder="Search students by name or email..." oninput="debounceStudentSearch()" autocomplete="new-password" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly');">
             </div>
             <div id="studentsTable"></div>
         </div>
@@ -127,7 +127,7 @@
         <div class="section" id="section-projects">
             <div class="search-bar">
                 <span class="material-icons">search</span>
-                <input type="search" id="projectSearch" placeholder="Search projects by title, description or keywords..." oninput="debounceProjectSearch()" autocomplete="off">
+                <input type="search" id="projectSearch" placeholder="Search projects by title, description or keywords..." oninput="debounceProjectSearch()" autocomplete="new-password" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly');">
             </div>
             <div id="projectsTable"></div>
         </div>
@@ -136,7 +136,7 @@
         <div class="section" id="section-assignments">
             <div class="search-bar">
                 <span class="material-icons">search</span>
-                <input type="search" id="assignmentSearch" placeholder="Search by student name, ID, or supervisor name..." oninput="debounceAssignmentSearch()" autocomplete="off">
+                <input type="search" id="assignmentSearch" placeholder="Search by student name, ID, or supervisor name..." oninput="debounceAssignmentSearch()" autocomplete="new-password" data-lpignore="true" readonly onfocus="this.removeAttribute('readonly');">
             </div>
             <div id="assignmentsTable"></div>
         </div>
@@ -239,7 +239,9 @@
                 <label>Department</label>
                 <input type="text" id="es_department">
                 <label>Degree Type</label>
-                <input type="text" id="es_semester">
+                <select id="es_semester" style="width:100%;padding:0.6rem 0.8rem;border:1px solid #e2e8f0;border-radius:6px;font-size:0.9rem;background:#f8fafc;color:#1e293b;margin-bottom:1rem;">
+                    <option value="">Select Degree</option>
+                </select>
                 <label>Session</label>
                 <input type="text" id="es_session">
                 <label>Phone</label>
@@ -307,6 +309,7 @@
             <div class="modal-body">
                 <input type="hidden" id="ra_assignmentId">
                 <input type="hidden" id="ra_studentId">
+                <input type="hidden" id="ra_oldSupervisorId">
                 <label>Student</label>
                 <input type="text" id="ra_studentName" disabled>
                 <label>Current Supervisor</label>
@@ -353,6 +356,6 @@
 
     <!-- Toast -->
     <div class="toast" id="toast"></div>
-    <script src="/TPRS/scripts/admin-dashboard.js"></script>
+    <script src="/scripts/admin-dashboard.js"></script>
 </body>
 </html>

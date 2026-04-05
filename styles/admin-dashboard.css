@@ -1,4 +1,4 @@
-/* Modular CSS extracted from /TPRS/html/admin-dashboard.html */
+/* Modular CSS extracted from /html/admin-dashboard.html */
 .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -238,9 +238,30 @@
             display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.5rem;
             border-radius: 6px; font-size: 0.82rem; cursor: pointer;
         }
-        .student-check-item:hover { background: #f5f7fb; }
+        .student-check-item:hover { background: rgba(255,255,255,0.05); }
         .student-check-item input[type="checkbox"] { accent-color: #e84393; }
         .student-check-item .stu-id { color: #888; font-size: 0.76rem; }
+        
+        .student-check-item.assigned {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #2a2a3e;
+        }
+        .student-check-item.assigned span {
+            color: #b0b0c0;
+        }
+        .student-check-item.assigned .stu-id {
+            color: #888;
+        }
+        .badge.badge-assigned {
+            margin-left: auto;
+            font-size: 0.7rem;
+            background-color: #4a4a5e;
+            color: #b0b0c0;
+            padding: 2px 6px;
+            border-radius: 12px;
+        }
+
         .assign-btn {
             padding: 0.5rem 1.2rem; border: none; border-radius: 8px;
             background: #e84393; color: #fff;

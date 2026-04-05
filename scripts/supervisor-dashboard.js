@@ -1,19 +1,20 @@
-// --- Extracted from /TPRS/html/supervisor-dashboard.html ---
+// --- Extracted from /html/supervisor-dashboard.html ---
 // ===== Global State =====
         let currentUser = null;
         let allUnassignedStudents = [];
+let allGlobalAssignments = [];
 
         // ===== Initialization =====
         document.addEventListener('DOMContentLoaded', async function() {
             // Auth check
             if (!TPRSApi.isLoggedIn() || TPRSApi.getUserType() !== 'teacher') {
-                window.location.href = '/TPRS/html/login.html';
+                window.location.href = '/html/login.html';
                 return;
             }
 
             currentUser = TPRSApi.getCurrentUser();
             if (!currentUser) {
-                window.location.href = '/TPRS/html/login.html';
+                window.location.href = '/html/login.html';
                 return;
             }
 
@@ -147,16 +148,19 @@
 
             document.getElementById('statStudents').textContent = result.students.length;
 
-            container.innerHTML = result.students.map(s => {
+            const htmlList = [];
+            for (const s of result.students) {
                 const initials = ((s.firstName || 'S')[0] + (s.lastName || '')[0]).toUpperCase();
                 const yearSem = [s.assignedYear ? s.assignedYear + ' Year' : '', s.assignedSemester ? s.assignedSemester + ' Sem' : ''].filter(Boolean).join(', ');
-                return `
+                const degreeName = await TPRSApi.getDegreeName(s.semester);
+                
+                htmlList.push(`
                     <div class="student-item">
                         <div class="student-info">
                             <div class="student-avatar">${initials}</div>
                             <div>
                                 <div class="student-name">${escapeHtml(s.firstName + ' ' + s.lastName)}</div>
-                                <div class="student-detail">${escapeHtml(s.studentId || '')} · ${escapeHtml(s.department || '')}${yearSem ? ' · ' + yearSem : ''}</div>
+                                <div class="student-detail">${escapeHtml(s.studentId || '')} · ${escapeHtml(s.department || '')} · ${escapeHtml(degreeName || '')}${yearSem ? ' · ' + yearSem : ''}</div>
                             </div>
                         </div>
                         <button class="btn-unassign" onclick="unassignStudent(${s.id}, '${s.assignedYear || ''}', '${s.assignedSemester || ''}')">
@@ -164,8 +168,9 @@
                             Remove
                         </button>
                     </div>
-                `;
-            }).join('');
+                `);
+            }
+            container.innerHTML = htmlList.join('');
         }
 
         let pendingRemoveStudentId = null;
@@ -354,12 +359,23 @@
             document.getElementById('assignModal').classList.add('active');
             document.getElementById('studentSearch').value = '';
 
-            const result = await TPRSApi.getUnassignedStudents(currentUser.id);
-            if (result.success && result.students) {
-                allUnassignedStudents = result.students;
+            const [unassignedResult, assignmentsResult] = await Promise.all([
+                TPRSApi.getUnassignedStudents(currentUser.id),
+                TPRSApi.adminGetAllAssignments()
+            ]);
+
+            if (unassignedResult.success && unassignedResult.students) {
+                allUnassignedStudents = unassignedResult.students;
             } else {
                 allUnassignedStudents = [];
             }
+
+            if (assignmentsResult && assignmentsResult.success && assignmentsResult.assignments) {
+                allGlobalAssignments = assignmentsResult.assignments;
+            } else {
+                allGlobalAssignments = [];
+            }
+
             renderUnassignedStudents(allUnassignedStudents);
         }
 
@@ -377,7 +393,7 @@
             renderUnassignedStudents(filtered);
         }
 
-        function renderUnassignedStudents(students) {
+        async function renderUnassignedStudents(students) {
             const container = document.getElementById('unassignedStudentsList');
             if (students.length === 0) {
                 container.innerHTML = `<div class="empty-state">
@@ -386,24 +402,46 @@
                 </div>`;
                 return;
             }
-            container.innerHTML = students.map(s => {
+            const selectedYear = document.getElementById('assignYear').value;
+            const selectedSemester = document.getElementById('assignSemester').value;
+
+            const htmlList = [];
+            for (const s of students) {
                 const initials = ((s.firstName || 'S')[0] + (s.lastName || '')[0]).toUpperCase();
-                return `
-                    <div class="student-item">
+                const degreeName = await TPRSApi.getDegreeName(s.semester);
+                
+                let isAssigned = false;
+                if (selectedYear && selectedSemester) {
+                    isAssigned = allGlobalAssignments.some(a => 
+                        parseInt(a.studentId) === parseInt(s.id) && 
+                        a.assignedYear === selectedYear && 
+                        a.assignedSemester === selectedSemester
+                    );
+                }
+
+                htmlList.push(`
+                    <div class="student-item ${isAssigned ? 'assigned' : ''}">
                         <div class="student-info">
                             <div class="student-avatar">${initials}</div>
                             <div>
                                 <div class="student-name">${escapeHtml(s.firstName + ' ' + s.lastName)}</div>
-                                <div class="student-detail">${escapeHtml(s.studentId || '')} · ${escapeHtml(s.email || '')}</div>
+                                <div class="student-detail">${escapeHtml(s.studentId || '')} · ${escapeHtml(degreeName || '')} · ${escapeHtml(s.email || '')}</div>
                             </div>
                         </div>
-                        <button class="btn-assign" onclick="assignStudentFromModal(${s.id})">
-                            <span class="material-icons" style="font-size:1rem">person_add</span>
-                            Assign
-                        </button>
+                        ${isAssigned 
+                            ? `<button class="btn-assign btn-assigned" disabled>
+                                   <span class="material-icons" style="font-size:1rem">check_circle</span>
+                                   Assigned
+                               </button>`
+                            : `<button class="btn-assign" onclick="assignStudentFromModal(${s.id})">
+                                   <span class="material-icons" style="font-size:1rem">person_add</span>
+                                   Assign
+                               </button>`
+                        }
                     </div>
-                `;
-            }).join('');
+                `);
+            }
+            container.innerHTML = htmlList.join('');
         }
 
         async function assignStudentFromModal(studentId) {
@@ -573,7 +611,7 @@
 
         function handleLogout() {
             TPRSApi.logout();
-            window.location.href = '/TPRS/html/login.html';
+            window.location.href = '/html/login.html';
         }
     
 
@@ -594,9 +632,9 @@
         function closeChangePasswordModal() {
             document.getElementById('changePasswordModal').classList.remove('active');
         }
-        document.getElementById('changePasswordModal').addEventListener('click', function(e) {
-            if (e.target === this) closeChangePasswordModal();
-        });
+        // document.getElementById('changePasswordModal').addEventListener('click', function(e) {
+        //     if (e.target === this) closeChangePasswordModal();
+        // });
 
         function toggleCpwVisibility(inputId, icon) {
             const input = document.getElementById(inputId);

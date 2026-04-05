@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <!-- Google Fonts - Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/TPRS/styles/signup.css">
+    <link rel="stylesheet" href="/styles/signup.css">
 </head>
 <body>
     <header>
@@ -39,7 +39,7 @@
                 <span id="successText"></span>
             </div>
 
-            <form id="signupForm" autocomplete="off">
+            <form id="signupForm">
                 <!-- Role Selection -->
                 <div class="form-group">
                     <label for="role">Register As</label>
@@ -71,7 +71,7 @@
 
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="Autofilled from ID" required autocomplete="off" readonly>
+                    <input type="email" id="email" name="email" placeholder="Autofilled from ID" required autocomplete="username" readonly>
                     <small id="emailHint" style="color:red; display:none;">Must end with @mbstu.ac.bd</small>
                 </div>
 
@@ -102,7 +102,7 @@
                             <label>Specializations</label>
                             <div class="spec-tags-container" id="specTagsContainer" onclick="document.getElementById('specInput').focus()" style="position:relative;">
                                 <input type="text" class="spec-tags-input" id="specInput" placeholder="Machine Learning" onkeydown="handleSpecKeydown(event)" autocomplete="off">
-                                <div id="specSuggestions" style="display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1);max-height:180px;overflow-y:auto;z-index:100;"></div>
+                                <div id="specSuggestions" class="suggestion-box"></div>
                             </div>
                             <small>Press Enter to add multiple specializations</small>
                             <input type="hidden" id="specialization" name="specialization">
@@ -128,7 +128,7 @@
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="input-with-icon">
-                        <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+                        <input type="password" id="password" name="password" placeholder="Create a strong password" required autocomplete="new-password">
                         <span class="material-icons toggle-password" onclick="togglePassword('password')">visibility</span>
                     </div>
                     <div class="password-strength" id="passwordStrength">
@@ -143,7 +143,7 @@
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
                     <div class="input-with-icon">
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required autocomplete="new-password">
                         <span class="material-icons toggle-password" onclick="togglePassword('confirmPassword')">visibility</span>
                     </div>
                 </div>
@@ -159,15 +159,15 @@
             </form>
 
             <p class="auth-switch">
-                Already have an account? <a href="/TPRS/html/login.html">Login here</a>
+                Already have an account? <a href="/html/login.html">Login here</a>
             </p>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="/TPRS/scripts/firebase-config.js"></script>
-    <script src="/TPRS/scripts/api.js"></script>
-    <script src="/TPRS/scripts/signup.js"></script>
+    <script src="/scripts/firebase-config.js"></script>
+    <script src="/scripts/api.js"></script>
+    <script src="/scripts/signup.js?v=4"></script>
 </body>
 </html>

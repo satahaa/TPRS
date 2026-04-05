@@ -184,8 +184,10 @@ public class AuthServlet extends HttpServlet {
                         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
                         jsonResponse.addProperty("success", false);
+                        
+                        jsonResponse.addProperty("isTeacherError", true);
 
-                        jsonResponse.addProperty("message", "Your account has not been authorized by the admin yet.");
+                        jsonResponse.addProperty("message", "Incorrect Credentials");
 
                         return;
 
@@ -197,7 +199,7 @@ public class AuthServlet extends HttpServlet {
 
                     jsonResponse.addProperty("userType", "teacher");
 
-                    jsonResponse.addProperty("redirect", "/TPRS/html/supervisor-dashboard.html");
+                    jsonResponse.addProperty("redirect", "/html/supervisor-dashboard.html");
 
                     jsonResponse.add("user", gson.toJsonTree(teacher));
 
@@ -217,7 +219,7 @@ public class AuthServlet extends HttpServlet {
 
                     jsonResponse.addProperty("userType", "student");
 
-                    jsonResponse.addProperty("redirect", "/TPRS/html/home.html");
+                    jsonResponse.addProperty("redirect", "/html/home.html");
 
                     jsonResponse.add("user", gson.toJsonTree(student));
 
@@ -254,7 +256,7 @@ public class AuthServlet extends HttpServlet {
                     jsonResponse.addProperty("success", true);
                     jsonResponse.addProperty("message", "Admin login successful");
                     jsonResponse.addProperty("userType", "admin");
-                    jsonResponse.addProperty("redirect", "/TPRS/html/admin-dashboard.html");
+                    jsonResponse.addProperty("redirect", "/html/admin-dashboard.html");
                     jsonResponse.add("user", adminUser);
                     return;
                 } else {
@@ -276,20 +278,21 @@ public class AuthServlet extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
                     jsonResponse.addProperty("success", false);
+                        
+                        jsonResponse.addProperty("isTeacherError", true);
 
-                    jsonResponse.addProperty("message", "Your account has not been authorized.");
+                        jsonResponse.addProperty("message", "Incorrect Credentials");
 
-                    return;
+                          return;
 
-                }
+                    }
+
 
                 jsonResponse.addProperty("success", true);
-
                 jsonResponse.addProperty("message", "Login successful");
-
                 jsonResponse.addProperty("userType", "teacher");
 
-                jsonResponse.addProperty("redirect", "/TPRS/html/supervisor-dashboard.html");
+                jsonResponse.addProperty("redirect", "/html/supervisor-dashboard.html");
 
                 jsonResponse.add("user", gson.toJsonTree(teacher));
 
@@ -299,27 +302,7 @@ public class AuthServlet extends HttpServlet {
 
             
 
-            Student student = studentService.login(email, password);
-
-            if (student != null) {
-
-                jsonResponse.addProperty("success", true);
-
-                jsonResponse.addProperty("message", "Login successful");
-
-                jsonResponse.addProperty("userType", "student");
-
-                jsonResponse.addProperty("redirect", "/TPRS/html/home.html");
-
-                jsonResponse.add("user", gson.toJsonTree(student));
-
-                return;
-
-            }
-
-            
-
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
             jsonResponse.addProperty("success", false);
 
@@ -414,13 +397,55 @@ public class AuthServlet extends HttpServlet {
             }
 
             boolean success = false;
+            String idToken = getJsonString(data, "idToken", null);
+
             if ("student".equals(userType)) {
-                success = studentService.changePassword(userId, oldPassword, newPassword);
+                if (idToken != null && !idToken.isEmpty()) {
+                    try {
+                        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+                        Student s = studentService.getById(userId);
+                        if (s != null && s.getEmail() != null && s.getEmail().equals(decodedToken.getEmail())) {
+                            // Frontend already changed auth in Firebase so we just force sync MySQL DB
+                            success = studentService.forceChangePassword(userId, newPassword);
+                        } else {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            jsonResponse.addProperty("success", false);
+                            jsonResponse.addProperty("message", "Unauthorized token for this account");
+                            return;
+                        }
+                    } catch (Exception e) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        jsonResponse.addProperty("success", false);
+                        jsonResponse.addProperty("message", "Invalid token");
+                        return;
+                    }
+                } else {
+                    success = studentService.changePassword(userId, oldPassword, newPassword);
+                }
             } else if ("teacher".equals(userType)) {
                 success = teacherService.changePassword(userId, oldPassword, newPassword);
             }
 
             if (success) {
+                try {
+                    String updateEmail = null;
+                    if ("student".equals(userType)) {
+                        Student s = studentService.getById(userId);
+                        if (s != null) updateEmail = s.getEmail();
+                    } else if ("teacher".equals(userType)) {
+                        Teacher t = teacherService.getById(userId);
+                        if (t != null) updateEmail = t.getEmail();
+                    }
+                    if (updateEmail != null) {
+                        try {
+                            com.google.firebase.auth.UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(updateEmail);
+                            FirebaseAuth.getInstance().updateUser(new com.google.firebase.auth.UserRecord.UpdateRequest(userRecord.getUid()).setPassword(newPassword));
+                        } catch (Exception ignored) {
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+
                 jsonResponse.addProperty("success", true);
                 jsonResponse.addProperty("message", "Password changed successfully");
             } else {

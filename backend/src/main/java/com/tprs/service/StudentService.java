@@ -1,5 +1,7 @@
 package com.tprs.service;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.UserRecord;
 import com.tprs.dao.StudentDAO;
 import com.tprs.model.Student;
 import com.tprs.util.PasswordUtil;
@@ -90,6 +92,15 @@ public class StudentService {
      * @return true if successful, false otherwise
      */
     public boolean deleteStudent(int id) {
+        Student student = studentDAO.getById(id);
+        if (student != null && student.getEmail() != null) {
+            try {
+                UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(student.getEmail());
+                FirebaseAuth.getInstance().deleteUser(userRecord.getUid());
+            } catch (Exception ignored) {
+                // If the user doesn't exist in Firebase, we ignore and continue deleting from SQL
+            }
+        }
         return studentDAO.delete(id);
     }
     
@@ -107,6 +118,11 @@ public class StudentService {
             return studentDAO.updatePassword(studentId, hashedPassword);
         }
         return false;
+    }
+    
+    public boolean forceChangePassword(int studentId, String newPassword) {
+        String hashedPassword = PasswordUtil.hashPassword(newPassword);
+        return studentDAO.updatePassword(studentId, hashedPassword);
     }
     
     public List<Student> searchStudents(String keyword) {

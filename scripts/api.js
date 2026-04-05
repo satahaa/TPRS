@@ -11,18 +11,32 @@ const TPRSApi = {
     // SETTINGS / CONFIG APIs
     // =====================================================
     
+    _settingsCache: null,
+    
     /**
      * Fetch application settings (departments, sessions, specializations, etc)
      */
     async getSettings() {
+        if (this._settingsCache) return this._settingsCache;
         try {
             const response = await fetch(`${API_BASE_URL}/settings`);
-            return await response.json();
+            this._settingsCache = await response.json();
+            return this._settingsCache;
         } catch (error) {
             console.error('Settings fetch error:', error);
             // Fallback to empty structures to prevent crash if server fails
             return { departments: [], degreeTypes: [], sessions: [], specializations: [] };
         }
+    },
+    
+    async getDegreeName(id) {
+        if (!id) return '';
+        const settings = await this.getSettings();
+        if (settings && settings.degreeTypes) {
+            const match = settings.degreeTypes.find(d => d.id === id || d.name === id);
+            if (match) return match.name;
+        }
+        return id;
     },
 
     /**
@@ -420,6 +434,23 @@ const TPRSApi = {
     // =====================================================
     
     /**
+     * Create a notification
+     */
+    async createNotification(notificationData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/notifications`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(notificationData)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Create notification error:', error);
+            return { success: false, message: 'Failed to create notification.' };
+        }
+    },
+
+    /**
      * Get notifications for a user
      * @param {number} userId - User ID
      * @param {string} userType - 'student' or 'teacher'
@@ -664,10 +695,37 @@ const TPRSApi = {
      */
     async changePassword(userId, userType, oldPassword, newPassword) {
         try {
+            let idToken = null;
+            if (userType === 'student' && typeof firebase !== 'undefined') {
+                try {
+                    let user = firebase.auth().currentUser;
+                    
+                    // If Firebase persistence hasn't loaded or was cleared, use the given password to force sign in context
+                    if (!user) {
+                        const currentUserData = this.getCurrentUser();
+                        if (currentUserData && currentUserData.email) {
+                            const cred = await firebase.auth().signInWithEmailAndPassword(currentUserData.email, oldPassword);
+                            user = cred.user;
+                        } else {
+                            throw new Error("Unable to identify current user email for Firebase Auth");
+                        }
+                    } else {
+                        const credential = firebase.auth.EmailAuthProvider.credential(user.email, oldPassword);
+                        await user.reauthenticateWithCredential(credential);
+                    }
+                    
+                    await user.updatePassword(newPassword);
+                    idToken = await user.getIdToken(true);
+                } catch (fbErr) {
+                    console.error('Firebase password change error:', fbErr);
+                    return { success: false, message: fbErr.message || 'Incorrect old password.' };
+                }
+            }
+
             const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, userType, oldPassword, newPassword })
+                body: JSON.stringify({ userId, userType, oldPassword, newPassword, idToken })
             });
             return await response.json();
         } catch (error) {
@@ -681,7 +739,7 @@ const TPRSApi = {
      */
     requireAuth() {
         if (!this.isLoggedIn()) {
-            window.location.href = '/TPRS/html/login.html';
+            window.location.href = '/html/login.html';
             return false;
         }
         return true;
