@@ -682,6 +682,20 @@ const TPRSApi = {
             return { success: false, message: 'Failed to fetch supervisors.' };
         }
     },
+
+    /**
+     * Get all approved supervisors
+     * @returns {Promise} - API response with supervisors
+     */
+    async getApprovedSupervisors() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/assignments/approved`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get approved supervisors error:', error);
+            return { success: false, message: 'Failed to fetch approved supervisors.' };
+        }
+    },
     
     // =====================================================
     // SESSION MANAGEMENT

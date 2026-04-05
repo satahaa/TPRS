@@ -96,16 +96,42 @@ async function loadDataFromBackend() {
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 10);
 
-            // Populate supervisor filter dynamically from loaded projects
-            const supervisorNames = [...new Set(thesesData.map(t => t.supervisor).filter(s => s && s !== 'N/A'))].sort();
+            // Populate supervisor filter from approved supervisors first, then project data as fallback.
             const supervisorSelect = document.getElementById('supervisorFilter');
             if (supervisorSelect) {
-                supervisorNames.forEach(name => {
-                    const opt = document.createElement('option');
-                    opt.value = name;
-                    opt.textContent = name;
-                    supervisorSelect.appendChild(opt);
-                });
+                const supervisorNames = new Set(
+                    thesesData
+                        .map(t => t.supervisor)
+                        .filter(name => name && name !== 'N/A')
+                );
+
+                try {
+                    const approvedSupervisorsResult = await TPRSApi.getApprovedSupervisors();
+                    if (approvedSupervisorsResult.success && Array.isArray(approvedSupervisorsResult.supervisors)) {
+                        approvedSupervisorsResult.supervisors.forEach(supervisor => {
+                            const fullName = (
+                                supervisor.fullName ||
+                                `${supervisor.firstName || ''} ${supervisor.lastName || ''}`
+                            ).trim();
+                            if (fullName) {
+                                supervisorNames.add(fullName);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.log('Approved supervisors endpoint unavailable, using project supervisors only');
+                }
+
+                // Preserve the default option and rebuild dynamic entries.
+                supervisorSelect.innerHTML = '<option value="">All Supervisors</option>';
+                Array.from(supervisorNames)
+                    .sort((a, b) => a.localeCompare(b))
+                    .forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.textContent = name;
+                        supervisorSelect.appendChild(opt);
+                    });
             }
         }
     } catch (error) {
