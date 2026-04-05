@@ -146,10 +146,10 @@ const TPRSApi = {
                 },
                 body: JSON.stringify({ email })
             });
-            return await parseApiJsonResponse(response, 'Unable to update password policy state.');
+            return await parseApiJsonResponse(response, 'Unable to send password reset email right now.');
         } catch (error) {
             console.warn('Forgot password notify failed:', error.message || error);
-            return { success: false, message: 'Network error while updating reset state.' };
+            return { success: false, message: 'Network error while sending reset email.' };
         }
     },
 

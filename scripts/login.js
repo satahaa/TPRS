@@ -191,20 +191,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                // Send password reset email using Firebase Auth
-                const actionCodeSettings = {
-                    url: window.location.origin + '/html/auth-action.html',
-                    handleCodeInApp: false
-                };
-                await firebase.auth().sendPasswordResetEmail(email, actionCodeSettings);
+                if (successMessage) {
+                    successMessage.textContent = 'Loading...';
+                    successMessage.classList.add('show');
+                    successMessage.style.color = '#b5b5cc';
+                    successMessage.style.marginTop = '10px';
+                    successMessage.style.fontSize = '14px';
+                }
 
-                // Tell backend to disable default supervisor password after reset is initiated.
+                // Ask backend to send custom branded reset email with Firebase action link.
                 if (typeof TPRSApi !== 'undefined' && typeof TPRSApi.notifyForgotPassword === 'function') {
-                    try {
-                        await TPRSApi.notifyForgotPassword(email);
-                    } catch (notifyErr) {
-                        console.warn('Password reset notify warning:', notifyErr);
+                    const resetResponse = await TPRSApi.notifyForgotPassword(email);
+                    if (!resetResponse || !resetResponse.success) {
+                        throw new Error((resetResponse && resetResponse.message) || 'Failed to send reset email.');
                     }
+                } else {
+                    throw new Error('System error: API not loaded properly.');
                 }
                 
                 if (successMessage) {
@@ -218,14 +220,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 console.error('Password reset error:', error);
+                if (successMessage) {
+                    successMessage.classList.remove('show');
+                }
                 if (errorMessage) {
-                    if (error.code === 'auth/user-not-found') {
-                        errorMessage.textContent = 'No account found with this email.';
-                    } else if (error.code === 'auth/invalid-email') {
-                        errorMessage.textContent = 'Please enter a valid email address.';
-                    } else {
-                        errorMessage.textContent = 'Failed to send reset email. Please try again.';
-                    }
+                    errorMessage.textContent = error.message || 'Failed to send reset email. Please try again.';
                     errorMessage.classList.add('show');
                 } else {
                     alert('Failed to send reset email: ' + error.message);

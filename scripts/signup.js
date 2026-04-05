@@ -146,6 +146,7 @@
             const studentFields = document.getElementById('studentFields');
             const teacherFields = document.getElementById('teacherFields');
             const degreeGroup = document.getElementById('degreeGroup');
+            const departmentGroup = document.getElementById('departmentGroup');
             
             const studentIdField = document.getElementById('studentIdField');
             const emailField = document.getElementById('email');
@@ -154,6 +155,7 @@
                 studentFields.style.display = 'none';
                 teacherFields.style.display = 'block';
                 degreeGroup.style.display = 'none';
+                departmentGroup.style.gridColumn = '1 / -1';
                 studentIdField.style.display = 'none';
                 document.getElementById('studentId').removeAttribute('required');
                 
@@ -164,6 +166,7 @@
                 studentFields.style.display = 'block';
                 teacherFields.style.display = 'none';
                 degreeGroup.style.display = 'block';
+                departmentGroup.style.gridColumn = '';
                 studentIdField.style.display = 'block';
                 document.getElementById('studentId').setAttribute('required', '');
                 
@@ -351,15 +354,6 @@
                     }
                 }
                 
-                // 2. Immediately send the verification email
-                if (!userCredential.user.emailVerified) {
-                    const actionCodeSettings = {
-                        url: window.location.origin + '/html/auth-action.html',
-                        handleCodeInApp: false
-                    };
-                    await userCredential.user.sendEmailVerification(actionCodeSettings);
-                }
-                
                 const firebaseUid = userCredential.user.uid;
                 
                 let result;
@@ -409,7 +403,24 @@
                 }
                 
                 if (result.success) {
-                    showSuccess('Account created successfully! Please check your email inbox (and spam folder) to verify your address before logging in. Redirecting...');
+                    let successMsg = result.message || 'Account created successfully! Please check your email inbox (and spam folder) to verify your address before logging in. Redirecting...';
+
+                    // Fallback: if backend custom email fails, send Firebase verification directly
+                    if (result.emailSent === false) {
+                        try {
+                            const actionCodeSettings = {
+                                url: window.location.origin + '/auth-action.html',
+                                handleCodeInApp: false
+                            };
+                            await userCredential.user.sendEmailVerification(actionCodeSettings);
+                            successMsg = 'Account created successfully! Verification email sent. Please check your inbox (and spam folder). Redirecting...';
+                        } catch (verificationErr) {
+                            console.error('Fallback Firebase verification email failed:', verificationErr);
+                            successMsg = result.message || 'Account created successfully, but verification email could not be sent. Please use Resend Verification from login.';
+                        }
+                    }
+
+                    showSuccess(successMsg);
                     submitBtn.textContent = 'Account Created!';
                     
                     // Firebase manages the session instantly. We sign them out so they must login after verification

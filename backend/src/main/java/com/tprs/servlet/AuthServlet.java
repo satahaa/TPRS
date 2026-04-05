@@ -2,6 +2,8 @@ package com.tprs.servlet;
 
 import com.tprs.service.StudentService;
 import com.tprs.service.TeacherService;
+import com.tprs.service.CustomEmailService;
+import com.tprs.service.FirebaseEmailActionService;
 import com.tprs.model.Student;
 import com.tprs.model.Teacher;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,9 +30,12 @@ public class AuthServlet extends HttpServlet {
     
     private StudentService studentService;
     private TeacherService teacherService;
+    private CustomEmailService customEmailService;
+    private FirebaseEmailActionService firebaseEmailActionService;
     private Gson gson;
     private String adminUsername;
     private String adminPassword;
+    private String authActionUrl;
     
     @Override
     public void init() throws ServletException {
@@ -48,9 +53,17 @@ public class AuthServlet extends HttpServlet {
             }
         } catch (IOException e) {
             System.err.println("Warning: Could not load admin credentials: " + e.getMessage());
-            adminUsername = "admin@tprs.com";
-            adminPassword = "admin";
         }
+
+        adminUsername = props.getProperty("admin.username", "admin@tprs.com");
+        adminPassword = props.getProperty("admin.password", "admin");
+        authActionUrl = props.getProperty("app.authActionUrl", "https://34.126.65.182.nip.io/auth-action.html").trim();
+        if (authActionUrl.isEmpty()) {
+            authActionUrl = "https://34.126.65.182.nip.io/auth-action.html";
+        }
+
+        customEmailService = new CustomEmailService(props);
+        firebaseEmailActionService = new FirebaseEmailActionService(authActionUrl);
     }
     
     @Override
@@ -248,6 +261,13 @@ public class AuthServlet extends HttpServlet {
 
                 if (student != null) {
 
+                    if (!emailVerified) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        jsonResponse.addProperty("success", false);
+                        jsonResponse.addProperty("message", "Please verify your email before logging in.");
+                        return;
+                    }
+
                     jsonResponse.addProperty("success", true);
 
                     jsonResponse.addProperty("message", "Login successful");
@@ -387,8 +407,17 @@ response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             boolean success = studentService.register(student);
             
             if (success) {
+                boolean verificationEmailSent = sendCustomVerificationEmail(
+                        student.getEmail(),
+                        student.getFirstName(),
+                        jsonResponse
+                );
                 jsonResponse.addProperty("success", true);
-                jsonResponse.addProperty("message", "Registration successful");
+                if (verificationEmailSent) {
+                    jsonResponse.addProperty("message", "Registration successful. Verification email sent.");
+                } else {
+                    jsonResponse.addProperty("message", "Registration successful, but verification email could not be sent. Please contact support.");
+                }
                 jsonResponse.addProperty("userId", student.getId());
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -552,8 +581,17 @@ response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             boolean success = teacherService.register(teacher);
             
             if (success) {
+                boolean verificationEmailSent = sendCustomVerificationEmail(
+                        teacher.getEmail(),
+                        teacher.getFirstName(),
+                        jsonResponse
+                );
                 jsonResponse.addProperty("success", true);
-                jsonResponse.addProperty("message", "Registration successful");
+                if (verificationEmailSent) {
+                    jsonResponse.addProperty("message", "Registration successful. Verification email sent.");
+                } else {
+                    jsonResponse.addProperty("message", "Registration successful, but verification email could not be sent. Please contact support.");
+                }
                 jsonResponse.addProperty("userId", teacher.getId());
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -569,20 +607,59 @@ response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
     private void handleForgotPasswordInit(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
-        String email = getJsonString(data, "email", "").trim();
-        if (email.isEmpty()) {
+        try {
+            String email = getJsonString(data, "email", "").trim();
+            if (email.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Email is required.");
+                return;
+            }
+            if (!EMAIL_PATTERN.matcher(email).matches()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                jsonResponse.addProperty("success", false);
+                jsonResponse.addProperty("message", "Please enter a valid email address.");
+                return;
+            }
+
+            String firstName = "there";
+            Teacher teacher = teacherService.getByEmail(email);
+            if (teacher != null) {
+                firstName = teacher.getFirstName();
+                teacherService.disableDefaultPasswordByEmail(email);
+            } else {
+                Student student = studentService.getByEmail(email);
+                if (student != null) {
+                    firstName = student.getFirstName();
+                }
+            }
+
+            String actionLink = firebaseEmailActionService.buildResetPasswordActionLink(email);
+            customEmailService.sendResetPasswordEmail(email, firstName, actionLink);
+
+            jsonResponse.addProperty("success", true);
+            jsonResponse.addProperty("message", "Password reset email sent! Please check your inbox.");
+            jsonResponse.addProperty("actionUrl", authActionUrl);
+        } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             jsonResponse.addProperty("success", false);
-            jsonResponse.addProperty("message", "Email is required.");
-            return;
+            jsonResponse.addProperty("message", "Failed to send reset email: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
 
-        Teacher teacher = teacherService.getByEmail(email);
-        if (teacher != null) {
-            teacherService.disableDefaultPasswordByEmail(email);
+    private boolean sendCustomVerificationEmail(String email, String firstName, JsonObject jsonResponse) {
+        try {
+            String actionLink = firebaseEmailActionService.buildVerificationActionLink(email);
+            customEmailService.sendVerificationEmail(email, firstName, actionLink);
+            jsonResponse.addProperty("emailSent", true);
+            jsonResponse.addProperty("actionUrl", authActionUrl);
+            return true;
+        } catch (Exception e) {
+            jsonResponse.addProperty("emailSent", false);
+            jsonResponse.addProperty("emailError", e.getMessage());
+            e.printStackTrace();
+            return false;
         }
-
-        jsonResponse.addProperty("success", true);
-        jsonResponse.addProperty("message", "Password reset state updated.");
     }
 }
