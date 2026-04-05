@@ -159,7 +159,7 @@
                 
                 emailField.removeAttribute('readonly'); 
                 emailField.value = ''; // Let teacher type own email
-                emailField.placeholder = "Enter your email@mbstu.ac.bd";
+                emailField.placeholder = "Enter your email address";
             } else {
                 studentFields.style.display = 'block';
                 teacherFields.style.display = 'none';
@@ -272,7 +272,8 @@
         document.getElementById('email').addEventListener('input', function() {
             const hint = document.getElementById('emailHint');
             const val = this.value.trim();
-            hint.style.display = (val.length > 0 && !val.endsWith('@mbstu.ac.bd')) ? 'block' : 'none';
+            const role = document.getElementById('role').value;
+            hint.style.display = (role === 'student' && val.length > 0 && !val.endsWith('@mbstu.ac.bd')) ? 'block' : 'none';
         });
 
         // Form submission handler
@@ -304,7 +305,7 @@
                 return;
             }
 
-            if (!email.endsWith('@mbstu.ac.bd')) {
+            if (role === 'student' && !email.endsWith('@mbstu.ac.bd')) {
                 showError('Email must end with @mbstu.ac.bd');
                 return;
             }

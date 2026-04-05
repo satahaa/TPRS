@@ -18,11 +18,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 /**
  * Authentication Servlet - Handles login and registration
  */
 public class AuthServlet extends HttpServlet {
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     
     private StudentService studentService;
     private TeacherService teacherService;
@@ -532,10 +534,10 @@ response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             teacher.setFirstName(getJsonString(data, "firstName", ""));
             teacher.setLastName(getJsonString(data, "lastName", ""));
             String teacherEmail = getJsonString(data, "email", "");
-            if (!teacherEmail.endsWith("@mbstu.ac.bd")) {
+            if (!EMAIL_PATTERN.matcher(teacherEmail).matches()) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Email must end with @mbstu.ac.bd");
+                jsonResponse.addProperty("message", "Please enter a valid email address");
                 return;
             }
             teacher.setEmail(teacherEmail);
