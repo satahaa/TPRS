@@ -335,6 +335,7 @@ public class TeacherDAO {
         teacher.setSpecialization(rs.getString("specialization"));
         teacher.setPhone(rs.getString("phone"));
         teacher.setAuthorized(rs.getBoolean("is_authorized"));
+        teacher.setFirebaseUid(rs.getString("firebase_uid"));
         teacher.setCreatedAt(rs.getTimestamp("created_at"));
         teacher.setUpdatedAt(rs.getTimestamp("updated_at"));
         return teacher;

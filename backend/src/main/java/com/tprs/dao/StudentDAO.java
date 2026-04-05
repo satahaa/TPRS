@@ -292,6 +292,7 @@ public class StudentDAO {
         student.setSemester(rs.getString("semester"));
         student.setSession(rs.getString("session"));
         student.setPhone(rs.getString("phone"));
+        student.setFirebaseUid(rs.getString("firebase_uid"));
         student.setCreatedAt(rs.getTimestamp("created_at"));
         student.setUpdatedAt(rs.getTimestamp("updated_at"));
         return student;

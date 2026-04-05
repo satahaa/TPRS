@@ -5,6 +5,47 @@
 
 const API_BASE_URL = '/tprs/api';
 
+const DEFAULT_SETTINGS = {
+    departments: [],
+    degreeTypes: [],
+    sessions: [],
+    specializations: [],
+    keywords: []
+};
+
+async function parseApiJsonResponse(response, fallbackMessage) {
+    const contentType = (response.headers.get('content-type') || '').toLowerCase();
+
+    if (!contentType.includes('application/json')) {
+        if (!response.ok) {
+            return {
+                success: false,
+                message: `Service temporarily unavailable (HTTP ${response.status}). Please try again.`
+            };
+        }
+        return {
+            success: false,
+            message: fallbackMessage || 'Unexpected server response.'
+        };
+    }
+
+    try {
+        const data = await response.json();
+        if (!response.ok) {
+            return {
+                success: false,
+                message: data?.message || `Request failed (HTTP ${response.status}).`
+            };
+        }
+        return data;
+    } catch (e) {
+        return {
+            success: false,
+            message: fallbackMessage || 'Invalid server response.'
+        };
+    }
+}
+
 const TPRSApi = {
     
     // =====================================================
@@ -20,12 +61,25 @@ const TPRSApi = {
         if (this._settingsCache) return this._settingsCache;
         try {
             const response = await fetch(`${API_BASE_URL}/settings`);
-            this._settingsCache = await response.json();
+            if (!response.ok) {
+                throw new Error(`Settings endpoint returned HTTP ${response.status}`);
+            }
+
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.toLowerCase().includes('application/json')) {
+                throw new Error(`Settings endpoint returned non-JSON content-type: ${contentType || 'unknown'}`);
+            }
+
+            const parsed = await response.json();
+            this._settingsCache = {
+                ...DEFAULT_SETTINGS,
+                ...(parsed || {})
+            };
             return this._settingsCache;
         } catch (error) {
-            console.error('Settings fetch error:', error);
-            // Fallback to empty structures to prevent crash if server fails
-            return { departments: [], degreeTypes: [], sessions: [], specializations: [] };
+            console.warn('Settings unavailable, using safe fallback:', error.message || error);
+            this._settingsCache = { ...DEFAULT_SETTINGS };
+            return this._settingsCache;
         }
     },
     
@@ -67,19 +121,35 @@ const TPRSApi = {
      * @param {string} password - User password
      * @returns {Promise} - API response with userType and redirect
      */
-    async loginWithToken(idToken) {
+    async loginWithToken(idToken, password = null) {
         try {
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ idToken })
+                body: JSON.stringify({ idToken, password })
             });
-            return await response.json();
+            return await parseApiJsonResponse(response, 'Unable to complete login right now.');
         } catch (error) {
-            console.error("Login token error:", error);
-            return { success: false, message: "Network error." };
+            console.warn('Login token request failed:', error.message || error);
+            return { success: false, message: 'Network error. Please check your connection.' };
+        }
+    },
+
+    async notifyForgotPassword(email) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/forgot-password-init`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
+            });
+            return await parseApiJsonResponse(response, 'Unable to update password policy state.');
+        } catch (error) {
+            console.warn('Forgot password notify failed:', error.message || error);
+            return { success: false, message: 'Network error while updating reset state.' };
         }
     },
 
@@ -92,9 +162,9 @@ const TPRSApi = {
                 },
                 body: JSON.stringify({ email, password })
             });
-            return await response.json();
+            return await parseApiJsonResponse(response, 'Unable to complete login right now.');
         } catch (error) {
-            console.error('Login error:', error);
+            console.warn('Login request failed:', error.message || error);
             return { success: false, message: 'Network error. Please check your connection.' };
         }
     },

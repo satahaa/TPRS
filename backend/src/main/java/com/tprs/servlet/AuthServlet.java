@@ -128,6 +128,8 @@ public class AuthServlet extends HttpServlet {
                 handleTeacherRegistration(requestData, jsonResponse, response);
             } else if ("/change-password".equals(pathInfo)) {
                 handleChangePassword(requestData, jsonResponse, response);
+            } else if ("/forgot-password-init".equals(pathInfo)) {
+                handleForgotPasswordInit(requestData, jsonResponse, response);
             } else {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 jsonResponse.addProperty("success", false);
@@ -152,24 +154,37 @@ public class AuthServlet extends HttpServlet {
             if (data.has("idToken")) {
 
                 String idToken = data.get("idToken").getAsString();
+                String providedPassword = getJsonString(data, "password", "");
 
                 FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
 
                 String email = decodedToken.getEmail();
 
-                
+                boolean emailVerified = decodedToken.isEmailVerified();
 
-                if (!decodedToken.isEmailVerified()) {
-
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-
-                    jsonResponse.addProperty("success", false);
-
-                    jsonResponse.addProperty("message", "Email not verified.");
-
-                    return;
-
+                // Token claims can be stale immediately after verification; confirm from Firebase user record.
+                if (!emailVerified) {
+                    try {
+                        com.google.firebase.auth.UserRecord userRecord =
+                                FirebaseAuth.getInstance().getUser(decodedToken.getUid());
+                        emailVerified = userRecord.isEmailVerified();
+                    } catch (Exception uidLookupErr) {
+                        // Fallback to email lookup in case UID lookup fails due stale/mismatched token context.
+                        try {
+                            if (email != null && !email.isEmpty()) {
+                                com.google.firebase.auth.UserRecord emailRecord =
+                                        FirebaseAuth.getInstance().getUserByEmail(email);
+                                emailVerified = emailRecord.isEmailVerified();
+                            }
+                        } catch (Exception ignored) {
+                            // Final behavior still rejects as unverified when verification cannot be confirmed.
+                        }
+                    }
                 }
+
+                // Do not hard-block login on emailVerified here.
+                // Token validity is already enforced by verifyIdToken, and Firebase client-side checks
+                // can lag after verification events in some environments.
 
                 
 
@@ -191,6 +206,24 @@ public class AuthServlet extends HttpServlet {
 
                         return;
 
+                    }
+
+                    boolean usingDefaultPassword = teacherService.isUsingDefaultPassword(teacher);
+                    if (!emailVerified) {
+                        if (!("csembstu".equals(providedPassword) && usingDefaultPassword)) {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            jsonResponse.addProperty("success", false);
+                            jsonResponse.addProperty("message", "Unverified supervisors can only login with the default password.");
+                            return;
+                        }
+                    } else {
+                        if ("csembstu".equals(providedPassword) || usingDefaultPassword) {
+                            teacherService.disableDefaultPasswordByEmail(email);
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            jsonResponse.addProperty("success", false);
+                            jsonResponse.addProperty("message", "Default password is no longer valid. Please use your updated password.");
+                            return;
+                        }
                     }
 
                     jsonResponse.addProperty("success", true);
@@ -423,7 +456,33 @@ response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     success = studentService.changePassword(userId, oldPassword, newPassword);
                 }
             } else if ("teacher".equals(userType)) {
-                success = teacherService.changePassword(userId, oldPassword, newPassword);
+                if ("csembstu".equals(newPassword)) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    jsonResponse.addProperty("success", false);
+                    jsonResponse.addProperty("message", "\"csembstu\" cannot be used as a new password.");
+                    return;
+                }
+                if (idToken != null && !idToken.isEmpty()) {
+                    try {
+                        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+                        Teacher t = teacherService.getById(userId);
+                        if (t != null && t.getEmail() != null && t.getEmail().equals(decodedToken.getEmail())) {
+                            success = teacherService.forceChangePassword(userId, newPassword);
+                        } else {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            jsonResponse.addProperty("success", false);
+                            jsonResponse.addProperty("message", "Unauthorized token for this account");
+                            return;
+                        }
+                    } catch (Exception e) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        jsonResponse.addProperty("success", false);
+                        jsonResponse.addProperty("message", "Invalid token");
+                        return;
+                    }
+                } else {
+                    success = teacherService.changePassword(userId, oldPassword, newPassword);
+                }
             }
 
             if (success) {
@@ -505,5 +564,23 @@ response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             jsonResponse.addProperty("message", "Invalid registration data: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void handleForgotPasswordInit(JsonObject data, JsonObject jsonResponse, HttpServletResponse response) {
+        String email = getJsonString(data, "email", "").trim();
+        if (email.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            jsonResponse.addProperty("success", false);
+            jsonResponse.addProperty("message", "Email is required.");
+            return;
+        }
+
+        Teacher teacher = teacherService.getByEmail(email);
+        if (teacher != null) {
+            teacherService.disableDefaultPasswordByEmail(email);
+        }
+
+        jsonResponse.addProperty("success", true);
+        jsonResponse.addProperty("message", "Password reset state updated.");
     }
 }

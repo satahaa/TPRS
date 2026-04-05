@@ -106,9 +106,9 @@
             border: 2px solid #585876;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 9999;
             max-height: 180px;
             overflow-y: auto;
-            z-index: 100;
         }
 
         .suggestion-item {
@@ -498,3 +498,5 @@
                 font-size: 1rem;
             }
         }
+.suggestion-box::-webkit-scrollbar { display: none; } .suggestion-box { -ms-overflow-style: none; scrollbar-width: none; }
+.suggestion-item.active { background-color: #f1f5f9; color: #333; }

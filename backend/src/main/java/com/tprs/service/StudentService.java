@@ -93,12 +93,31 @@ public class StudentService {
      */
     public boolean deleteStudent(int id) {
         Student student = studentDAO.getById(id);
-        if (student != null && student.getEmail() != null) {
-            try {
-                UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(student.getEmail());
-                FirebaseAuth.getInstance().deleteUser(userRecord.getUid());
-            } catch (Exception ignored) {
-                // If the user doesn't exist in Firebase, we ignore and continue deleting from SQL
+        if (student != null) {
+            String uid = student.getFirebaseUid();
+            if (uid == null || uid.trim().isEmpty()) {
+                try {
+                    if (student.getEmail() != null) {
+                        UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(student.getEmail());
+                        uid = userRecord.getUid();
+                    }
+                } catch (Exception e) {
+                    System.err.println("Could not find Firebase user by email: " + e.getMessage());
+                }
+            }
+            
+            if (uid != null && !uid.trim().isEmpty()) {
+                try {
+                    FirebaseAuth.getInstance().deleteUser(uid);
+                } catch (com.google.firebase.auth.FirebaseAuthException e) {
+                    if (!"user-not-found".equals(e.getErrorCode())) {
+                        System.err.println("Firebase Auth Error: " + e.getMessage());
+                        return false;
+                    }
+                } catch (Exception e) {
+                    System.err.println("Unexpected error deleting from Firebase: " + e.getMessage());
+                    return false;
+                }
             }
         }
         return studentDAO.delete(id);

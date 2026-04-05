@@ -105,18 +105,43 @@
         const keywords = [];
         const keywordsContainer = document.getElementById('keywordsContainer');
         const keywordInput = document.getElementById('keywordInput');
+        const fallbackKeywords = [
+            'Machine Learning',
+            'Deep Learning',
+            'Artificial Intelligence',
+            'Computer Vision',
+            'Natural Language Processing',
+            'Blockchain',
+            'Internet of Things',
+            'Data Science',
+            'Cybersecurity',
+            'Software Engineering',
+            'Cloud Computing',
+            'Web Development'
+        ];
         let baseKeywords = [];
-        let approvedKeywords = [...baseKeywords];
+        let approvedKeywords = [...fallbackKeywords];
+        let kwActiveIndex = -1;
 
         // Load additional keywords from approved projects
-        (async function loadApprovedKeywords() {
+        // Load additional keywords from settings and approved projects
+        (async function loadAllKeywords() {
             try {
+                const settings = await TPRSApi.getSettings();
+                if (settings && Array.isArray(settings.keywords) && settings.keywords.length > 0) {
+                    baseKeywords = [...settings.keywords];
+                } else {
+                    baseKeywords = [...fallbackKeywords];
+                }
+                
+                const kwSet = new Set(baseKeywords.map(k => k.toLowerCase()));
+                approvedKeywords = [...baseKeywords];
+                
                 const result = await TPRSApi.getProjects({ status: 'approved' });
                 if (result.success && result.projects) {
-                    const kwSet = new Set(baseKeywords.map(k => k.toLowerCase()));
                     result.projects.forEach(p => {
                         if (p.keywords) {
-                            p.keywords.split(',').forEach(k => {
+                            p.keywords.split(",").forEach(k => {
                                 const trimmed = k.trim();
                                 if (trimmed && !kwSet.has(trimmed.toLowerCase())) {
                                     kwSet.add(trimmed.toLowerCase());
@@ -125,9 +150,12 @@
                             });
                         }
                     });
-                    approvedKeywords.sort();
                 }
-            } catch(e) { /* ignore */ }
+                approvedKeywords.sort();
+            } catch(e) {
+                console.error("Error loading keywords", e);
+                approvedKeywords = [...fallbackKeywords].sort();
+            }
         })();
 
         // Create suggestion dropdown
@@ -142,15 +170,23 @@
             if (!val) { kwSuggestBox.style.display = 'none'; return; }
             const matches = approvedKeywords.filter(k => k.toLowerCase().includes(val) && !keywords.includes(k)).slice(0, 8);
             if (matches.length === 0) { kwSuggestBox.style.display = 'none'; return; }
-            kwSuggestBox.innerHTML = matches.map(m => 
-                '<div class="suggestion-item" onmousedown="selectSuggestedKeyword(\'' + m.replace(/'/g, "\\'") + '\')">' + m + '</div>'
+            kwActiveIndex = 0;
+            
+            kwSuggestBox.innerHTML = matches.map((m, i) =>
+                `<div class="suggestion-item${i === 0 ? ' active' : ''}" onmousedown="selectSuggestedKeyword('${String(m).replace(/'/g, "\\'")}')">${m}</div>`
             ).join('');
+
             kwSuggestBox.style.display = 'block';
         });
 
         keywordInput.addEventListener('blur', function() {
             setTimeout(() => { kwSuggestBox.style.display = 'none'; }, 200);
         });
+
+        function updateKwSuggestHighlight(items) {
+            items.forEach(el => el.classList.remove("active"));
+            if (items[kwActiveIndex]) items[kwActiveIndex].classList.add("active");
+        }
 
         function selectSuggestedKeyword(kw) {
             if (kw && !keywords.includes(kw)) {
@@ -162,6 +198,27 @@
         }
 
         keywordInput.addEventListener('keydown', function(e) {
+            const items = kwSuggestBox.querySelectorAll(".suggestion-item");
+            if (kwSuggestBox.style.display === "block" && items.length > 0) {
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    if (kwActiveIndex < items.length - 1) kwActiveIndex++;
+                    updateKwSuggestHighlight(items);
+                    return;
+                } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    if (kwActiveIndex > 0) kwActiveIndex--;
+                    updateKwSuggestHighlight(items);
+                    return;
+                } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (kwActiveIndex >= 0 && kwActiveIndex < items.length) {
+                        const kw = items[kwActiveIndex].innerText;
+                        selectSuggestedKeyword(kw);
+                    }
+                    return;
+                }
+            }
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const keyword = this.value.trim();
@@ -194,7 +251,6 @@
             renderKeywords();
         }
 
-        // Co-authors functionality
         let coAuthorCount = 0;
         const coAuthorsList = document.getElementById('coAuthorsList');
         const addCoAuthorBtn = document.getElementById('addCoAuthorBtn');
@@ -241,7 +297,6 @@
             }
         }
 
-        // File upload functionality
         const fileUploadArea = document.getElementById('fileUploadArea');
         const fileInput = document.getElementById('fileInput');
         const selectedFile = document.getElementById('selectedFile');

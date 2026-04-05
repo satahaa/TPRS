@@ -39,54 +39,51 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.classList.remove('show');
 
             try {
-                // Determine if we should attempt a direct backend login first (for Admin / Legacy)
-                let isBackendLogin = false;
-                let response = null;
-
-                // Try direct backend login first to cleanly support the admin account
-                try {
+                // Admin login is backend-only. Non-admin users use Firebase + token login.
+                if (email.toLowerCase() === 'admin@tprs.com') {
                     if (typeof TPRSApi !== 'undefined' && typeof TPRSApi.login === 'function') {
-                        response = await TPRSApi.login(email, password);
-                    }
-                } catch (e) {
-                    console.warn("Direct backend login check failed:", e);
-                }
-
-                if (response) {
-                    if (response.success) {
-                        isBackendLogin = true;
-                    } else if (response.isAdminEmail || email === 'admin@tprs.com' || response.isTeacherError) {
-                        // The email strictly matches the admin email in backend configuration, 
-                        // but password was wrong, or network failed. Do not invoke Firebase. Break immediately.
-                        // Or it's a teacher who provided correct backend password but isn't authorized.
-                        errorMessage.textContent = response.message || 'Incorrect Credentials';
+                        const adminResponse = await TPRSApi.login(email, password);
+                        if (adminResponse && adminResponse.success) {
+                            if (adminResponse.user) {
+                                TPRSApi.saveSession(adminResponse.user, adminResponse.userType || 'admin');
+                            }
+                            window.location.href = adminResponse.redirect || '/html/admin-dashboard.html';
+                            return;
+                        }
+                        errorMessage.textContent = (adminResponse && adminResponse.message) || 'Invalid admin credentials.';
                         errorMessage.classList.add('show');
                         submitBtn.innerHTML = originalBtnHtml;
                         submitBtn.disabled = false;
                         return;
                     }
+                    errorMessage.textContent = 'System error: API not loaded properly.';
+                    errorMessage.classList.add('show');
+                    submitBtn.innerHTML = originalBtnHtml;
+                    submitBtn.disabled = false;
+                    return;
                 }
 
-                if (isBackendLogin) {
-                    // Handled entirely by the backend (e.g. Admin)
-                    if (response.user) {
-                        TPRSApi.saveSession(response.user, response.userType || 'admin');
+                // For supervisor bootstrap flow, allow backend login with default password
+                // if Firebase credentials are out of sync.
+                if (password === 'csembstu' && typeof TPRSApi !== 'undefined' && typeof TPRSApi.login === 'function') {
+                    const legacyResponse = await TPRSApi.login(email, password);
+                    if (legacyResponse && legacyResponse.success && legacyResponse.userType === 'teacher') {
+                        if (legacyResponse.user) {
+                            TPRSApi.saveSession(legacyResponse.user, 'teacher');
+                        }
+                        window.location.href = legacyResponse.redirect || '/html/supervisor-dashboard.html';
+                        return;
                     }
-                    if (response.redirect) {
-                        window.location.href = response.redirect;
-                    } else {
-                        window.location.href = '/html/admin-dashboard.html';
-                    }
-                    return;
                 }
 
                 // Normal logic: Authenticate with Firebase first
                 const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-                const idToken = await userCredential.user.getIdToken();
+                await userCredential.user.reload();
+                const idToken = await userCredential.user.getIdToken(true);
                 
                 // 2. Send the idToken to the Java backend via api.js
                 if (typeof TPRSApi !== 'undefined' && typeof TPRSApi.loginWithToken === 'function') {
-                    const response = await TPRSApi.loginWithToken(idToken);
+                    const response = await TPRSApi.loginWithToken(idToken, password);
                     
                     if (response && response.success) {
                         // 3. Save the session!
@@ -124,6 +121,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (err) {
                 console.error("Login process error:", err);
+
+                // If Firebase rejects credentials, try backend fallback for default supervisor password.
+                if ((err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found')
+                    && password === 'csembstu'
+                    && typeof TPRSApi !== 'undefined'
+                    && typeof TPRSApi.login === 'function') {
+                    try {
+                        const fallbackResponse = await TPRSApi.login(email, password);
+                        if (fallbackResponse && fallbackResponse.success && fallbackResponse.userType === 'teacher') {
+                            if (fallbackResponse.user) {
+                                TPRSApi.saveSession(fallbackResponse.user, 'teacher');
+                            }
+                            window.location.href = fallbackResponse.redirect || '/html/supervisor-dashboard.html';
+                            return;
+                        }
+                    } catch (fallbackErr) {
+                        console.warn('Supervisor fallback login failed:', fallbackErr);
+                    }
+                }
                 
                 // Handle Firebase-specific errors gracefully
                 if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
@@ -165,6 +181,15 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Send password reset email using Firebase Auth
                 await firebase.auth().sendPasswordResetEmail(email);
+
+                // Tell backend to disable default supervisor password after reset is initiated.
+                if (typeof TPRSApi !== 'undefined' && typeof TPRSApi.notifyForgotPassword === 'function') {
+                    try {
+                        await TPRSApi.notifyForgotPassword(email);
+                    } catch (notifyErr) {
+                        console.warn('Password reset notify warning:', notifyErr);
+                    }
+                }
                 
                 if (successMessage) {
                     successMessage.textContent = 'Password reset email sent! Please check your inbox.';

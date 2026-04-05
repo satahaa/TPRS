@@ -1,7 +1,26 @@
 // --- Extracted from /html/signup.html ---
 // ===== Multi-tag Specialization =====
+        let specActiveIndex = -1;
         let specTags = [];
-        let specSuggestions = [];
+        const fallbackSpecializations = [
+            'Machine Learning',
+            'Deep Learning',
+            'Artificial Intelligence',
+            'Neural Network',
+            'Natural Language Processing',
+            'Computer Vision',
+            'Data Mining',
+            'Big Data',
+            'Cloud Computing',
+            'Internet of Things',
+            'Blockchain',
+            'Cybersecurity',
+            'Software Engineering',
+            'Web Development',
+            'Database Systems',
+            'Algorithm Design'
+        ];
+        let specSuggestions = [...fallbackSpecializations];
         const specSuggestBox = document.getElementById('specSuggestions');
 
         document.getElementById('specInput').addEventListener('input', function() {
@@ -9,8 +28,9 @@
             if (!val) { specSuggestBox.style.display = 'none'; return; }
             const matches = specSuggestions.filter(s => s.toLowerCase().includes(val) && !specTags.includes(s)).slice(0, 8);
             if (matches.length === 0) { specSuggestBox.style.display = 'none'; return; }
-            specSuggestBox.innerHTML = matches.map(m =>
-                '<div class="suggestion-item" onmousedown="selectSpecSuggestion(\'' + m.replace(/'/g, "\\'") + '\')">' + m + '</div>'
+            specActiveIndex = 0;
+            specSuggestBox.innerHTML = matches.map((m, i) =>
+                `<div class="suggestion-item${i === 0 ? ' active' : ''}" onmousedown="selectSpecSuggestion('${m.replace(/'/g, "\\'")}')">${m}</div>`
             ).join('');
             specSuggestBox.style.display = 'block';
         });
@@ -28,7 +48,33 @@
             specSuggestBox.style.display = 'none';
         }
 
+        function updateSpecSuggestHighlight(items) {
+            items.forEach(el => el.classList.remove("active"));
+            if (items[specActiveIndex]) items[specActiveIndex].classList.add("active");
+        }
+
         function handleSpecKeydown(e) {
+            const items = specSuggestBox.querySelectorAll(".suggestion-item");
+            if (specSuggestBox.style.display === "block" && items.length > 0) {
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    if (specActiveIndex < items.length - 1) specActiveIndex++;
+                    updateSpecSuggestHighlight(items);
+                    return;
+                } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    if (specActiveIndex > 0) specActiveIndex--;
+                    updateSpecSuggestHighlight(items);
+                    return;
+                } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (specActiveIndex >= 0 && specActiveIndex < items.length) {
+                        const kw = items[specActiveIndex].innerText;
+                        selectSpecSuggestion(kw);
+                    }
+                    return;
+                }
+            }
             const input = e.target;
             if (e.key === 'Enter' || e.key === ',') {
                 e.preventDefault();
@@ -207,6 +253,7 @@
             successMessage.classList.remove('show');
             errorText.textContent = message;
             errorMessage.classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Show success message
@@ -218,6 +265,7 @@
             errorMessage.classList.remove('show');
             successText.textContent = message;
             successMessage.classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Show email domain hint when user types a non-matching email
@@ -435,8 +483,10 @@
             }
 
             // Set Specialization Suggestions
-            if (settings.specializations) {
+            if (settings && Array.isArray(settings.specializations) && settings.specializations.length > 0) {
                 specSuggestions = settings.specializations;
+            } else {
+                specSuggestions = [...fallbackSpecializations];
             }
 
             // Initialize UI
@@ -446,4 +496,11 @@
         }
         
         // Run initialized tasks when DOM loads
-        window.addEventListener('DOMContentLoaded', initPage);
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initPage();
+            } catch (e) {
+                console.error('Signup init failed, using fallback specializations', e);
+                specSuggestions = [...fallbackSpecializations];
+            }
+        });
