@@ -23,6 +23,70 @@
         let specSuggestions = [...fallbackSpecializations];
         const specSuggestBox = document.getElementById('specSuggestions');
 
+        function loadExternalScript(src) {
+            return new Promise((resolve, reject) => {
+                const existing = Array.from(document.getElementsByTagName('script'))
+                    .find(s => (s.src || '').includes(src));
+                if (existing) {
+                    if (existing.dataset.loaded === 'true') {
+                        resolve();
+                        return;
+                    }
+                    existing.addEventListener('load', () => resolve(), { once: true });
+                    existing.addEventListener('error', () => reject(new Error('Failed to load ' + src)), { once: true });
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = true;
+                script.onload = () => {
+                    script.dataset.loaded = 'true';
+                    resolve();
+                };
+                script.onerror = () => reject(new Error('Failed to load ' + src));
+                document.head.appendChild(script);
+            });
+        }
+
+        async function ensureFirebaseAuthReady() {
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                if (typeof window.initializeFirebaseApp === 'function') {
+                    window.initializeFirebaseApp();
+                }
+                return true;
+            }
+
+            const fallbackBundles = [
+                [
+                    'https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-app-compat.js',
+                    'https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-auth-compat.js'
+                ],
+                [
+                    'https://unpkg.com/firebase@10.7.1/firebase-app-compat.js',
+                    'https://unpkg.com/firebase@10.7.1/firebase-auth-compat.js'
+                ]
+            ];
+
+            for (const bundle of fallbackBundles) {
+                try {
+                    for (const src of bundle) {
+                        await loadExternalScript(src);
+                    }
+                    if (typeof window.initializeFirebaseApp === 'function') {
+                        window.initializeFirebaseApp();
+                    }
+                    if (typeof firebase !== 'undefined' && firebase.auth) {
+                        return true;
+                    }
+                } catch (err) {
+                    console.warn('Firebase fallback bundle failed:', bundle, err);
+                }
+            }
+
+            return false;
+        }
+
         document.getElementById('specInput').addEventListener('input', function() {
             const val = this.value.trim().toLowerCase();
             if (!val) { specSuggestBox.style.display = 'none'; return; }
@@ -333,6 +397,14 @@
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.textContent = 'Creating Account...';
             submitBtn.disabled = true;
+
+            const firebaseReady = await ensureFirebaseAuthReady();
+            if (!firebaseReady) {
+                showError('Signup is temporarily unavailable because the authentication service could not be loaded. Please check your internet or try again in a moment.');
+                submitBtn.textContent = 'Create Account';
+                submitBtn.disabled = false;
+                return;
+            }
             
             try {
                 let userCredential;

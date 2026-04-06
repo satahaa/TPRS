@@ -9,7 +9,13 @@ const firebaseConfig = {
   measurementId: "G-BQFXFN1LSL"
 };
 
+  // Expose config and initializer for pages that need runtime SDK fallback loading.
+  window.firebaseConfig = firebaseConfig;
+  window.initializeFirebaseApp = function initializeFirebaseApp() {
+    if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+      firebase.initializeApp(firebaseConfig);
+    }
+  };
+
 // Initialize Firebase App
-if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
-    firebase.initializeApp(firebaseConfig);
-}
+  window.initializeFirebaseApp();
