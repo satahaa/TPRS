@@ -7,7 +7,9 @@ import com.tprs.service.FirebaseEmailActionService;
 import com.tprs.model.Student;
 import com.tprs.model.Teacher;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.google.firebase.auth.UserRecord;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -20,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -623,15 +626,29 @@ response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             }
 
             String firstName = "there";
+            boolean isKnownLocalUser = false;
             Teacher teacher = teacherService.getByEmail(email);
             if (teacher != null) {
                 firstName = teacher.getFirstName();
+                isKnownLocalUser = true;
                 teacherService.disableDefaultPasswordByEmail(email);
             } else {
                 Student student = studentService.getByEmail(email);
                 if (student != null) {
                     firstName = student.getFirstName();
+                    isKnownLocalUser = true;
                 }
+            }
+
+            // For legacy accounts that exist in local DB but not Firebase yet, create a Firebase user
+            // so they can reset password and continue without re-registering.
+            if (isKnownLocalUser) {
+                ensureFirebaseUserExists(email);
+            } else {
+                // Avoid account enumeration while keeping UX consistent.
+                jsonResponse.addProperty("success", true);
+                jsonResponse.addProperty("message", "If the account exists, a reset email has been sent.");
+                return;
             }
 
             String actionLink = firebaseEmailActionService.buildResetPasswordActionLink(email);
@@ -645,6 +662,28 @@ response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             jsonResponse.addProperty("success", false);
             jsonResponse.addProperty("message", "Failed to send reset email: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void ensureFirebaseUserExists(String email) throws Exception {
+        try {
+            FirebaseAuth.getInstance().getUserByEmail(email);
+        } catch (FirebaseAuthException e) {
+            if (e.getAuthErrorCode() != null && "USER_NOT_FOUND".equals(e.getAuthErrorCode().name())) {
+                String temporaryPassword = "Tmp#" + UUID.randomUUID().toString().replace("-", "") + "Aa1";
+                if (temporaryPassword.length() > 72) {
+                    temporaryPassword = temporaryPassword.substring(0, 72);
+                }
+
+                UserRecord.CreateRequest req = new UserRecord.CreateRequest()
+                        .setEmail(email)
+                        .setPassword(temporaryPassword)
+                        .setEmailVerified(false)
+                        .setDisabled(false);
+                FirebaseAuth.getInstance().createUser(req);
+            } else {
+                throw e;
+            }
         }
     }
 
